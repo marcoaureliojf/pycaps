@@ -51,3 +51,7 @@ class EmojiEffectOptions:
     chance_to_apply: float = 0.5
     css_rules: str = ""
     align: str = "random" # "bottom", "top", or "random"
+    fade_in_duration: float = 0.1
+    fade_out_duration: float = 0.1
+    start_delay: float = 0.0
+    hide_before_end: float = 0.0

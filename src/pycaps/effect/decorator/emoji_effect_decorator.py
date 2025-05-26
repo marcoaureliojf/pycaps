@@ -15,6 +15,7 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# TODO: instead of using a LLM to get the emoji, we should use embeddings to get the most similar emoji to the segment text
 class EmojiEffectDecorator(BaseEffectGenerator):
     '''
     Decorator that adds a context emoji for each segment.
@@ -47,7 +48,7 @@ class EmojiEffectDecorator(BaseEffectGenerator):
             emoji_clip: VideoClip = self.__generate_emoji_clip(emoji, segment_data)
             emoji_layout = self.__get_emoji_layout(video_clip, emoji_clip, segment_data.layout)
             emoji_clip = emoji_clip.set_position((emoji_layout.x, emoji_layout.y))
-            word_data = WordData(text=emoji, start=segment_data.start, end=segment_data.end)
+            word_data = WordData(text=emoji, start=emoji_clip.start, end=emoji_clip.end)
             word_clip_data = WordClipData(word=word_data, layout=emoji_layout, clips=[emoji_clip])
             line_clip_data = LineClipData(words=[word_clip_data], layout=emoji_layout)
             segment_data.lines.append(line_clip_data)
@@ -74,10 +75,14 @@ class EmojiEffectDecorator(BaseEffectGenerator):
         emoji_image = self.renderer.render(emoji, self.EMOJI_STYLE_KEY)
         pil_image = Image.open(io.BytesIO(emoji_image.image)).convert("RGBA")
         np_image = np.array(pil_image)
+        start_time = segment.start + self.options.start_delay
+        end_time = segment.end - self.options.hide_before_end
         return (
             ImageClip(np_image)
-            .set_start(segment.start)
-            .set_duration(segment.end - segment.start)
+            .set_start(start_time)
+            .set_duration(end_time - start_time)
+            .crossfadein(self.options.fade_in_duration)
+            .crossfadeout(self.options.fade_out_duration)
         )
     
     def __get_emoji_layout(self, container_clip: VideoClip, emoji_clip: VideoClip, segment_layout: ElementLayout) -> ElementLayout:
