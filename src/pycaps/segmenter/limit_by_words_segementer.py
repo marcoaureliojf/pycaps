@@ -2,7 +2,7 @@ from .base_segmenter import BaseSegmenter
 from typing import List
 from ..models import TranscriptionSegment
 
-class LimitWordsSegmenter(BaseSegmenter):
+class LimitByWordsSegmenter(BaseSegmenter):
     """
     A segmenter that limits the number of words in each segment.
     It will divide each segment received into chunks of a maximum of `limit` words.

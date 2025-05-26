@@ -14,6 +14,6 @@ from .models import (
     EmojiEffectOptions,
     VerticalAlignment
 ) # Exponer data classes
-from .segmenter import LimitWordsSegmenter
+from .segmenter import LimitByWordsSegmenter
 
 __version__ = "0.1.0" 
