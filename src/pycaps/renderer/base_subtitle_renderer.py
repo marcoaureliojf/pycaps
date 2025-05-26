@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ..models import SubtitleImage
+from ..models import RenderedSubtitle
 
 class BaseSubtitleRenderer(ABC):
     @abstractmethod
@@ -13,7 +13,7 @@ class BaseSubtitleRenderer(ABC):
         pass
 
     @abstractmethod
-    def render(self, text: str, style_type: str) -> SubtitleImage:
+    def render(self, text: str, style_type: str) -> RenderedSubtitle:
         """
         Renders a text fragment with a specific style.
 

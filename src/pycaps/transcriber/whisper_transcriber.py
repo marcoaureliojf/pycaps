@@ -1,6 +1,6 @@
 from .base_transcriber import AudioTranscriber
 from typing import List, Optional
-from ..models import TranscriptionSegment, WordTiming
+from ..models import TranscriptionSegment, WordData
 import whisper
 
 class WhisperAudioTranscriber(AudioTranscriber):
@@ -43,7 +43,7 @@ class WhisperAudioTranscriber(AudioTranscriber):
             return []
 
         for segment_info in result["segments"]:
-            word_timings: List[WordTiming] = []
+            word_timings: List[WordData] = []
             if not "words" in segment_info or not isinstance(segment_info["words"], list):
                 print(f"Segment '{segment_info['text']}' has no detailed word data.")
                 continue
@@ -53,8 +53,8 @@ class WhisperAudioTranscriber(AudioTranscriber):
                 word_text = str(word_entry["word"]).strip()
                 if not word_text: # Skip empty words if any
                     continue
-                word_timings.append(WordTiming(
-                    word=word_text,
+                word_timings.append(WordData(
+                    text=word_text,
                     start=float(word_entry["start"]),
                     end=float(word_entry["end"])
                 ))

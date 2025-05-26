@@ -34,7 +34,7 @@ class LimitWordsSegmenter(BaseSegmenter):
                 continue
 
             new_segment = TranscriptionSegment(
-                text=" ".join([word.word for word in current_words]),
+                text=" ".join([word.text for word in current_words]),
                 start=current_words[0].start,
                 end=current_words[-1].end,
                 words=current_words

@@ -3,7 +3,7 @@ from playwright.sync_api import sync_playwright, Page, Browser, Playwright
 from pathlib import Path
 import tempfile
 from typing import Optional
-from ..models import SubtitleImage
+from ..models import RenderedSubtitle
 
 class CssSubtitleRenderer(BaseSubtitleRenderer):
 
@@ -108,7 +108,7 @@ class CssSubtitleRenderer(BaseSubtitleRenderer):
         """
         self.page.evaluate(script, [text, f'style-{style_key}'])
 
-    def render(self, text: str, style_type: str) -> SubtitleImage:
+    def render(self, text: str, style_type: str) -> RenderedSubtitle:
         if not self.page:
             raise RuntimeError("Renderer is not open open() with video dimensions first.")
 
@@ -126,7 +126,7 @@ class CssSubtitleRenderer(BaseSubtitleRenderer):
             img_height = max(1, int(bounding_box['height']))
 
             png_bytes = locator.screenshot(omit_background=True, type="png")
-            return SubtitleImage(png_bytes, img_width, img_height)
+            return RenderedSubtitle(png_bytes, img_width, img_height)
         except Exception as e:
             raise RuntimeError(f"Error rendering '{text}' with style '{style_type}': {e}")
 

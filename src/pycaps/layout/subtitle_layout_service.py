@@ -1,6 +1,8 @@
-from typing import List
-from ..models import SubtitleLayoutOptions
-from .layout_models import LineLayoutData, SubtitleLayout, WordInfo, WordLayoutData
+from typing import List, Tuple
+from ..models import SubtitleLayoutOptions, WordData
+from .models import LineClipData, SegmentClipData, WordClipData, ElementLayout
+from ..utils.alignment_utils import AlignmentUtils
+from ..utils.layout_utils import LayoutUtils
 
 class SubtitleLayoutService:
     def __init__(self, subtitle_layout_options: SubtitleLayoutOptions, video_width: int, video_height: int):
@@ -8,78 +10,74 @@ class SubtitleLayoutService:
         self.video_width = video_width
         self.video_height = video_height
 
-    def calculate_layout(self, 
-                         word_layouts: List[WordInfo], 
-                         segment_start_time: float, 
-                         segment_end_time: float) -> SubtitleLayout:
+    def calculate_layout(self, words: List[WordData], words_sizes: List[Tuple[int, int]], start: float, end: float) -> SegmentClipData:
         """Calculates the subtitle layout for a given segment based on pre-measured words."""
         
-        if not word_layouts:
-            return SubtitleLayout(lines=[], segment_start=segment_start_time, segment_end=segment_end_time)
+        if not words:
+            return SegmentClipData()
 
-        lines = self._split_words_into_lines(word_layouts)
+        lines = self._split_words_into_lines(words, words_sizes)
         lines = self._calculate_words_positions(lines)
-        return SubtitleLayout(lines=lines, segment_start=segment_start_time, segment_end=segment_end_time)
+        layout = LayoutUtils.calculate_lines_layout(lines)
+        return SegmentClipData(lines=lines, layout=layout, start=start, end=end)
 
-    def _split_words_into_lines(self, words: List[WordInfo]) -> List[LineLayoutData]:
+    def _split_words_into_lines(self, words: List[WordData], words_sizes: List[Tuple[int, int]]) -> List[LineClipData]:
         """Splits pre-measured words into lines based on the maximum allowed width."""
-        lines: List[LineLayoutData] = []
-        current_line_words: List[WordInfo] = []
+        lines: List[LineClipData] = []
+        current_line_words: List[WordClipData] = []
         current_line_total_width = 0
-        max_w = self.video_width * self.options.max_line_width_ratio
+        max_w = self.video_width * self.options.max_width_ratio
         word_spacing = self.options.word_spacing
 
-        for word in words:
-            word_layout = WordLayoutData(word=word, x=0, y=0)
-            word_width_with_spacing = word.width + word_spacing
+        for word_index, word in enumerate(words):
+            word_size = words_sizes[word_index]
+            word_layout = WordClipData(word=word, layout=ElementLayout(width=word_size[0], height=word_size[1]))
+            word_width_with_spacing = word_size[0] + word_spacing
 
             if current_line_total_width + word_width_with_spacing <= max_w:
                 current_line_words.append(word_layout)
-                current_line_total_width += word_spacing + word.width
+                current_line_total_width += word_spacing + word_size[0]
             else:
                 self._add_line_layout_data_if_needed(lines, current_line_words, current_line_total_width)
                 current_line_words = [word_layout]
-                current_line_total_width = word.width
+                current_line_total_width = word_size[0]
         
         # Add the last line if it contains words
         self._add_line_layout_data_if_needed(lines, current_line_words, current_line_total_width)
         return lines
     
-    def _calculate_words_positions(self, lines: List[LineLayoutData]) -> List[LineLayoutData]:
+    def _calculate_words_positions(self, lines: List[LineClipData]) -> List[LineClipData]:
         new_lines = []
         y = self._calculate_base_y_position(lines)
 
         for line in lines:
-            start_x_for_line = (self.video_width - line.width) / 2.0
+            start_x_for_line = (self.video_width - line.layout.width) / 2.0
             x = start_x_for_line
-            new_word_layouts: List[WordLayoutData] = []
-            for old_word_layout in line.word_layouts:
-                new_word_layouts.append(WordLayoutData(word=old_word_layout.word, x=x, y=y))
-                x += old_word_layout.word.width + self.options.word_spacing
+            new_word_layouts: List[WordClipData] = []
+            for old_word in line.words:
+                word_layout = ElementLayout(x=x, y=y, width=old_word.layout.width, height=old_word.layout.height)
+                new_word_layouts.append(WordClipData(word=old_word.word, layout=word_layout))
+                x += old_word.layout.width + self.options.word_spacing
 
-            y += line.height
-            new_lines.append(LineLayoutData(word_layouts=new_word_layouts, width=line.width, height=line.height))
+            line_layout = ElementLayout(x=start_x_for_line, y=y, width=line.layout.width, height=line.layout.height)
+            new_lines.append(LineClipData(words=new_word_layouts, layout=line_layout))
+            y += line.layout.height
         
         return new_lines
     
-    def _add_line_layout_data_if_needed(self, lines: List[LineLayoutData], words: List[WordLayoutData], line_width: int) -> None:
+    def _add_line_layout_data_if_needed(self, lines: List[LineClipData], words: List[WordClipData], line_width: int) -> None:
         if not words:
             return
 
-        line_actual_height = max(w.word.height for w in words)
-        line_layout = LineLayoutData(word_layouts=words, width=line_width, height=line_actual_height)
-        lines.append(line_layout)
+        line_actual_height = max(w.layout.height for w in words)
+        line_layout = ElementLayout(width=line_width, height=line_actual_height)
+        line_clip_data = LineClipData(words=words, layout=line_layout)
+        lines.append(line_clip_data)
 
-    def _calculate_base_y_position(self, lines: List[LineLayoutData]) -> float:
+    def _calculate_base_y_position(self, lines: List[LineClipData]) -> float:
         """Calculates the base Y position for the subtitle block."""
         if not lines:
             return 0.0
             
-        total_block_height = sum(line.height for line in lines)
-        
-        if self.options.line_vertical_align == "center":
-            return (self.video_height - total_block_height) / 2.0
-        elif self.options.line_vertical_align == "top":
-            return self.video_height * self.options.line_vertical_offset_ratio
-        # Default to "bottom"
-        return self.video_height * self.options.line_vertical_offset_ratio - total_block_height
+        total_block_height = sum(line.layout.height for line in lines)
+        return AlignmentUtils.get_vertical_alignment_position(self.options.vertical_align, total_block_height, self.video_height)

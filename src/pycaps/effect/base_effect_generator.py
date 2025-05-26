@@ -3,13 +3,14 @@ from typing import List
 from moviepy.editor import VideoClip
 from ..renderer.base_subtitle_renderer import BaseSubtitleRenderer
 from ..models import TranscriptionSegment
+from ..layout.models import SegmentClipData
 
 class BaseEffectGenerator(ABC):
     def __init__(self, renderer: BaseSubtitleRenderer):
         self.renderer = renderer
 
     @abstractmethod
-    def generate(self, segments: List[TranscriptionSegment], video_clip: VideoClip) -> List[VideoClip]:
+    def generate(self, segments: List[TranscriptionSegment], video_clip: VideoClip) -> List[SegmentClipData]:
         """
         Generates a list of MoviePy VideoClips based on transcription segments
         and effect-specific options.
@@ -20,7 +21,7 @@ class BaseEffectGenerator(ABC):
                         Used for dimensions (video_clip.w, video_clip.h) and timing reference.
 
         Returns:
-            A list of VideoClip objects (or subclasses like ImageClip) ready to be
-            composited with the main video.
+            A list of segment clip data objects.
+            These objects contain the layout and the clips for each line and word.
         """
         pass 

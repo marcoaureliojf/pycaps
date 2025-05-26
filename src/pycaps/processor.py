@@ -98,15 +98,16 @@ class VideoSubtitleProcessor:
             self.renderer.open(video_width=video_clip.w, video_height=video_clip.h)
 
             print("Generating subtitle clips...")
-            subtitle_clips = self.effect_generator.generate(segments, video_clip)
+            segments_clips_data = self.effect_generator.generate(segments, video_clip)
+            segments_video_clips = [clip for segment in segments_clips_data for clip in segment.get_all_clips()]
 
-            if not subtitle_clips:
+            if not segments_video_clips:
                 print("No subtitle clips were generated. The original video (or with external audio if provided) will be saved.")
                 final_video = video_clip 
             else:
                 print("Compositing final video with subtitles...")
                 video_with_subtitles = video_clip.set_audio(None)
-                final_video = CompositeVideoClip([video_with_subtitles] + subtitle_clips, size=video_clip.size)
+                final_video = CompositeVideoClip([video_with_subtitles] + segments_video_clips, size=video_clip.size)
                 if video_clip.audio:
                     final_video = final_video.set_audio(video_clip.audio)
                 else:
