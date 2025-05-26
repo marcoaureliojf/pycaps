@@ -3,7 +3,7 @@ from playwright.sync_api import sync_playwright, Page, Browser, Playwright
 from pathlib import Path
 import tempfile
 from typing import Optional
-from pycaps.models import SubtitleImage
+from ..models import SubtitleImage
 
 class CssSubtitleRenderer(BaseSubtitleRenderer):
 

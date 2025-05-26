@@ -1,6 +1,6 @@
-# PyVidStylerTool: Advanced Video Subtitle Styling
+# src/pycaps: Advanced Video Subtitle Styling
 
-PyVidStylerTool is a Python library for generating and compositing dynamically styled subtitles onto videos. It leverages HTML/CSS for rich text rendering via a headless browser (Playwright) and uses audio transcription (e.g., Whisper) to synchronize subtitles word by word. It's designed to be extensible for various subtitle effects, starting with a Karaoke-style effect.
+src/pycaps is a Python library for generating and compositing dynamically styled subtitles onto videos. It leverages HTML/CSS for rich text rendering via a headless browser (Playwright) and uses audio transcription (e.g., Whisper) to synchronize subtitles word by word. It's designed to be extensible for various subtitle effects, starting with a Karaoke-style effect.
 
 ## Key Features
 
@@ -25,7 +25,7 @@ PyVidStylerTool is a Python library for generating and compositing dynamically s
 1.  **Clone the repository (if you haven't already):**
     ```bash
     git clone <your-repository-url>
-    cd pyvidstylertool
+    cd src/pycaps
     ```
 
 2.  **Create and activate a virtual environment (recommended):**
@@ -71,22 +71,22 @@ The `examples/run_karaoke_generation.py` script demonstrates how to use the libr
 
 The library is built around a few key components:
 
-*   **`AudioTranscriber` (`pyvidstylertool.transcribers`)**:
+*   **`AudioTranscriber` (`src/pycaps.transcribers`)**:
     *   Abstract base class for audio transcription.
     *   `WhisperAudioTranscriber`: Implementation using OpenAI's Whisper model. It returns detailed word timings.
 
-*   **`SubtitleRenderer` (`pyvidstylertool.renderers`)**:
+*   **`SubtitleRenderer` (`src/pycaps.renderers`)**:
     *   Abstract base class for rendering text into images.
     *   `HTMLCSSRenderer`: Renders text by dynamically updating an HTML page in a headless browser (Playwright) and taking screenshots of the relevant text elements. It accepts a dictionary of CSS styles.
 
-*   **`SubtitleEffectGenerator` (`pyvidstylertool.subtitle_generator`)**:
+*   **`SubtitleEffectGenerator` (`src/pycaps.subtitle_generator`)**:
     *   Abstract base class for creating specific subtitle visual effects.
     *   `KaraokeEffectGenerator`: Generates word-by-word highlighting (karaoke style). It handles line splitting, word positioning, and creating `ImageClip` objects for MoviePy.
 
-*   **`VideoSubtitleProcessor` (`pyvidstylertool.processor`)**:
+*   **`VideoSubtitleProcessor` (`src/pycaps.processor`)**:
     *   The main orchestrator. It takes a video, uses the transcriber to get word timings, then employs the renderer and an effect generator to create subtitle clips, and finally composites them onto the video using MoviePy.
 
-*   **Data Models (`pyvidstylertool.models`)**:
+*   **Data Models (`src/pycaps.models`)**:
     *   `TranscriptionSegment`, `WordTiming`: Standardize the output from transcribers.
     *   `KaraokeEffectOptions`: Data class for configuring the `KaraokeEffectGenerator`.
 

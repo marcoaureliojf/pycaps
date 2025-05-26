@@ -1,4 +1,4 @@
-# pyvidstylertool/__init__.py
+# src/pycaps/__init__.py
 # Este archivo puede estar vacío o usarse para exponer partes de la librería.
 
 # Podríamos exponer las clases principales aquí para facilitar la importación

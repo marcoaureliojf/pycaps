@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from pycaps.models import SubtitleImage
+from ..models import SubtitleImage
 
 class BaseSubtitleRenderer(ABC):
     @abstractmethod
