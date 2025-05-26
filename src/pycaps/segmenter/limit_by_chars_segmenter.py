@@ -19,14 +19,18 @@ class LimitByCharsSegmenter(BaseSegmenter):
     segment 3: "This is a"
     segment 4: "test"
     """
-    def __init__(self, max_limit: int, min_limit: int = 0):
+    def __init__(self, max_limit: int, min_limit: int = 0, avoid_finishing_segment_with_word_shorter_than: int = 3):
         '''
         max_limit: the maximum number of characters in each segment
         min_limit: the minimum number of characters in each segment. 
-        If the segment has less than min_limit characters, the previous segment will be used for completion, ignoring the max_limit.
+            If the segment has less than min_limit characters, the previous segment will be used for completion, ignoring the max_limit.
+        avoid_finishing_segment_with_word_shorter_than: if the last word in the segment is shorter than this value, the segment will be completed with the next available word.
+            This is useful to avoid finishing a segment in an unnatural way.
+            If the value is 0, it will not be used.
         '''
         self.max_limit = max_limit
         self.min_limit = min_limit
+        self.avoid_finishing_segment_with_word_shorter_than = avoid_finishing_segment_with_word_shorter_than
 
     def map(self, segments: List[TranscriptionSegment]) -> List[TranscriptionSegment]:
         new_segments = []
@@ -63,6 +67,12 @@ class LimitByCharsSegmenter(BaseSegmenter):
             chars_count += len(current_word.text)
             current_index += 1
         
+        if self.avoid_finishing_segment_with_word_shorter_than > 0:
+            last_word = words[current_index - 1]
+            while current_index < len(words) and len(last_word.text) < self.avoid_finishing_segment_with_word_shorter_than:
+                current_index += 1
+                last_word = words[current_index - 1]
+
         remaning_chars_count = sum([len(word.text) for word in words[current_index:]])
         if remaning_chars_count < self.min_limit:
             return len(words)
