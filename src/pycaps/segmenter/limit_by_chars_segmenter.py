@@ -19,8 +19,14 @@ class LimitByCharsSegmenter(BaseSegmenter):
     segment 3: "This is a"
     segment 4: "test"
     """
-    def __init__(self, limit: int):
-        self.limit = limit
+    def __init__(self, max_limit: int, min_limit: int = 0):
+        '''
+        max_limit: the maximum number of characters in each segment
+        min_limit: the minimum number of characters in each segment. 
+        If the segment has less than min_limit characters, the previous segment will be used for completion, ignoring the max_limit.
+        '''
+        self.max_limit = max_limit
+        self.min_limit = min_limit
 
     def map(self, segments: List[TranscriptionSegment]) -> List[TranscriptionSegment]:
         new_segments = []
@@ -51,9 +57,14 @@ class LimitByCharsSegmenter(BaseSegmenter):
         chars_count = 0
         while current_index < len(words):
             current_word = words[current_index]
-            if chars_count + len(current_word.text) > self.limit:
-                return current_index
+            if chars_count + len(current_word.text) > self.max_limit:
+                break
             
             chars_count += len(current_word.text)
             current_index += 1
+        
+        remaning_chars_count = sum([len(word.text) for word in words[current_index:]])
+        if remaning_chars_count < self.min_limit:
+            return len(words)
+
         return current_index
