@@ -1,6 +1,6 @@
 from ..base_effect_generator import BaseEffectGenerator
 from ...models import TranscriptionSegment, EmojiEffectOptions, RenderedSubtitle
-from typing import List
+from typing import List, Optional
 import random
 from moviepy.editor import VideoClip, ImageClip
 from ...renderer.base_subtitle_renderer import BaseSubtitleRenderer
@@ -15,7 +15,7 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# TODO: instead of using a LLM to get the emoji, we should use embeddings to get the most similar emoji to the segment text
+# TODO: instead of using a LLM to get the emoji, we could use embeddings to get the most similar emoji to the segment text
 class EmojiEffectDecorator(BaseEffectGenerator):
     '''
     Decorator that adds a context emoji for each segment.
@@ -29,22 +29,31 @@ class EmojiEffectDecorator(BaseEffectGenerator):
         self.effect_generator = effect_generator
         self.renderer = renderer
         self.options = options
-
+        self.emojies_frequencies = {}
+        self.last_emoji = None
+        self.consecutive_segments_with_emoji = 0
         self.renderer.register_style(self.EMOJI_STYLE_KEY, self.options.css_rules)
 
     def generate(self, segments: List[TranscriptionSegment], video_clip: VideoClip) -> List[SegmentClipData]:
         effect_clips_data = self.effect_generator.generate(segments, video_clip)
+        print("Generating emojies for segments...")
         all_segment_clips: List[SegmentClipData] = []
 
         for segment_data in effect_clips_data:
             if random.random() > self.options.chance_to_apply:
+                self.consecutive_segments_with_emoji = 0
                 all_segment_clips.append(segment_data)
                 continue
 
+            # TODO: validate it is a valid emoji before using it (only needed if we use the LLM to get the emoji)
+            emoji = self.__get_relevant_emoji(segment_data)
+            if emoji is None:
+                self.consecutive_segments_with_emoji = 0
+                all_segment_clips.append(segment_data)
+                continue
+            
             # TODO: this assumes that the emoji will be in a new line
             #  So, it only can be located below or over the segment text (but not at the left or right side)
-            emoji = self.__get_relevant_emoji(segment_data.get_text())
-            # TODO: validate it is a valid emoji before using it
             emoji_clip: VideoClip = self.__generate_emoji_clip(emoji, segment_data)
             emoji_layout = self.__get_emoji_layout(video_clip, emoji_clip, segment_data.layout)
             emoji_clip = emoji_clip.set_position((emoji_layout.x, emoji_layout.y))
@@ -58,17 +67,42 @@ class EmojiEffectDecorator(BaseEffectGenerator):
 
         return all_segment_clips
     
-    def __get_relevant_emoji(self, text: str) -> str:
+    def __get_relevant_emoji(self, segment: SegmentClipData) -> Optional[str]:
         # return random.choice(["🎶", "🎵", "🎼", "🎹", "🎺", "🎷", "🎸", "🎻", "🎺", "🎷", "🎸", "🎻"])
+
+        if self.options.ignore_segments_with_duration_less_than > 0 and \
+            segment.end - segment.start < self.options.ignore_segments_with_duration_less_than:
+            return None
+        
+        if self.options.max_consecutive_segments_with_emoji > 0 and \
+            self.consecutive_segments_with_emoji >= self.options.max_consecutive_segments_with_emoji:
+            return None
+
+        text = segment.get_text()
         response = client.responses.create(
             model="gpt-4.1-nano",
             input=f"""
-            Given the following text, respond with a single emoji that represents the mood, emotion, or meaning of the text
-            Do not explain. Respond with only the emoji.
-            Text: "{text}"
+            Given the following subtitle text, decide whether it meaningfully conveys an emotion, action, or idea that can be represented with an emoji.
+            If it does, respond with a single, appropriate emoji only.
+            If it does not (e.g., it is too vague, neutral, or generic), respond only with the word "None".
+            Subtitle: "{text}"
             """
         )
-        return response.output_text
+        text_response = response.output_text
+        if text_response == "None":
+            return None
+        
+        emoji_frequency = self.emojies_frequencies.get(text_response, 0)
+        if self.options.max_uses_of_each_emoji > 0 and emoji_frequency >= self.options.max_uses_of_each_emoji:
+            return None
+        
+        if self.last_emoji is not None and self.last_emoji == text_response:
+            return None
+
+        self.emojies_frequencies[text_response] = emoji_frequency + 1
+        self.consecutive_segments_with_emoji += 1
+        self.last_emoji = text_response
+        return text_response
 
 
     def __generate_emoji_clip(self, emoji: str, segment: SegmentClipData) -> VideoClip:

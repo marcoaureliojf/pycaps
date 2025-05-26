@@ -55,3 +55,6 @@ class EmojiEffectOptions:
     fade_out_duration: float = 0.1
     start_delay: float = 0.0
     hide_before_end: float = 0.0
+    ignore_segments_with_duration_less_than: float = 1 # in seconds, 0 means no segments will be ignored
+    max_uses_of_each_emoji: int = 2 # 0 means no limit
+    max_consecutive_segments_with_emoji: int = 3 # 0 means no limit
