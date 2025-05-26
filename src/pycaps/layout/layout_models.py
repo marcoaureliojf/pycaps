@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import List
-from ..models import SubtitleLayoutOptions
 
 @dataclass(frozen=True)
 class WordInfo:

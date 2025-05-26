@@ -1,15 +1,15 @@
-from .base_generator import SubtitleEffectGenerator
-from ..renderers.base_subtitle_renderer import BaseSubtitleRenderer
+from .base_effect_generator import BaseEffectGenerator
+from ..renderer.base_subtitle_renderer import BaseSubtitleRenderer
 from ..models import TranscriptionSegment, KaraokeEffectOptions, SubtitleImage, WordTiming
 from moviepy.editor import VideoClip, ImageClip
 from typing import List, Tuple, Optional, Dict
 import numpy as np
 from PIL import Image
 import io
-from .subtitle_layout_generator import SubtitleLayoutService
-from .subtitle_models import SubtitleLayout, WordInfo, WordLayoutData
+from ..layout.subtitle_layout_service import SubtitleLayoutService
+from ..layout.layout_models import SubtitleLayout, WordInfo, WordLayoutData
 
-class KaraokeEffectGenerator(SubtitleEffectGenerator):
+class KaraokeEffectGenerator(BaseEffectGenerator):
 
     ACTIVE_WORD_STYLE_KEY = "active"
     INACTIVE_WORD_STYLE_KEY = "normal"

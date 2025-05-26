@@ -1,6 +1,6 @@
 from typing import List
 from ..models import SubtitleLayoutOptions
-from .subtitle_models import LineLayoutData, SubtitleLayout, WordInfo, WordLayoutData
+from .layout_models import LineLayoutData, SubtitleLayout, WordInfo, WordLayoutData
 
 class SubtitleLayoutService:
     def __init__(self, subtitle_layout_options: SubtitleLayoutOptions, video_width: int, video_height: int):

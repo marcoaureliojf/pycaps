@@ -1,6 +1,6 @@
-from .transcribers.base_transcriber import AudioTranscriber
-from .renderers.base_subtitle_renderer import BaseSubtitleRenderer
-from .subtitle_generator.base_generator import SubtitleEffectGenerator
+from .transcriber.base_transcriber import AudioTranscriber
+from .renderer.base_subtitle_renderer import BaseSubtitleRenderer
+from .effect.base_effect_generator import BaseEffectGenerator
 from moviepy.editor import VideoFileClip, CompositeVideoClip
 from typing import Dict, Optional, Any
 import os
@@ -10,7 +10,7 @@ class VideoSubtitleProcessor:
     def __init__(self, 
                  transcriber: AudioTranscriber, 
                  renderer: BaseSubtitleRenderer, 
-                 effect_generator: SubtitleEffectGenerator):
+                 effect_generator: BaseEffectGenerator):
         """
         Main class for processing videos and adding styled subtitles.
 
