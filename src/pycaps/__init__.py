@@ -7,5 +7,6 @@ from .renderer import CssSubtitleRenderer, BaseSubtitleRenderer # Exponer base y
 from .transcriber import WhisperAudioTranscriber, AudioTranscriber # Exponer base y una implementación
 from .effect import KaraokeEffectGenerator, BaseEffectGenerator # Exponer base y una implementación
 from .models import KaraokeEffectOptions, TranscriptionSegment, WordTiming, SubtitleLayoutOptions # Exponer data classes
+from .segmenter import LimitWordsSegmenter
 
 __version__ = "0.1.0" 

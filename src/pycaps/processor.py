@@ -1,6 +1,7 @@
 from .transcriber.base_transcriber import AudioTranscriber
 from .renderer.base_subtitle_renderer import BaseSubtitleRenderer
 from .effect.base_effect_generator import BaseEffectGenerator
+from .segmenter.base_segmenter import BaseSegmenter
 from moviepy.editor import VideoFileClip, CompositeVideoClip
 from typing import Dict, Optional, Any
 import os
@@ -10,7 +11,8 @@ class VideoSubtitleProcessor:
     def __init__(self, 
                  transcriber: AudioTranscriber, 
                  renderer: BaseSubtitleRenderer, 
-                 effect_generator: BaseEffectGenerator):
+                 effect_generator: BaseEffectGenerator,
+                 segmenter: Optional[BaseSegmenter] = None):
         """
         Main class for processing videos and adding styled subtitles.
 
@@ -22,6 +24,7 @@ class VideoSubtitleProcessor:
         self.transcriber = transcriber
         self.renderer = renderer
         self.effect_generator = effect_generator
+        self.segmenter = segmenter
 
     def process_video(self, 
                       video_path: str, 
@@ -85,6 +88,10 @@ class VideoSubtitleProcessor:
             if temp_audio_file_path and os.path.exists(temp_audio_file_path):
                 os.remove(temp_audio_file_path)
             return
+
+        if self.segmenter:
+            print("Mapping segments...")
+            segments = self.segmenter.map(segments)
 
         try:
             print(f"Opening renderer for video dimensions: {video_clip.w}x{video_clip.h}")
