@@ -12,7 +12,10 @@ from .models import (
     WordData,
     SubtitleLayoutOptions,
     EmojiEffectOptions,
-    VerticalAlignment
+    VerticalAlignment,
+    VerticalAlignmentType,
+    TextOverflowStrategy,
+    EmojiAlign
 ) # Exponer data classes
 from .segmenter import LimitByWordsSegmenter, LimitByCharsSegmenter
 

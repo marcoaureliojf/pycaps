@@ -1,5 +1,5 @@
 from ..base_effect_generator import BaseEffectGenerator
-from ...models import TranscriptionSegment, EmojiEffectOptions, RenderedSubtitle
+from ...models import TranscriptionSegment, EmojiEffectOptions, EmojiAlign
 from typing import List, Optional
 import random
 from moviepy.editor import VideoClip, ImageClip
@@ -126,12 +126,12 @@ class EmojiEffectDecorator(BaseEffectGenerator):
     
     def __get_vertical_position(self, segment_layout: ElementLayout, emoji_clip: VideoClip) -> float:
         align = self.options.align
-        if align == "random":
-            align = random.choice(["bottom", "top"])
+        if align == EmojiAlign.RANDOM:
+            align = random.choice([EmojiAlign.BOTTOM, EmojiAlign.TOP])
 
-        if align == "bottom":
+        if align == EmojiAlign.BOTTOM:
             return segment_layout.y + segment_layout.height
-        elif align == "top":
+        elif align == EmojiAlign.TOP:
             return segment_layout.y - emoji_clip.h
         else:
             raise ValueError(f"Invalid align value: {align}")
