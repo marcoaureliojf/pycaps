@@ -2,3 +2,4 @@
 from .base_effect_generator import BaseEffectGenerator
 from .karaoke_effect_generator import KaraokeEffectGenerator
 from .decorator.emoji_effect_decorator import EmojiEffectDecorator
+from .decorator.animation_effect_decorator import BounceInAnimationEffect, SlideInFromLeftAnimationEffect, WaveAnimationEffect

@@ -99,6 +99,7 @@ class KaraokeEffectGenerator(BaseEffectGenerator):
             .crossfadein(self.options.active_word_fade_duration) 
         )
 
+    # TODO: Move this cache to the renderer
     def __get_subtitle_image(self, word_text: str, style_key: str) -> RenderedSubtitle:
         """Retrieves or renders a word image, utilizing a cache."""
         cache_key = (word_text, style_key)

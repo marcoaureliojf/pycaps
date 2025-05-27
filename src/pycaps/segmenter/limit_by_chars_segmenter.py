@@ -19,7 +19,7 @@ class LimitByCharsSegmenter(BaseSegmenter):
     segment 3: "This is a"
     segment 4: "test"
     """
-    def __init__(self, max_limit: int, min_limit: int = 0, avoid_finishing_segment_with_word_shorter_than: int = 3):
+    def __init__(self, max_limit: int, min_limit: int = 0, avoid_finishing_segment_with_word_shorter_than: int = 4):
         '''
         max_limit: the maximum number of characters in each segment
         min_limit: the minimum number of characters in each segment. 

@@ -5,7 +5,14 @@
 from .processor import VideoSubtitleProcessor
 from .renderer import CssSubtitleRenderer, BaseSubtitleRenderer # Exponer base y una implementación
 from .transcriber import WhisperAudioTranscriber, AudioTranscriber # Exponer base y una implementación
-from .effect import KaraokeEffectGenerator, BaseEffectGenerator, EmojiEffectDecorator # Exponer base y una implementación
+from .effect import (
+    KaraokeEffectGenerator,
+    BaseEffectGenerator,
+    EmojiEffectDecorator,
+    BounceInAnimationEffect,
+    SlideInFromLeftAnimationEffect,
+    WaveAnimationEffect
+)
 from .models import (
     KaraokeEffectOptions,
     TranscriptionSegment,
