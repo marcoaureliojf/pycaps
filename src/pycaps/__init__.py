@@ -11,7 +11,8 @@ from .effect import (
     EmojiEffectDecorator,
     BounceInAnimationEffect,
     SlideInFromLeftAnimationEffect,
-    WaveAnimationEffect
+    WaveAnimationEffect,
+    FirstSegmentPerSentenceEffectDecorator
 )
 from .models import (
     KaraokeEffectOptions,

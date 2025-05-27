@@ -2,8 +2,6 @@ from typing import Tuple
 from ...layout.models import ElementLayout
 from .base_animation_effect_decorator import BaseAnimationEffectDecorator
 import numpy as np
-from ..base_effect_generator import BaseEffectGenerator
-from ...renderer.base_subtitle_renderer import BaseSubtitleRenderer
 
 class BounceInAnimationEffect(BaseAnimationEffectDecorator):
     def _get_position_in_time(self, layout: ElementLayout, t: float) -> Tuple[float, float]:
