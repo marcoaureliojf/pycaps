@@ -1,8 +1,8 @@
-from .base_segmenter import BaseSegmenter
+from .base_segment_rewritter import BaseSegmentRewritter
 from typing import List
-from ..models import TranscriptionSegment, WordData
+from ..tagger.models import Document, Segment, Line, Word, TimeFragment
 
-class LimitByCharsSegmenter(BaseSegmenter):
+class LimitByCharsRewritter(BaseSegmentRewritter):
     """
     A segmenter that limits the number of characters in each segment.
     It will divide each segment received into chunks of a maximum of `limit` characters.
@@ -32,31 +32,32 @@ class LimitByCharsSegmenter(BaseSegmenter):
         self.min_limit = min_limit
         self.avoid_finishing_segment_with_word_shorter_than = avoid_finishing_segment_with_word_shorter_than
 
-    def map(self, segments: List[TranscriptionSegment]) -> List[TranscriptionSegment]:
+    def rewrite(self, document: Document) -> None:
         new_segments = []
         segment_index = 0
         word_index = 0
+        segments = document.segments
         while segment_index < len(segments):
             segment = segments[segment_index]
-            word_end_index = self.__get_word_end_index(word_index, segment.words)
-            current_words = segment.words[word_index:word_end_index]
+            segment_words = segment.lines[0].words
+            word_end_index = self.__get_word_end_index(word_index, segment_words)
+            current_words = segment_words[word_index:word_end_index]
             if len(current_words) == 0:
                 segment_index += 1
                 word_index = 0
                 continue
 
-            new_segment = TranscriptionSegment(
-                text=" ".join([word.text for word in current_words]),
-                start=current_words[0].start,
-                end=current_words[-1].end,
-                words=current_words
+            segment_time = TimeFragment(start=current_words[0].time.start, end=current_words[-1].time.end)
+            new_segment = Segment(
+                lines=[Line(words=current_words, time=segment_time)],
+                time=segment_time
             )
             new_segments.append(new_segment)
             word_index = word_end_index
 
-        return new_segments
+        document.segments = new_segments
     
-    def __get_word_end_index(self, start_index: int, words: List[WordData]) -> int:
+    def __get_word_end_index(self, start_index: int, words: List[Word]) -> int:
         current_index = start_index
         chars_count = 0
         while current_index < len(words):

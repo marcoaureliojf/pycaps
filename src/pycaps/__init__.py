@@ -24,6 +24,6 @@ from .models import (
     TextOverflowStrategy,
     EmojiAlign
 ) # Exponer data classes
-from .segmenter import LimitByWordsSegmenter, LimitByCharsSegmenter
+from .segment import LimitByWordsRewritter, LimitByCharsRewritter
 
 __version__ = "0.1.0" 

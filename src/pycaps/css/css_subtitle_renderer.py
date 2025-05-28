@@ -6,6 +6,9 @@ from ..models import RenderedSubtitle
 from ..tagger.models import Word
 from typing import List
 from .css_classes import CssClasses
+import shutil
+import os
+import webbrowser
 
 class CssSubtitleRenderer():
 
@@ -38,11 +41,22 @@ class CssSubtitleRenderer():
         self.playwright_context = sync_playwright().start()
         self.browser = self.playwright_context.chromium.launch()
         self.page = self.browser.new_page(viewport={"width": video_width, "height": calculated_vp_height})
-        self._init_page_content()
+        self._copy_resources_to_tempdir()
+        path = self._create_html_page()
+        self.page.goto(path.as_uri())
+    
+    # TODO: improve preview
+    def preview(self) -> None:
+        if not self.tempdir:
+            self.tempdir = tempfile.TemporaryDirectory()
 
-    def _init_page_content(self):
-        if not self.page or not self.tempdir:
-            raise RuntimeError("Renderer has not been properly initialized with open().")
+        self._copy_resources_to_tempdir()
+        path = self._create_html_page("Hello, world")
+        webbrowser.open(path.as_uri())
+
+    def _create_html_page(self, text: str = "") -> Path:
+        if not self.tempdir:
+            raise RuntimeError("self.tempdir is not defined. Do you call open() first?")
         
         html_template = f"""
         <!DOCTYPE html>
@@ -69,14 +83,26 @@ class CssSubtitleRenderer():
         </head>
         <body>
             <div id="subtitle-container">
-                <span id="subtitle-actual-text"></span>
+                <span id="subtitle-actual-text" class="{CssClasses.WORD.value}">{text}</span>
             </div>
         </body>
         </html>
         """
         html_path = Path(self.tempdir.name) / "renderer_base.html"
         html_path.write_text(html_template, encoding="utf-8")
-        self.page.goto(html_path.as_uri())
+        return html_path
+
+    def _copy_resources_to_tempdir(self) -> None:
+        if not self.tempdir:
+            raise RuntimeError("Temp directory must be initialized before copying resources.")
+
+        cwd = Path(os.getcwd())
+        resources_dir = cwd / "resources"
+        if not resources_dir.exists():
+            return
+
+        destination = Path(self.tempdir.name)
+        shutil.copytree(resources_dir, destination, dirs_exist_ok=True)
 
     def __update_text_and_style(self, text: str, css_classes: List[str]):
         if not self.page:

@@ -3,6 +3,7 @@ from ..models import SubtitleLayoutOptions
 from ..layout.layout_calculator import LayoutCalculator
 from ..transcriber.base_transcriber import AudioTranscriber
 from typing import Dict, Any
+from ..segment import BaseSegmentRewritter
 import os
 
 class CapsPipelineBuilder:
@@ -39,6 +40,10 @@ class CapsPipelineBuilder:
     
     def with_audio_transcriber(self, audio_transcriber: AudioTranscriber) -> "CapsPipelineBuilder":
         self._caps_pipeline._transcriber = audio_transcriber
+        return self
+    
+    def add_segment_rewritter(self, segment_rewritter: BaseSegmentRewritter) -> "CapsPipelineBuilder":
+        self._caps_pipeline._segment_rewritters.append(segment_rewritter)
         return self
 
     def build(self) -> CapsPipeline:

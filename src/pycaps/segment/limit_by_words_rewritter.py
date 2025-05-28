@@ -1,8 +1,8 @@
-from .base_segmenter import BaseSegmenter
-from typing import List
+from .base_segment_rewritter import BaseSegmentRewritter
 from ..models import TranscriptionSegment
+from ..tagger.models import Document, Segment, Line, Word, TimeFragment
 
-class LimitByWordsSegmenter(BaseSegmenter):
+class LimitByWordsRewritter(BaseSegmentRewritter):
     """
     A segmenter that limits the number of words in each segment.
     It will divide each segment received into chunks of a maximum of `limit` words.
@@ -21,25 +21,26 @@ class LimitByWordsSegmenter(BaseSegmenter):
     def __init__(self, limit: int):
         self.limit = limit
 
-    def map(self, segments: List[TranscriptionSegment]) -> List[TranscriptionSegment]:
+    def rewrite(self, document: Document) -> None:
         new_segments = []
         segment_index = 0
         word_index = 0
+        segments = document.segments
         while segment_index < len(segments):
             segment = segments[segment_index]
-            current_words = segment.words[word_index:word_index + self.limit]
+            segment_words = segment.lines[0].words
+            current_words = segment_words[word_index:word_index + self.limit]
             if len(current_words) == 0:
                 segment_index += 1
                 word_index = 0
                 continue
 
-            new_segment = TranscriptionSegment(
-                text=" ".join([word.text for word in current_words]),
-                start=current_words[0].start,
-                end=current_words[-1].end,
-                words=current_words
+            segment_time = TimeFragment(start=current_words[0].time.start, end=current_words[-1].time.end)
+            new_segment = Segment(
+                lines=[Line(words=current_words, time=segment_time)],
+                time=segment_time
             )
             new_segments.append(new_segment)
             word_index += self.limit
 
-        return new_segments
+        document.segments = new_segment

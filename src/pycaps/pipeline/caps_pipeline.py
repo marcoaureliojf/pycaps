@@ -8,6 +8,7 @@ from ..layout.word_width_calculator import WordWidthCalculator
 from ..layout.layout_calculator import LayoutCalculator
 from ..tagger.semantic_tagger import get_default_tagger
 from ..models import SubtitleLayoutOptions
+from ..segment import BaseSegmentRewritter
 
 class CapsPipeline:
     def __init__(self):
@@ -18,6 +19,7 @@ class CapsPipeline:
         self._layout_calculator: LayoutCalculator = LayoutCalculator(SubtitleLayoutOptions())
         self._semantic_tagger = get_default_tagger()
         self._video_generator: VideoGenerator = VideoGenerator()
+        self._segment_rewritters: list[BaseSegmentRewritter] = []
 
         self._input_video_path: Optional[str] = None
         self._output_video_path: Optional[str] = None
@@ -35,6 +37,10 @@ class CapsPipeline:
             document = self._transcriber.transcribe(self._video_generator.get_audio_path())
             if len(document.segments) == 0:
                 raise RuntimeError("Transcription returned no segments. Subtitles will not be added.")
+            
+            print("Running segments rewritters...")
+            for rewritter in self._segment_rewritters:
+                rewritter.rewrite(document)
 
             print(f"Opening renderer for video dimensions: {video_clip.w}x{video_clip.h}")
             self._renderer.open(video_width=video_clip.w, video_height=video_clip.h)
@@ -63,3 +69,10 @@ class CapsPipeline:
             self._video_generator.close()
             self._renderer.close()
             print("Cleanup finished.") 
+
+    # TODO: improve preview: we should register all the existing css classes (and keys),
+    # and then allow viewing a word example with any of those classes
+    # for that, we could generate a simple preview page with a dropdown and a container for the word.
+    def preview(self) -> None:
+        self._renderer.preview()
+        input("Press [ENTER] to finish preview...")
