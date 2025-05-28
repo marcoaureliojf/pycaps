@@ -77,7 +77,7 @@ class _SemanticTagger:
 
         for class_name, get_words_to_tag in self._function_rules.items():
             for word in get_words_to_tag(document):
-                word.tags.append(class_name)
+                word.tags.add(class_name)
 
     def _tag_matching_words(self, words: list[Word], matches, class_name: str) -> None:
         """Tag words that match the found patterns."""
@@ -91,7 +91,7 @@ class _SemanticTagger:
                 word_end = current_pos + len(word.text) + 1  # +1 for space
                 
                 if self._word_overlaps_with_match(word_start, word_end, start_pos, end_pos):
-                    word.tags.append(class_name)
+                    word.tags.add(class_name)
                 
                 current_pos = word_end
 
@@ -102,6 +102,7 @@ class _SemanticTagger:
                (word_start < match_end <= word_end) or \
                (match_start <= word_start and match_end >= word_end)
 
+# TODO: instead of using strings for the tags, add these to the BuiltinTag enum
 _default_tagger = _SemanticTagger()
 _default_tagger.add_function_rule("first-word-in-document", lambda document: [document.segments[0].lines[0].words[0]])
 _default_tagger.add_function_rule("first-word-in-segment", lambda document: [segment.lines[0].words[0] for segment in document.segments])

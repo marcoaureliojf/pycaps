@@ -2,7 +2,7 @@ from typing import List
 from ..models import SubtitleLayoutOptions, TextOverflowStrategy
 from ..utils.alignment_utils import AlignmentUtils
 from ..utils.layout_utils import LayoutUtils
-from ..tagger.models import Document, Line, Word, TimeFragment, ElementLayout, Size, Position
+from ..tagger.models import Document, Line, Word, TimeFragment, ElementLayout, Size, Position, Segment
 
 class LayoutCalculator:
     def __init__(self, layout_options: SubtitleLayoutOptions):
@@ -35,13 +35,13 @@ class LayoutCalculator:
         """
         for segment in document.segments:
             words = segment.get_words()
-            lines = self._split_words_into_lines(words, video_width)
+            lines = self._split_words_into_lines(segment, words, video_width)
             self._calculate_words_positions(lines, video_width, video_height)
             layout = LayoutUtils.calculate_segment_layout(lines)
             segment.lines = lines
             segment.layout = layout
 
-    def _split_words_into_lines(self, words: List[Word], video_width: int) -> List[Line]:
+    def _split_words_into_lines(self, segment: Segment, words: List[Word], video_width: int) -> List[Line]:
         """Splits pre-measured words into lines based on layout options."""
         lines: List[Line] = []
         current_line_words: List[Word] = []
@@ -63,11 +63,11 @@ class LayoutCalculator:
                 current_line_words.append(word)
                 current_line_total_width += word_spacing + word_size.width
             else:
-                self._add_line_layout_data_if_needed(lines, current_line_words, current_line_total_width)
+                self._append_new_line(segment, lines, current_line_words, current_line_total_width)
                 current_line_words = [word]
                 current_line_total_width = word_size.width
         
-        self._add_line_layout_data_if_needed(lines, current_line_words, current_line_total_width)
+        self._append_new_line(segment, lines, current_line_words, current_line_total_width)
         self._adjust_lines_to_constraints(lines)
         return lines
 
@@ -93,12 +93,14 @@ class LayoutCalculator:
             first_line = Line(
                 words=first_half,
                 layout=ElementLayout(size=Size(width=first_line_width, height=max(w.layout.size.height for w in first_half))),
-                time=TimeFragment(start=first_half[0].time.start, end=first_half[-1].time.end)
+                time=TimeFragment(start=first_half[0].time.start, end=first_half[-1].time.end),
+                parent=longest_line.parent
             )
             second_line = Line(
                 words=second_half,
                 layout=ElementLayout(size=Size(width=second_line_width, height=max(w.layout.size.height for w in second_half))),
-                time=TimeFragment(start=second_half[0].time.start, end=second_half[-1].time.end)
+                time=TimeFragment(start=second_half[0].time.start, end=second_half[-1].time.end),
+                parent=longest_line.parent
             )
             
             lines.remove(longest_line)
@@ -121,7 +123,7 @@ class LayoutCalculator:
             line.layout.position.y = y
             y += line_height
     
-    def _add_line_layout_data_if_needed(self, lines: List[Line], words: List[Word], line_width: int) -> None:
+    def _append_new_line(self, segment: Segment, lines: List[Line], words: List[Word], line_width: int) -> None:
         if not words:
             return
 
@@ -129,7 +131,8 @@ class LayoutCalculator:
         size = Size(width=line_width, height=height)
         layout = ElementLayout(size=size)
         time = TimeFragment(start=words[0].time.start, end=words[-1].time.end)
-        line = Line(words=words, layout=layout, time=time)
+        line = Line(words=words, layout=layout, time=time, parent=segment)
+        for word in words: word.parent = line
         lines.append(line)
 
     def _calculate_base_y_position(self, lines: List[Line], video_height: int) -> float:

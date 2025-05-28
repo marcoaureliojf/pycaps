@@ -127,7 +127,7 @@ class CssSubtitleRenderer():
         if not self.page:
             raise RuntimeError("Renderer is not open open() with video dimensions first.")
         
-        css_classes = word.tags + [c.value for c in state_css_classes]
+        css_classes = list(word.tags) + [c.value for c in state_css_classes]
         if self._cache.has(word.text, css_classes):
             return self._cache.get(word.text, css_classes)
 

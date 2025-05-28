@@ -5,6 +5,7 @@ from ..transcriber.base_transcriber import AudioTranscriber
 from typing import Dict, Any
 from ..segment import BaseSegmentRewritter
 import os
+from ..animator.element_animator import ElementAnimator
 
 class CapsPipelineBuilder:
 
@@ -44,6 +45,10 @@ class CapsPipelineBuilder:
     
     def add_segment_rewritter(self, segment_rewritter: BaseSegmentRewritter) -> "CapsPipelineBuilder":
         self._caps_pipeline._segment_rewritters.append(segment_rewritter)
+        return self
+    
+    def add_animator(self, animator: ElementAnimator) -> "CapsPipelineBuilder":
+        self._caps_pipeline._animators.append(animator)
         return self
 
     def build(self) -> CapsPipeline:

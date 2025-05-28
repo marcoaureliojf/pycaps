@@ -9,6 +9,7 @@ from ..layout.layout_calculator import LayoutCalculator
 from ..tagger.semantic_tagger import get_default_tagger
 from ..models import SubtitleLayoutOptions
 from ..segment import BaseSegmentRewritter
+from ..animator.element_animator import ElementAnimator
 
 class CapsPipeline:
     def __init__(self):
@@ -20,6 +21,7 @@ class CapsPipeline:
         self._semantic_tagger = get_default_tagger()
         self._video_generator: VideoGenerator = VideoGenerator()
         self._segment_rewritters: list[BaseSegmentRewritter] = []
+        self._animators: list[ElementAnimator] = []
 
         self._input_video_path: Optional[str] = None
         self._output_video_path: Optional[str] = None
@@ -62,6 +64,10 @@ class CapsPipeline:
                 self._layout_calculator.refresh_lines_and_segments_sizes(document)
                 self._layout_calculator.update_words_positions(document, video_clip.w, video_clip.h)
                 self._clips_generator.update_word_clips_position(document)
+
+            print("Running animators...")
+            for animator in self._animators:
+                animator.animate(document)
 
             print("Generating final video...")
             self._video_generator.generate(document)

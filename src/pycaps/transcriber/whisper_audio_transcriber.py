@@ -44,8 +44,8 @@ class WhisperAudioTranscriber(AudioTranscriber):
         document = Document()
         for segment_info in result["segments"]:
             segment_time = TimeFragment(start=float(segment_info["start"]), end=float(segment_info["end"]))
-            segment = Segment(time=segment_time)
-            segment.lines.append(Line())
+            segment = Segment(time=segment_time, parent=document)
+            segment.lines.append(Line(time=segment_time, parent=segment))
 
             if not "words" in segment_info or not isinstance(segment_info["words"], list):
                 print(f"Segment '{segment_info['text']}' has no detailed word data.")
@@ -58,9 +58,10 @@ class WhisperAudioTranscriber(AudioTranscriber):
                     continue
 
                 word_time = TimeFragment(start=float(word_entry["start"]), end=float(word_entry["end"]))
-                word = Word(text=word_text, time=word_time)
-                segment.lines[0].words.append(word) # so far is everything in one single line (we split it in next steps of the pipeline)
-            
+                line = segment.lines[0]
+                word = Word(text=word_text, time=word_time, parent=line)
+                line.words.append(word) # so far is everything in one single line (we split it in next steps of the pipeline)
+
             document.segments.append(segment)
         
         if not document.segments:
