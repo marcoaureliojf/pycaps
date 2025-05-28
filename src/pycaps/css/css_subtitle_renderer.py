@@ -1,25 +1,31 @@
-from .base_subtitle_renderer import BaseSubtitleRenderer
 from playwright.sync_api import sync_playwright, Page, Browser, Playwright
 from pathlib import Path
 import tempfile
 from typing import Optional
 from ..models import RenderedSubtitle
+from ..tagger.models import Word
+from typing import List
+from .css_classes import CssClasses
 
-class CssSubtitleRenderer(BaseSubtitleRenderer):
+class CssSubtitleRenderer():
 
     DEFAULT_VIEWPORT_HEIGHT_RATIO: float = 0.25
     DEFAULT_MIN_VIEWPORT_HEIGHT: int = 150
+    DEFAULT_CSS_CLASS_FOR_EACH_WORD: str = "word"
 
     def __init__(self):
         """
         Renders subtitles using HTML and CSS via Playwright.
         """
 
-        self.styles = {}
         self.playwright_context: Optional[Playwright] = None
         self.browser: Optional[Browser] = None
         self.page: Optional[Page] = None
         self.tempdir: Optional[tempfile.TemporaryDirectory] = None
+        self._custom_css: str = ""
+
+    def set_custom_css(self, custom_css: str):
+        self._custom_css = custom_css
 
     def open(self, video_width: int, video_height: int):
         """Initializes Playwright and loads the base HTML page."""
@@ -58,6 +64,7 @@ class CssSubtitleRenderer(BaseSubtitleRenderer):
                 #subtitle-container {{
                     display: inline-block; /* So the container fits the span's content */
                 }}
+                {self._custom_css}
             </style>
         </head>
         <body>
@@ -71,33 +78,9 @@ class CssSubtitleRenderer(BaseSubtitleRenderer):
         html_path.write_text(html_template, encoding="utf-8")
         self.page.goto(html_path.as_uri())
 
-        for style_key, css_rules in self.styles.items():
-            self.__add_css_rules_to_html(style_key, css_rules)
-
-    def register_style(self, style_key: str, css_rules: str):
-        if style_key in self.styles:
-            raise ValueError(f"Style key '{style_key}' already registered.")
-        
-        self.styles[style_key] = css_rules
-        if self.page:
-            self.__add_css_rules_to_html(style_key, css_rules)
-        else:
-            self.styles[style_key] = css_rules
-
-    def __add_css_rules_to_html(self, style_key: str, css_rules: str):
-        update_styles_script = f"""
-        const body = document.body;
-        const el = document.createElement('style');
-        el.innerHTML = `.style-{style_key} {{ {css_rules} }}`;
-        body.insertAdjacentElement('beforeend', el);
-        """
-        self.page.evaluate(update_styles_script)
-        
-    def _update_text_and_style(self, text: str, style_key: str):
+    def __update_text_and_style(self, text: str, css_classes: List[str]):
         if not self.page:
             raise RuntimeError("Renderer is not open. Call open() first.")
-        if style_key not in self.styles:
-            raise RuntimeError(f"Style key '{style_key}' not found. Use register_style() to register a style first.")
 
         script = f"""
         ([text, targetCls]) => {{
@@ -106,19 +89,24 @@ class CssSubtitleRenderer(BaseSubtitleRenderer):
             el.className = targetCls;
         }}
         """
-        self.page.evaluate(script, [text, f'style-{style_key}'])
 
-    def render(self, text: str, style_type: str) -> RenderedSubtitle:
+        css_classes = [CssClasses.WORD.value] + css_classes
+        css_classes_str = ' '.join(css_classes)
+        self.page.evaluate(script, [text, css_classes_str])
+
+    def render(self, word: Word, state_css_classes: List[CssClasses] = []) -> Optional[RenderedSubtitle]:
         if not self.page:
             raise RuntimeError("Renderer is not open open() with video dimensions first.")
 
-        self._update_text_and_style(text, style_type)
+        css_classes = word.tags + [c.value for c in state_css_classes]
+        self.__update_text_and_style(word.text, css_classes)
         
         locator = self.page.locator("#subtitle-actual-text")
         try:
             bounding_box = locator.bounding_box()
             if not bounding_box:
-                raise RuntimeError(f"Could not get bounding_box for text: '{text}' with style '{style_type}'")
+                # Text is not visible, return None to indicate that.
+                return None
 
             # Bounding_box might have width/height 0 if text is only whitespace or CSS hides it.
             # Ensure a minimum size to prevent errors in MoviePy with zero-size clips.
@@ -128,7 +116,7 @@ class CssSubtitleRenderer(BaseSubtitleRenderer):
             png_bytes = locator.screenshot(omit_background=True, type="png")
             return RenderedSubtitle(png_bytes, img_width, img_height)
         except Exception as e:
-            raise RuntimeError(f"Error rendering '{text}' with style '{style_type}': {e}")
+            raise RuntimeError(f"Error rendering '{word.text}' with tags '{word.tags}': {e}")
 
     def close(self):
         """Closes Playwright and cleans up resources."""

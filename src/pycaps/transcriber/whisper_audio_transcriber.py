@@ -1,6 +1,6 @@
 from .base_transcriber import AudioTranscriber
-from typing import List, Optional
-from ..models import TranscriptionSegment, WordData
+from typing import Optional
+from ..tagger.models import Document, Segment, Line, Word, TimeFragment
 import whisper
 
 class WhisperAudioTranscriber(AudioTranscriber):
@@ -22,7 +22,7 @@ class WhisperAudioTranscriber(AudioTranscriber):
                 f"Ensure Whisper is installed and models are available (or can be downloaded)."
             )
 
-    def transcribe(self, audio_path: str) -> List[TranscriptionSegment]:
+    def transcribe(self, audio_path: str) -> Document:
         """
         Transcribes the audio file and returns segments with timestamps.
         """
@@ -35,15 +35,18 @@ class WhisperAudioTranscriber(AudioTranscriber):
             )
         except Exception as e:
             print(f"Error during Whisper transcription: {e}")
-            return [] # Return empty list on transcription error
+            return Document()
 
-        processed_segments: List[TranscriptionSegment] = []
         if "segments" not in result or not result["segments"]:
             print("Warning: Whisper returned no segments in the transcription.")
-            return []
+            return Document()
 
+        document = Document()
         for segment_info in result["segments"]:
-            word_timings: List[WordData] = []
+            segment_time = TimeFragment(start=float(segment_info["start"]), end=float(segment_info["end"]))
+            segment = Segment(time=segment_time)
+            segment.lines.append(Line())
+
             if not "words" in segment_info or not isinstance(segment_info["words"], list):
                 print(f"Segment '{segment_info['text']}' has no detailed word data.")
                 continue
@@ -51,22 +54,16 @@ class WhisperAudioTranscriber(AudioTranscriber):
             for word_entry in segment_info["words"]:
                 # Ensure 'word' is a string, sometimes Whisper might return non-string for certain symbols.
                 word_text = str(word_entry["word"]).strip()
-                if not word_text: # Skip empty words if any
+                if not word_text:
                     continue
-                word_timings.append(WordData(
-                    text=word_text,
-                    start=float(word_entry["start"]),
-                    end=float(word_entry["end"])
-                ))
+
+                word_time = TimeFragment(start=float(word_entry["start"]), end=float(word_entry["end"]))
+                word = Word(text=word_text, time=word_time)
+                segment.lines[0].words.append(word) # so far is everything in one single line (we split it in next steps of the pipeline)
             
-            processed_segments.append(TranscriptionSegment(
-                text=str(segment_info["text"]).strip(),
-                start=float(segment_info["start"]),
-                end=float(segment_info["end"]),
-                words=word_timings
-            ))
+            document.segments.append(segment)
         
-        if not processed_segments:
+        if not document.segments:
             print("Warning: No valid segments were processed from Whisper's transcription.")
 
-        return processed_segments 
+        return document 

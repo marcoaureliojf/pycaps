@@ -2,11 +2,10 @@
 # Este archivo puede estar vacío o usarse para exponer partes de la librería.
 
 # Podríamos exponer las clases principales aquí para facilitar la importación
-from .processor import VideoSubtitleProcessor
-from .renderer import CssSubtitleRenderer, BaseSubtitleRenderer # Exponer base y una implementación
-from .transcriber import WhisperAudioTranscriber, AudioTranscriber # Exponer base y una implementación
+from .caps_pipeline import CapsPipeline, CapsPipelineBuilder
+from .css import CssSubtitleRenderer
+from .transcriber import WhisperAudioTranscriber, AudioTranscriber
 from .effect import (
-    KaraokeEffectGenerator,
     BaseEffectGenerator,
     EmojiEffectDecorator,
     BounceInAnimationEffect,
@@ -15,7 +14,6 @@ from .effect import (
     FirstSegmentPerSentenceEffectDecorator
 )
 from .models import (
-    KaraokeEffectOptions,
     TranscriptionSegment,
     WordData,
     SubtitleLayoutOptions,

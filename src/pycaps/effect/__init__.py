@@ -1,6 +1,5 @@
 # src/pycaps/effect/__init__.py
 from .base_effect_generator import BaseEffectGenerator
-from .karaoke_effect_generator import KaraokeEffectGenerator
 from .decorator.emoji_effect_decorator import EmojiEffectDecorator
 from .decorator.animation_effect_decorator import BounceInAnimationEffect, SlideInFromLeftAnimationEffect, WaveAnimationEffect
 from .decorator.effect_by_sentence_decorator import FirstSegmentPerSentenceEffectDecorator

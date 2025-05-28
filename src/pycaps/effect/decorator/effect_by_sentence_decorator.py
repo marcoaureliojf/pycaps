@@ -3,7 +3,7 @@ from typing import List
 from ...models import TranscriptionSegment
 from ...layout.models import SegmentClipData
 from moviepy.editor import VideoClip
-from ...renderer.base_subtitle_renderer import BaseSubtitleRenderer
+from ...css.css_subtitle_renderer import CssSubtitleRenderer
 
 class FirstSegmentPerSentenceEffectDecorator(BaseEffectGenerator):
     '''
@@ -14,7 +14,7 @@ class FirstSegmentPerSentenceEffectDecorator(BaseEffectGenerator):
 
     SENTENCE_DELIMITERS = ['.', '?', '!', '...']
 
-    def __init__(self, effect_for_first_segment_of_sentence: BaseEffectGenerator, effect_for_remaining_segments: BaseEffectGenerator, renderer: BaseSubtitleRenderer):
+    def __init__(self, effect_for_first_segment_of_sentence: BaseEffectGenerator, effect_for_remaining_segments: BaseEffectGenerator, renderer: CssSubtitleRenderer):
         super().__init__(renderer)
         self.effect_for_first_segment_of_sentence = effect_for_first_segment_of_sentence
         self.effect_for_remaining_segments = effect_for_remaining_segments

@@ -1,12 +1,14 @@
-from ..layout.models import LineClipData, ElementLayout, WordClipData
 from typing import List
+from ..tagger.models import Line, ElementLayout, Size, Position
 
 class LayoutUtils:
     @staticmethod
-    def calculate_lines_layout(lines: List[LineClipData]) -> ElementLayout:
-        total_height = sum(line.layout.height for line in lines)
-        max_width = max(line.layout.width for line in lines)
-        base_y = min(line.layout.y for line in lines)
-        base_x = min(line.layout.x for line in lines)
-        return ElementLayout(x=base_x, y=base_y, width=max_width, height=total_height)
+    def calculate_segment_layout(lines: List[Line]) -> ElementLayout:
+        total_height = sum(line.layout.size.height for line in lines)
+        max_width = max(line.layout.size.width for line in lines)
+        base_y = min(line.layout.position.y for line in lines)
+        base_x = min(line.layout.position.x for line in lines)
+        position = Position(x=base_x, y=base_y)
+        size = Size(width=max_width, height=total_height)
+        return ElementLayout(position=position, size=size)
     

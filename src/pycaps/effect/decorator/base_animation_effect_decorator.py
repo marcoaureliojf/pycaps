@@ -2,12 +2,12 @@ from ..base_effect_generator import BaseEffectGenerator
 from ...models import TranscriptionSegment
 from moviepy.editor import VideoClip
 from typing import List, Tuple
-from ...renderer.base_subtitle_renderer import BaseSubtitleRenderer
+from ...css.css_subtitle_renderer import CssSubtitleRenderer
 from ...layout.models import SegmentClipData, ElementLayout
 from abc import abstractmethod
 
 class BaseAnimationEffectDecorator(BaseEffectGenerator):
-    def __init__(self, effect_generator: BaseEffectGenerator, renderer: BaseSubtitleRenderer):
+    def __init__(self, effect_generator: BaseEffectGenerator, renderer: CssSubtitleRenderer):
         super().__init__(renderer)
         self.effect_generator = effect_generator
 

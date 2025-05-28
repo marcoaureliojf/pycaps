@@ -1,20 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import List, Any
-from ..models import TranscriptionSegment
+from ..tagger.models import Document
 
 class AudioTranscriber(ABC):
     @abstractmethod
-    def transcribe(self, audio_path: str) -> List[TranscriptionSegment]:
+    def transcribe(self, audio_path: str) -> Document:
         """
-        Transcribes an audio file and returns a list of segments.
+        Transcribes an audio file and returns a Document object.
 
-        Each segment contains information about the text, start/end times,
-        and optionally, word-by-word timing information.
+        The Document object contains information about word-by-word timing information.
 
         Args:
             audio_path: Path to the audio file to be transcribed.
 
         Returns:
-            A list of TranscriptionSegment objects.
+            A Document object.
         """
         pass 

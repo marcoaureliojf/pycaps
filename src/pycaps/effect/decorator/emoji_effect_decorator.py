@@ -3,7 +3,7 @@ from ...models import TranscriptionSegment, EmojiEffectOptions, EmojiAlign
 from typing import List, Optional
 import random
 from moviepy.editor import VideoClip, ImageClip
-from ...renderer.base_subtitle_renderer import BaseSubtitleRenderer
+from ...css.css_subtitle_renderer import CssSubtitleRenderer
 import numpy as np
 from PIL import Image
 import io
@@ -25,7 +25,7 @@ class EmojiEffectDecorator(BaseEffectGenerator):
 
     EMOJI_STYLE_KEY = "emoji"
 
-    def __init__(self, effect_generator: BaseEffectGenerator, renderer: BaseSubtitleRenderer, options: EmojiEffectOptions):
+    def __init__(self, effect_generator: BaseEffectGenerator, renderer: CssSubtitleRenderer, options: EmojiEffectOptions):
         self.effect_generator = effect_generator
         self.renderer = renderer
         self.options = options
@@ -61,7 +61,7 @@ class EmojiEffectDecorator(BaseEffectGenerator):
             word_clip_data = WordClipData(word=word_data, layout=emoji_layout, clips=[emoji_clip])
             line_clip_data = LineClipData(words=[word_clip_data], layout=emoji_layout)
             segment_data.lines.append(line_clip_data)
-            new_layout = LayoutUtils.calculate_lines_layout(segment_data.lines)
+            new_layout = LayoutUtils.calculate_segment_layout(segment_data.lines)
             new_segment_data = SegmentClipData(lines=segment_data.lines, layout=new_layout, start=segment_data.start, end=segment_data.end)
             all_segment_clips.append(new_segment_data)
 

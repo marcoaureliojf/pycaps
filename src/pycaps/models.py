@@ -34,7 +34,7 @@ class VerticalAlignmentType(Enum):
 class VerticalAlignment:
     """Represents a vertical alignment."""
     align: VerticalAlignmentType = VerticalAlignmentType.BOTTOM
-    offset: float = 0 # from -1.0 to 1.0 (0 means keep position established by the align parameter, negative means move up, positive means move down)
+    offset: float = -0.05 # from -1.0 to 1.0 (0 means keep position established by the align parameter, negative means move up, positive means move down)
 
 class TextOverflowStrategy(Enum):
     EXCEED_MAX_NUMBER_OF_LINES = "exceed_max_number_of_lines"

@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import List
 from moviepy.editor import VideoClip
-from ..renderer.base_subtitle_renderer import BaseSubtitleRenderer
+from ..css.css_subtitle_renderer import CssSubtitleRenderer
 from ..models import TranscriptionSegment
 from ..layout.models import SegmentClipData
 
 class BaseEffectGenerator(ABC):
-    def __init__(self, renderer: BaseSubtitleRenderer):
+    def __init__(self, renderer: CssSubtitleRenderer):
         self.renderer = renderer
 
     @abstractmethod
