@@ -9,7 +9,9 @@ class AlignmentUtils:
         elif alignment.align == VerticalAlignmentType.TOP:
             return container_height * alignment.offset
         elif alignment.align == VerticalAlignmentType.BOTTOM:
-            offset = alignment.offset + 1.0
+            # we avoid sending it to the max bottom when the default offset (0.0) is used,
+            # doing this, we leave a gap at the bottom 
+            offset = alignment.offset + 0.95
             return container_height * offset - element_height
         
         raise ValueError(f"Invalid alignment: {alignment.align}")
