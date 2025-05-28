@@ -8,7 +8,19 @@ class LayoutCalculator:
     def __init__(self, layout_options: SubtitleLayoutOptions):
         self.options = layout_options
 
-    def reposition_words(self, document: Document, video_width: int, video_height: int) -> None:
+    def refresh_lines_and_segments_sizes(self, document: Document) -> None:
+        """
+        Refreshes the lines and segments sizes, using the words sizes as reference.
+        """
+        for segment in document.segments:
+            for line in segment.lines:
+                line.layout.size.width = sum(w.layout.size.width for w in line.words) + (len(line.words) - 1) * self.options.word_spacing
+                line.layout.size.height = max(w.layout.size.height for w in line.words)
+
+            segment.layout.size.width = max(l.layout.size.width for l in segment.lines)
+            segment.layout.size.height = sum(l.layout.size.height for l in segment.lines)
+
+    def update_words_positions(self, document: Document, video_width: int, video_height: int) -> None:
         """
         Repositions the words in the document.
         It doesn't modify the structure of the document, only the positions of the words.

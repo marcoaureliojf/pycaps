@@ -58,8 +58,9 @@ class CapsPipeline:
             self._clips_generator.generate(document)
 
             if self._clips_generator.should_do_word_reposition():
-                print("Repositioning words...")
-                self._layout_calculator.reposition_words(document, video_clip.w, video_clip.h)
+                print("Word sizes have changed. Repositioning words...")
+                self._layout_calculator.refresh_lines_and_segments_sizes(document)
+                self._layout_calculator.update_words_positions(document, video_clip.w, video_clip.h)
                 self._clips_generator.update_word_clips_position(document)
 
             print("Generating final video...")

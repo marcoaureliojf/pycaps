@@ -106,9 +106,10 @@ class SubtitleClipsGenerator:
         self.__set_should_do_word_reposition(word, image)
         return image
     
-    def __set_should_do_word_reposition(self, word: Word, word_image: RenderedSubtitle) -> None:        
-        self._should_do_word_reposition = (self._should_do_word_reposition or
-                                           word.layout.size.width != word_image.width or
-                                           word.layout.size.height != word_image.height)
+    def __set_should_do_word_reposition(self, word: Word, word_image: RenderedSubtitle) -> None:
+        has_word_width_changed = word.layout.size.width != word_image.width
+        has_word_height_changed = word.layout.size.height != word_image.height
+        self._should_do_word_reposition = self._should_do_word_reposition or has_word_width_changed or has_word_height_changed
+        
         word.layout.size.width = word_image.width
         word.layout.size.height = word_image.height
