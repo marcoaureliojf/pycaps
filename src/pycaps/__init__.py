@@ -2,7 +2,8 @@
 # Este archivo puede estar vacío o usarse para exponer partes de la librería.
 
 # Podríamos exponer las clases principales aquí para facilitar la importación
-from .caps_pipeline import CapsPipeline, CapsPipelineBuilder
+from .pipeline.caps_pipeline import CapsPipeline
+from .pipeline.caps_pipeline_builder import CapsPipelineBuilder
 from .css import CssSubtitleRenderer
 from .transcriber import WhisperAudioTranscriber, AudioTranscriber
 from .effect import (
