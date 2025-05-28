@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Set
 from moviepy.editor import VideoClip
+from ..tag.tag import Tag
+from ..tag.builtin_tag import BuiltinTag
 
 # TODO: we should somehow assure that whenever a child is added to a parent, the parent is set.
 #  For example, if segment.lines.append(line), then line.parent should be set to segment.
@@ -28,16 +30,9 @@ class ElementLayout:
 
 @dataclass
 class WordState:
-    tag: str
+    tag: Tag
     clip: VideoClip
     parent: 'Word' = field(default_factory='Word')
-
-    def match_tag(self, tag: str) -> bool:
-        # TODO: replace word with BuiltinWordTag.WORD.value
-        return tag == 'word' or tag == self.tag or (self.parent and tag in self.parent.tags)
-
-    def match_all_tags(self, tags: List[str]) -> bool:
-        return all(self.match_tag(tag) for tag in tags)
 
     def get_word(self) -> 'Word':
         return self.parent
@@ -54,7 +49,7 @@ class WordState:
 @dataclass
 class Word:
     text: str = ""
-    tags: Set[str] = field(default_factory=set)
+    tags: Set[Tag] = field(default_factory=lambda: {BuiltinTag.WORD})
     layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment)
     states: List[WordState] = field(default_factory=list)

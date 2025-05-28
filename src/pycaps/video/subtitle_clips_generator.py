@@ -6,8 +6,9 @@ from PIL import Image
 import io
 import numpy as np
 from moviepy.editor import ImageClip
-from ..css.css_class import CssClass
+from ..tag.builtin_tag import BuiltinTag
 from ..models import RenderedSubtitle
+from ..tag.tag import Tag
 
 class SubtitleClipsGenerator:
 
@@ -49,7 +50,7 @@ class SubtitleClipsGenerator:
         if word.time.end >= segment_end_time:
             return None
         
-        image = self.__render_word(word, CssClass.WORD_ALREADY_NARRATED)
+        image = self.__render_word(word, BuiltinTag.WORD_ALREADY_NARRATED)
         if not image:
             return None
         
@@ -62,10 +63,10 @@ class SubtitleClipsGenerator:
             .set_duration(segment_end_time - word.time.end)
             .set_position((word.layout.position.x, word.layout.position.y)) 
         )
-        return WordState(tag=CssClass.WORD_ALREADY_NARRATED.value, clip=clip, parent=word)
+        return WordState(tag=BuiltinTag.WORD_ALREADY_NARRATED, clip=clip, parent=word)
     
     def __generate_being_narrated_word_state(self, word: Word) -> Optional[WordState]:
-        image = self.__render_word(word, CssClass.WORD_BEING_NARRATED)
+        image = self.__render_word(word, BuiltinTag.WORD_BEING_NARRATED)
         if not image:
             return None
         
@@ -79,14 +80,14 @@ class SubtitleClipsGenerator:
             .set_position((word.layout.position.x, word.layout.position.y))
             # .crossfadein(self.options.active_word_fade_duration) # TODO: this should be available as a animation
         )
-        return WordState(tag=CssClass.WORD_BEING_NARRATED.value, clip=clip, parent=word)
+        return WordState(tag=BuiltinTag.WORD_BEING_NARRATED, clip=clip, parent=word)
     
     def __generate_not_narrated_word_state(self, word: Word, segment_start_time: float) -> Optional[WordState]:
         # the first word will never be in the "not narrated" state
         if word.time.start <= segment_start_time:
             return None
         
-        image = self.__render_word(word, CssClass.WORD_NOT_NARRATED_YET)
+        image = self.__render_word(word, BuiltinTag.WORD_NOT_NARRATED_YET)
         if not image:
             return None
         
@@ -99,10 +100,10 @@ class SubtitleClipsGenerator:
             .set_duration(word.time.start - segment_start_time)
             .set_position((word.layout.position.x, word.layout.position.y))
         )
-        return WordState(tag=CssClass.WORD_NOT_NARRATED_YET.value, clip=clip, parent=word)
+        return WordState(tag=BuiltinTag.WORD_NOT_NARRATED_YET, clip=clip, parent=word)
     
-    def __render_word(self, word: Word, css_class: CssClass) -> Optional[RenderedSubtitle]:
-        image = self._renderer.render(word, [css_class])
+    def __render_word(self, word: Word, tag: Tag) -> Optional[RenderedSubtitle]:
+        image = self._renderer.render(word, [tag])
         if not image:
             return None
         

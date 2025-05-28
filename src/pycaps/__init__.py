@@ -35,6 +35,6 @@ from .animator import (
     SlideInFromLeftAnimationEffect,
     WaveAnimationEffect,
 )
-
+from .tag import Tag, TagCondition, BuiltinTag, BuiltinTagCondition
 
 __version__ = "0.1.0" 

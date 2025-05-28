@@ -1,4 +1,5 @@
 from typing import Dict, Optional
+from ..tag.tag import Tag
 
 class LlmTagger:
     """
@@ -12,13 +13,13 @@ class LlmTagger:
         # For example: self._client = OpenAI()
         pass
 
-    def process(self, text: str, rules: Dict[str, str]) -> str:
+    def process(self, text: str, rules: Dict[Tag, str]) -> str:
         """
         Process text using LLM to identify and tag relevant terms according to given rules.
 
         Args:
             text: The text to analyze
-            rules: Dictionary mapping class names to their topics (e.g., {'emotion': 'emotions and feelings'})
+            rules: Dictionary mapping tags to their topics (e.g., {Tag('emotion'): 'emotions and feelings'})
 
         Returns:
             Text with XML-like tags around relevant terms
@@ -28,14 +29,14 @@ class LlmTagger:
         response = self._call_llm(prompt)
         return self._process_response(response)
 
-    def _build_prompt(self, text: str, rules: Dict[str, str]) -> str:
+    def _build_prompt(self, text: str, rules: Dict[Tag, str]) -> str:
         """
         Builds the prompt for the LLM with clear instructions about the tagging task.
         """
         # Convert rules to a formatted string for the prompt
         rules_str = "\n".join([
-            f"- Tag '{topic}' related terms with <{class_name}> tags"
-            for class_name, topic in rules.items()
+            f"- Tag '{topic}' related terms with <{tag.name}> tags"
+            for tag, topic in rules.items()
         ])
 
         return f"""Please analyze the following text and tag relevant terms according to these rules:
