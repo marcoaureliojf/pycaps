@@ -8,6 +8,15 @@ class LayoutCalculator:
     def __init__(self, layout_options: SubtitleLayoutOptions):
         self.options = layout_options
 
+    def reposition_words(self, document: Document, video_width: int, video_height: int) -> None:
+        """
+        Repositions the words in the document.
+        It doesn't modify the structure of the document, only the positions of the words.
+        """
+        for segment in document.segments:
+            self._calculate_words_positions(segment.lines, video_width, video_height)
+            segment.layout = LayoutUtils.calculate_segment_layout(segment.lines)
+
     def calculate(self, document: Document, video_width: int, video_height: int) -> None:
         """
         Splits the segments into lines and calculates the positions of the words.
@@ -89,14 +98,16 @@ class LayoutCalculator:
         for line in lines:
             start_x_for_line = (video_width - line.layout.size.width) / 2.0
             x = start_x_for_line
+            line_height = line.layout.size.height
             for word in line.words:
+                word_y = y + (line_height - word.layout.size.height) / 2.0
                 word.layout.position.x = x
-                word.layout.position.y = y
+                word.layout.position.y = word_y
                 x += word.layout.size.width + self.options.word_spacing
 
             line.layout.position.x = start_x_for_line
             line.layout.position.y = y
-            y += line.layout.size.height
+            y += line_height
     
     def _add_line_layout_data_if_needed(self, lines: List[Line], words: List[Word], line_width: int) -> None:
         if not words:

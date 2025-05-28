@@ -6,12 +6,25 @@ from PIL import Image
 import io
 import numpy as np
 from moviepy.editor import ImageClip
-from ..css.css_classes import CssClasses
+from ..css.css_class import CssClass
+from ..models import RenderedSubtitle
 
 class SubtitleClipsGenerator:
 
     def __init__(self, renderer: CssSubtitleRenderer):
         self._renderer = renderer
+        self._should_do_word_reposition = False
+
+    def should_do_word_reposition(self) -> bool:
+        return self._should_do_word_reposition
+    
+    def update_word_clips_position(self, document: Document) -> None:
+        """
+        Updates the position of the moviepy clips of the words in the document.
+        """
+        for word in document.get_words():
+            for i, clip in enumerate(word.clips):
+                word.clips[i] = clip.set_position((word.layout.position.x, word.layout.position.y))
 
     def generate(self, document: Document) -> None:
         """
@@ -36,7 +49,7 @@ class SubtitleClipsGenerator:
         if word.time.end >= segment_end_time:
             return None
         
-        image = self._renderer.render(word, [CssClasses.WORD_ALREADY_NARRATED])
+        image = self.__render_word(word, CssClass.WORD_ALREADY_NARRATED)
         if not image:
             return None
         
@@ -51,7 +64,7 @@ class SubtitleClipsGenerator:
         )
     
     def __generate_being_narrated_word_clip(self, word: Word) -> Optional[VideoClip]:
-        image = self._renderer.render(word, [CssClasses.WORD_BEING_NARRATED])
+        image = self.__render_word(word, CssClass.WORD_BEING_NARRATED)
         if not image:
             return None
         
@@ -71,7 +84,7 @@ class SubtitleClipsGenerator:
         if word.time.start <= segment_start_time:
             return None
         
-        image = self._renderer.render(word, [CssClasses.WORD_NOT_NARRATED_YET])
+        image = self.__render_word(word, CssClass.WORD_NOT_NARRATED_YET)
         if not image:
             return None
         
@@ -84,3 +97,18 @@ class SubtitleClipsGenerator:
             .set_duration(word.time.start - segment_start_time)
             .set_position((word.layout.position.x, word.layout.position.y))
         )
+    
+    def __render_word(self, word: Word, css_class: CssClass) -> Optional[RenderedSubtitle]:
+        image = self._renderer.render(word, [css_class])
+        if not image:
+            return None
+        
+        self.__set_should_do_word_reposition(word, image)
+        return image
+    
+    def __set_should_do_word_reposition(self, word: Word, word_image: RenderedSubtitle) -> None:        
+        self._should_do_word_reposition = (self._should_do_word_reposition or
+                                           word.layout.size.width != word_image.width or
+                                           word.layout.size.height != word_image.height)
+        word.layout.size.width = word_image.width
+        word.layout.size.height = word_image.height

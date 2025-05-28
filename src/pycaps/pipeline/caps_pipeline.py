@@ -57,6 +57,11 @@ class CapsPipeline:
             print("Generating subtitle clips...")
             self._clips_generator.generate(document)
 
+            if self._clips_generator.should_do_word_reposition():
+                print("Repositioning words...")
+                self._layout_calculator.reposition_words(document, video_clip.w, video_clip.h)
+                self._clips_generator.update_word_clips_position(document)
+
             print("Generating final video...")
             self._video_generator.generate(document)
 

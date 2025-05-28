@@ -5,7 +5,7 @@ from typing import Optional
 from ..models import RenderedSubtitle
 from ..tagger.models import Word
 from typing import List
-from .css_classes import CssClasses
+from .css_class import CssClass
 import shutil
 import os
 import webbrowser
@@ -83,7 +83,7 @@ class CssSubtitleRenderer():
         </head>
         <body>
             <div id="subtitle-container">
-                <span id="subtitle-actual-text" class="{CssClasses.WORD.value}">{text}</span>
+                <span id="subtitle-actual-text" class="{CssClass.WORD.value}">{text}</span>
             </div>
         </body>
         </html>
@@ -116,11 +116,11 @@ class CssSubtitleRenderer():
         }}
         """
 
-        css_classes = [CssClasses.WORD.value] + css_classes
+        css_classes = [CssClass.WORD.value] + css_classes
         css_classes_str = ' '.join(css_classes)
         self.page.evaluate(script, [text, css_classes_str])
 
-    def render(self, word: Word, state_css_classes: List[CssClasses] = []) -> Optional[RenderedSubtitle]:
+    def render(self, word: Word, state_css_classes: List[CssClass] = []) -> Optional[RenderedSubtitle]:
         if not self.page:
             raise RuntimeError("Renderer is not open open() with video dimensions first.")
 
