@@ -9,6 +9,7 @@ from .css_class import CssClass
 import shutil
 import os
 import webbrowser
+from .rendered_image_cache import RenderedImageCache
 
 class CssSubtitleRenderer():
 
@@ -26,9 +27,11 @@ class CssSubtitleRenderer():
         self.page: Optional[Page] = None
         self.tempdir: Optional[tempfile.TemporaryDirectory] = None
         self._custom_css: str = ""
+        self._cache: RenderedImageCache = RenderedImageCache(self._custom_css)
 
     def set_custom_css(self, custom_css: str):
         self._custom_css = custom_css
+        self._cache = RenderedImageCache(self._custom_css)
 
     def open(self, video_width: int, video_height: int):
         """Initializes Playwright and loads the base HTML page."""
@@ -123,24 +126,25 @@ class CssSubtitleRenderer():
     def render(self, word: Word, state_css_classes: List[CssClass] = []) -> Optional[RenderedSubtitle]:
         if not self.page:
             raise RuntimeError("Renderer is not open open() with video dimensions first.")
-
+        
         css_classes = word.tags + [c.value for c in state_css_classes]
+        if self._cache.has(word.text, css_classes):
+            return self._cache.get(word.text, css_classes)
+
         self.__update_text_and_style(word.text, css_classes)
         
         locator = self.page.locator("#subtitle-actual-text")
         try:
             bounding_box = locator.bounding_box()
-            if not bounding_box:
-                # Text is not visible, return None to indicate that.
+            if not bounding_box or bounding_box['width'] <= 0 or bounding_box['height'] <= 0:
+                # HTML element is not visible (probably hidden by CSS).
+                self._cache.set(word.text, css_classes, None)
                 return None
 
-            # Bounding_box might have width/height 0 if text is only whitespace or CSS hides it.
-            # Ensure a minimum size to prevent errors in MoviePy with zero-size clips.
-            img_width = max(1, int(bounding_box['width']))
-            img_height = max(1, int(bounding_box['height']))
-
             png_bytes = locator.screenshot(omit_background=True, type="png")
-            return RenderedSubtitle(png_bytes, img_width, img_height)
+            rendered_subtitle = RenderedSubtitle(png_bytes, bounding_box['width'], bounding_box['height'])
+            self._cache.set(word.text, css_classes, rendered_subtitle)
+            return rendered_subtitle
         except Exception as e:
             raise RuntimeError(f"Error rendering '{word.text}' with tags '{word.tags}': {e}")
 
