@@ -35,6 +35,11 @@ from .animator import (
     SlideInFromLeftAnimationEffect,
     WaveAnimationEffect,
 )
-from .tag import Tag, TagCondition, BuiltinTag, BuiltinTagCondition
+from .element import (
+    ElementType,
+    EventType,
+    WordStateSelector,
+)
+from .tag import Tag, TagCondition, BuiltinTag, BuiltinTagCondition, TagConditionFactory
 
 __version__ = "0.1.0" 
