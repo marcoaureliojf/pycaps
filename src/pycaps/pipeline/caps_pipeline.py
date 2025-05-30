@@ -60,7 +60,7 @@ class CapsPipeline:
             self._clips_generator.generate(document)
 
             print("Repositioning words...")
-            self._word_width_calculator.calculate(document)
+            self._word_width_calculator.update_widths_using_moviepy_clips(document)
             self._layout_calculator.refresh_lines_and_segments_sizes(document)
             self._layout_calculator.update_words_positions(document, video_clip.w, video_clip.h)
             self._clips_generator.update_word_clips_position(document)

@@ -39,8 +39,8 @@ class Size:
 
 @dataclass
 class Position:
-    x: float = 0
-    y: float = 0
+    x: int = 0
+    y: int = 0
 
 @dataclass
 class ElementLayout:

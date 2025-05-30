@@ -108,11 +108,11 @@ class LayoutCalculator:
         y = self._calculate_base_y_position(lines, video_height)
 
         for line in lines:
-            start_x_for_line = (video_width - line.layout.size.width) / 2.0
+            start_x_for_line = (video_width - line.layout.size.width) // 2
             x = start_x_for_line
             line_height = line.layout.size.height
             for word in line.words:
-                word_y = y + (line_height - word.layout.size.height) / 2.0
+                word_y = y + (line_height - word.layout.size.height) // 2
                 word.layout.position.x = x
                 word.layout.position.y = word_y
                 x += word.layout.size.width + self.options.word_spacing

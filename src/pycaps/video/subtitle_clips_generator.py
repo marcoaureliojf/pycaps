@@ -22,8 +22,8 @@ class SubtitleClipsGenerator:
                 word_slot_position = word.layout.position
                 word_clip_size = clip.image_clip.size
                 word_clip_position = (
-                    word_slot_position.x + (word_slot_size.width - word_clip_size[0]) / 2,
-                    word_slot_position.y + (word_slot_size.height - word_clip_size[1]) / 2
+                    word_slot_position.x + (word_slot_size.width - word_clip_size[0]) // 2,
+                    word_slot_position.y + (word_slot_size.height - word_clip_size[1]) // 2
                 )
                 clip.image_clip = clip.image_clip.set_position(word_clip_position)
 
@@ -87,11 +87,8 @@ class SubtitleClipsGenerator:
         if not image:
             return None
         
-        pil_image = Image.open(io.BytesIO(image.image)).convert("RGBA")
-        np_image = np.array(pil_image)
-        
         clip: ImageClip = (
-            ImageClip(np_image)
+            ImageClip(np.array(image.image))
             .set_start(start)
             .set_duration(end - start)
         )
