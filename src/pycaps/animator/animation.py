@@ -23,8 +23,9 @@ class BaseAnimation:
             self._apply_animation(clip, self.__get_time_offset(clip))
 
     def _apply_position(self, clip: WordClip, offset: float, get_position_fn: Callable[[float], Tuple[float, float]]) -> None:
-        start_pos = clip.get_word().layout.position
-        clip.image_clip = clip.image_clip.set_position(lambda t: get_position_fn(self._normalice_time(t + offset)) if t + offset >= 0 else (start_pos.x, start_pos.y))
+        start_pos = clip.image_clip.pos(0)
+        clip.image_clip = clip.image_clip.set_position(
+            lambda t: get_position_fn(self._normalice_time(t + offset)) if t + offset >= 0 else (start_pos[0], start_pos[1]))
 
     def _apply_opacity(self, clip: WordClip, offset: float, get_opacity_fn: Callable[[float], float]) -> None:
         def fl(gf, t):

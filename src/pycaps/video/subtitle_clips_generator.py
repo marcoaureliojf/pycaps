@@ -5,26 +5,27 @@ from moviepy.editor import ImageClip
 from PIL import Image
 import io
 import numpy as np
-from ..tag.builtin_tag import BuiltinTag
-from ..models import RenderedSubtitle
 from ..tagger.models import ElementState
 
 class SubtitleClipsGenerator:
 
     def __init__(self, renderer: CssSubtitleRenderer):
         self._renderer = renderer
-        self._should_do_word_reposition = False
 
-    def should_do_word_reposition(self) -> bool:
-        return self._should_do_word_reposition
-    
     def update_word_clips_position(self, document: Document) -> None:
         """
         Updates the position of the moviepy clips of the words in the document.
         """
         for word in document.get_words():
             for clip in word.clips:
-                clip.image_clip = clip.image_clip.set_position((word.layout.position.x, word.layout.position.y))
+                word_slot_size = word.layout.size
+                word_slot_position = word.layout.position
+                word_clip_size = clip.image_clip.size
+                word_clip_position = (
+                    word_slot_position.x + (word_slot_size.width - word_clip_size[0]) / 2,
+                    word_slot_position.y + (word_slot_size.height - word_clip_size[1]) / 2
+                )
+                clip.image_clip = clip.image_clip.set_position(word_clip_position)
 
     def generate(self, document: Document) -> None:
         """
@@ -82,7 +83,7 @@ class SubtitleClipsGenerator:
         if end <= start:
             return None
     
-        image = self.__render_word(word, states)
+        image = self._renderer.render(word, states)
         if not image:
             return None
         
@@ -93,22 +94,5 @@ class SubtitleClipsGenerator:
             ImageClip(np_image)
             .set_start(start)
             .set_duration(end - start)
-            .set_position((word.layout.position.x, word.layout.position.y))
         )
         return WordClip(states=states, image_clip=clip, parent=word)
-
-    def __render_word(self, word: Word, states: List[ElementState]) -> Optional[RenderedSubtitle]:
-        image = self._renderer.render(word, states)
-        if not image:
-            return None
-        
-        self.__set_should_do_word_reposition(word, image)
-        return image
-    
-    def __set_should_do_word_reposition(self, word: Word, word_image: RenderedSubtitle) -> None:
-        has_word_width_changed = word.layout.size.width != word_image.width
-        has_word_height_changed = word.layout.size.height != word_image.height
-        self._should_do_word_reposition = self._should_do_word_reposition or has_word_width_changed or has_word_height_changed
-        
-        word.layout.size.width = word_image.width
-        word.layout.size.height = word_image.height

@@ -15,7 +15,17 @@ class ElementState(Enum):
 
     LINE_BEING_NARRATED = "line-being-narrated"
     LINE_NOT_NARRATED_YET = "line-not-narrated-yet"
-    LINE_ALREADY_NARRATED = "line-already-narrated"    
+    LINE_ALREADY_NARRATED = "line-already-narrated"
+
+    @staticmethod
+    def get_all_valid_states_combinations() -> List[List['ElementState']]:
+        return [
+            [ElementState.LINE_NOT_NARRATED_YET, ElementState.WORD_NOT_NARRATED_YET],
+            [ElementState.LINE_BEING_NARRATED, ElementState.WORD_NOT_NARRATED_YET],
+            [ElementState.LINE_BEING_NARRATED, ElementState.WORD_BEING_NARRATED],
+            [ElementState.LINE_BEING_NARRATED, ElementState.WORD_ALREADY_NARRATED],
+            [ElementState.LINE_ALREADY_NARRATED, ElementState.WORD_ALREADY_NARRATED],
+        ]
 
 @dataclass
 class TimeFragment:
@@ -62,6 +72,8 @@ class WordClip:
 class Word:
     text: str = ""
     tags: Set[Tag] = field(default_factory=set)
+    # IMPORTANT: it saves the maximum width/height of their clips (the word slot size)
+    #            same with the position: it's the x,y of the word slot (the image clip is centered in the word slot)
     layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment)
     clips: List[WordClip] = field(default_factory=list)
