@@ -32,60 +32,23 @@ class SubtitleClipsGenerator:
         """
         for segment in document.segments:
             for word in segment.get_words():
-                being_narrated = self.__generate_being_narrated_word_clip(word)
+                not_narrated = self.__create_word_clip(word, [ElementState.WORD_NOT_NARRATED_YET], segment.time.start, word.time.start)
+                if not_narrated:
+                    word.clips.append(not_narrated)
+
+                being_narrated = self.__create_word_clip(word, [ElementState.WORD_BEING_NARRATED], word.time.start, word.time.end)
                 if being_narrated:
                     word.clips.append(being_narrated)
 
-                already_narrated = self.__generate_already_narrated_word_clip(word, segment.time.end)
+                already_narrated = self.__create_word_clip(word, [ElementState.WORD_ALREADY_NARRATED], word.time.end, segment.time.end)
                 if already_narrated:
                     word.clips.append(already_narrated)
-
-                not_narrated = self.__generate_not_narrated_word_clip(word, segment.time.start)
-                if not_narrated:
-                    word.clips.append(not_narrated)
-   
-    def __generate_already_narrated_word_clip(self, word: Word, segment_end_time: float) -> Optional[WordClip]:
-        # the last word will never be in the "already narrated" clip
-        if word.time.end >= segment_end_time:
+       
+    def __create_word_clip(self, word: Word, states: List[ElementState], start: float, end: float) -> Optional[WordClip]:
+        if end <= start:
             return None
-        
-        image = self.__render_word(word, [ElementState.WORD_ALREADY_NARRATED])
-        if not image:
-            return None
-        
-        pil_image = Image.open(io.BytesIO(image.image)).convert("RGBA")
-        np_image = np.array(pil_image)
-
-        clip: ImageClip = (
-            ImageClip(np_image)
-            .set_start(word.time.end)
-            .set_duration(segment_end_time - word.time.end)
-            .set_position((word.layout.position.x, word.layout.position.y)) 
-        )
-        return WordClip(states=[ElementState.WORD_ALREADY_NARRATED], image_clip=clip, parent=word)
     
-    def __generate_being_narrated_word_clip(self, word: Word) -> Optional[WordClip]:
-        image = self.__render_word(word, [ElementState.WORD_BEING_NARRATED])
-        if not image:
-            return None
-        
-        pil_mage = Image.open(io.BytesIO(image.image)).convert("RGBA")
-        np_image = np.array(pil_mage)
-        
-        clip: ImageClip = (
-            ImageClip(np_image)
-            .set_start(word.time.start)
-            .set_duration(word.time.end - word.time.start)
-            .set_position((word.layout.position.x, word.layout.position.y))
-        )
-        return WordClip(states=[ElementState.WORD_BEING_NARRATED], image_clip=clip, parent=word)
-    
-    def __generate_not_narrated_word_clip(self, word: Word, segment_start_time: float) -> Optional[WordClip]:
-        # the first word will never be in the "not narrated" clip
-        if word.time.start <= segment_start_time:
-            return None
-        
-        image = self.__render_word(word, [ElementState.WORD_NOT_NARRATED_YET])
+        image = self.__render_word(word, states)
         if not image:
             return None
         
@@ -94,12 +57,12 @@ class SubtitleClipsGenerator:
         
         clip: ImageClip = (
             ImageClip(np_image)
-            .set_start(segment_start_time)
-            .set_duration(word.time.start - segment_start_time)
+            .set_start(start)
+            .set_duration(end - start)
             .set_position((word.layout.position.x, word.layout.position.y))
         )
-        return WordClip(states=[ElementState.WORD_NOT_NARRATED_YET], image_clip=clip, parent=word)
-    
+        return WordClip(states=states, image_clip=clip, parent=word)
+
     def __render_word(self, word: Word, states: List[ElementState]) -> Optional[RenderedSubtitle]:
         image = self._renderer.render(word, states)
         if not image:
