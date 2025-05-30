@@ -1,14 +1,13 @@
-from typing import Optional
-from ..tagger.models import Document, Word, WordState
+from typing import Optional, List
+from ..tagger.models import Document, Word, WordClip
 from ..css.css_subtitle_renderer import CssSubtitleRenderer
-from moviepy.editor import VideoClip
+from moviepy.editor import ImageClip
 from PIL import Image
 import io
 import numpy as np
-from moviepy.editor import ImageClip
 from ..tag.builtin_tag import BuiltinTag
 from ..models import RenderedSubtitle
-from ..tag.tag import Tag
+from ..tagger.models import ElementState
 
 class SubtitleClipsGenerator:
 
@@ -24,8 +23,8 @@ class SubtitleClipsGenerator:
         Updates the position of the moviepy clips of the words in the document.
         """
         for word in document.get_words():
-            for state in word.states:
-                state.clip = state.clip.set_position((word.layout.position.x, word.layout.position.y))
+            for clip in word.clips:
+                clip.image_clip = clip.image_clip.set_position((word.layout.position.x, word.layout.position.y))
 
     def generate(self, document: Document) -> None:
         """
@@ -33,60 +32,60 @@ class SubtitleClipsGenerator:
         """
         for segment in document.segments:
             for word in segment.get_words():
-                being_narrated = self.__generate_being_narrated_word_state(word)
+                being_narrated = self.__generate_being_narrated_word_clip(word)
                 if being_narrated:
-                    word.states.append(being_narrated)
+                    word.clips.append(being_narrated)
 
-                already_narrated = self.__generate_already_narrated_word_state(word, segment.time.end)
+                already_narrated = self.__generate_already_narrated_word_clip(word, segment.time.end)
                 if already_narrated:
-                    word.states.append(already_narrated)
+                    word.clips.append(already_narrated)
 
-                not_narrated = self.__generate_not_narrated_word_state(word, segment.time.start)
+                not_narrated = self.__generate_not_narrated_word_clip(word, segment.time.start)
                 if not_narrated:
-                    word.states.append(not_narrated)
+                    word.clips.append(not_narrated)
    
-    def __generate_already_narrated_word_state(self, word: Word, segment_end_time: float) -> Optional[WordState]:
-        # the last word will never be in the "already narrated" state
+    def __generate_already_narrated_word_clip(self, word: Word, segment_end_time: float) -> Optional[WordClip]:
+        # the last word will never be in the "already narrated" clip
         if word.time.end >= segment_end_time:
             return None
         
-        image = self.__render_word(word, BuiltinTag.WORD_ALREADY_NARRATED)
+        image = self.__render_word(word, [ElementState.WORD_ALREADY_NARRATED])
         if not image:
             return None
         
         pil_image = Image.open(io.BytesIO(image.image)).convert("RGBA")
         np_image = np.array(pil_image)
 
-        clip = (
+        clip: ImageClip = (
             ImageClip(np_image)
             .set_start(word.time.end)
             .set_duration(segment_end_time - word.time.end)
             .set_position((word.layout.position.x, word.layout.position.y)) 
         )
-        return WordState(tag=BuiltinTag.WORD_ALREADY_NARRATED, clip=clip, parent=word)
+        return WordClip(states=[ElementState.WORD_ALREADY_NARRATED], image_clip=clip, parent=word)
     
-    def __generate_being_narrated_word_state(self, word: Word) -> Optional[WordState]:
-        image = self.__render_word(word, BuiltinTag.WORD_BEING_NARRATED)
+    def __generate_being_narrated_word_clip(self, word: Word) -> Optional[WordClip]:
+        image = self.__render_word(word, [ElementState.WORD_BEING_NARRATED])
         if not image:
             return None
         
         pil_mage = Image.open(io.BytesIO(image.image)).convert("RGBA")
         np_image = np.array(pil_mage)
         
-        clip = (
+        clip: ImageClip = (
             ImageClip(np_image)
             .set_start(word.time.start)
             .set_duration(word.time.end - word.time.start)
             .set_position((word.layout.position.x, word.layout.position.y))
         )
-        return WordState(tag=BuiltinTag.WORD_BEING_NARRATED, clip=clip, parent=word)
+        return WordClip(states=[ElementState.WORD_BEING_NARRATED], image_clip=clip, parent=word)
     
-    def __generate_not_narrated_word_state(self, word: Word, segment_start_time: float) -> Optional[WordState]:
-        # the first word will never be in the "not narrated" state
+    def __generate_not_narrated_word_clip(self, word: Word, segment_start_time: float) -> Optional[WordClip]:
+        # the first word will never be in the "not narrated" clip
         if word.time.start <= segment_start_time:
             return None
         
-        image = self.__render_word(word, BuiltinTag.WORD_NOT_NARRATED_YET)
+        image = self.__render_word(word, [ElementState.WORD_NOT_NARRATED_YET])
         if not image:
             return None
         
@@ -99,10 +98,10 @@ class SubtitleClipsGenerator:
             .set_duration(word.time.start - segment_start_time)
             .set_position((word.layout.position.x, word.layout.position.y))
         )
-        return WordState(tag=BuiltinTag.WORD_NOT_NARRATED_YET, clip=clip, parent=word)
+        return WordClip(states=[ElementState.WORD_NOT_NARRATED_YET], image_clip=clip, parent=word)
     
-    def __render_word(self, word: Word, tag: Tag) -> Optional[RenderedSubtitle]:
-        image = self._renderer.render(word, [tag])
+    def __render_word(self, word: Word, states: List[ElementState]) -> Optional[RenderedSubtitle]:
+        image = self._renderer.render(word, states)
         if not image:
             return None
         

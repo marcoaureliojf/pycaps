@@ -4,7 +4,7 @@ from .animation import BaseAnimation, FadeInAnimationEffect, FadeOutAnimationEff
 from typing import Dict, Callable, Optional
 from ..tag.tag_condition import TagCondition
 from ..element.models import ElementType, EventType
-from ..element.word_state_selector import WordStateSelector
+from ..element.word_clip_selector import WordClipSelector
 
 class ElementAnimator:
     def __init__(
@@ -25,14 +25,14 @@ class ElementAnimator:
         self._what = what
         self._when = when
 
-        self.selector = WordStateSelector().filter_by_time(when, what, self._config.duration, self._config.delay)
+        self.selector = WordClipSelector().filter_by_time(when, what, self._config.duration, self._config.delay)
         if tag_condition:
             self.selector = self.selector.filter_by_tag(tag_condition)
 
     def animate(self, document: Document) -> None:
-        target_word_states = self.selector.select(document)
+        target_word_clips = self.selector.select(document)
         animation = self.__get_animation()
-        animation.run(target_word_states)
+        animation.run(target_word_clips)
 
     def __get_animation(self) -> BaseAnimation:
         return self.__get_registered_animations()[self._config.type]()

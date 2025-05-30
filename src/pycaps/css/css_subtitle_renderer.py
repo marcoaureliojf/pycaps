@@ -5,12 +5,12 @@ from typing import Optional
 from ..models import RenderedSubtitle
 from ..tagger.models import Word
 from typing import List
-from ..tag.tag import Tag
 from ..tag.builtin_tag import BuiltinTag
 import shutil
 import os
 import webbrowser
 from .rendered_image_cache import RenderedImageCache
+from ..tagger.models import ElementState
 
 class CssSubtitleRenderer():
 
@@ -87,7 +87,7 @@ class CssSubtitleRenderer():
         </head>
         <body>
             <div id="subtitle-container">
-                <span id="subtitle-actual-text" class="{BuiltinTag.WORD.name}">{text}</span>
+                <span id="subtitle-actual-text" class="{self.DEFAULT_CSS_CLASS_FOR_EACH_WORD}">{text}</span>
             </div>
         </body>
         </html>
@@ -120,15 +120,15 @@ class CssSubtitleRenderer():
         }}
         """
 
-        css_classes = [BuiltinTag.WORD.name] + css_classes
+        css_classes = [self.DEFAULT_CSS_CLASS_FOR_EACH_WORD] + css_classes
         css_classes_str = ' '.join(css_classes)
         self.page.evaluate(script, [text, css_classes_str])
 
-    def render(self, word: Word, state_tags: List[Tag] = []) -> Optional[RenderedSubtitle]:
+    def render(self, word: Word, states: List[ElementState] = []) -> Optional[RenderedSubtitle]:
         if not self.page:
             raise RuntimeError("Renderer is not open open() with video dimensions first.")
         
-        css_classes = [t.name for t in word.tags] + [t.name for t in state_tags]
+        css_classes = [t.name for t in word.tags] + [s.value for s in states]
         if self._cache.has(word.text, css_classes):
             return self._cache.get(word.text, css_classes)
 

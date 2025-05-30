@@ -1,11 +1,11 @@
 from typing import List, Union
 from ..utils.time_utils import times_intersect
 from .models import ElementType, EventType
-from ..tagger.models import Word, Line, Segment, WordState
+from ..tagger.models import Word, Line, Segment, WordClip
 
 class TimeEventSelector:
     """
-    Selects WordStates whose clips intersect a time window relative to a narration event
+    Selects WordClips whose clips intersect a time window relative to a narration event
     (start or end) of a given element (word, line, or segment).
 
     Parameters:
@@ -16,7 +16,7 @@ class TimeEventSelector:
 
     Example:
         TimeEventSelector(EventType.STARTS_NARRATION, ElementType.SEGMENT, duration=10, delay=2)
-        → selects all WordStates whose clip intersects [segment.start + 2, segment.start + 12]
+        → selects all WordClips whose clip intersects [segment.start + 2, segment.start + 12]
     """
 
     def __init__(self, event_type: EventType, element_type: ElementType, duration: float, delay: float) -> None:
@@ -25,14 +25,14 @@ class TimeEventSelector:
         self._duration = duration
         self._delay = delay
 
-    def select(self, word_states: List[WordState]) -> List[WordState]:
+    def select(self, clips: List[WordClip]) -> List[WordClip]:
         match self._element_type:
             case ElementType.WORD:
-                return self.__filter_by_words(word_states)
+                return self.__filter_by_words(clips)
             case ElementType.LINE:
-                return self.__filter_by_lines(word_states)
+                return self.__filter_by_lines(clips)
             case ElementType.SEGMENT:
-                return self.__filter_by_segments(word_states)
+                return self.__filter_by_segments(clips)
 
     def __get_event_time_range(self, element: Union[Word, Line, Segment]) -> tuple[float, float]:
         if self._event_type == EventType.ON_NARRATION_STARTS:
@@ -42,32 +42,32 @@ class TimeEventSelector:
         end = start + self._duration
         return start, end
 
-    def __filter_by_words(self, word_states: List[WordState]) -> List[WordState]:
+    def __filter_by_words(self, clips: List[WordClip]) -> List[WordClip]:
         return [
-            state for state in word_states
+            clip for clip in clips
             if times_intersect(
-                *self.__get_event_time_range(state.get_word()),
-                state.clip.start,
-                state.clip.end
+                *self.__get_event_time_range(clip.get_word()),
+                clip.image_clip.start,
+                clip.image_clip.end
             )
         ]
 
-    def __filter_by_lines(self, word_states: List[WordState]) -> List[WordState]:
+    def __filter_by_lines(self, clips: List[WordClip]) -> List[WordClip]:
         return [
-            state for state in word_states
+            clip for clip in clips
             if times_intersect(
-                *self.__get_event_time_range(state.get_line()),
-                state.clip.start,
-                state.clip.end
+                *self.__get_event_time_range(clip.get_line()),
+                clip.image_clip.start,
+                clip.image_clip.end
             )
         ]
 
-    def __filter_by_segments(self, word_states: List[WordState]) -> List[WordState]:
+    def __filter_by_segments(self, clips: List[WordClip]) -> List[WordClip]:
         return [
-            state for state in word_states
+            clip for clip in clips
             if times_intersect(
-                *self.__get_event_time_range(state.get_segment()),
-                state.clip.start,
-                state.clip.end
+                *self.__get_event_time_range(clip.get_segment()),
+                clip.image_clip.start,
+                clip.image_clip.end
             )
         ]

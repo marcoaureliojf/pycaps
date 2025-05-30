@@ -38,7 +38,7 @@ from .animator import (
 from .element import (
     ElementType,
     EventType,
-    WordStateSelector,
+    WordClipSelector,
 )
 from .tag import Tag, TagCondition, BuiltinTag, BuiltinTagCondition, TagConditionFactory
 

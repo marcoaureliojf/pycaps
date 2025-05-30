@@ -1,12 +1,21 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Set
-from moviepy.editor import VideoClip
+from moviepy.editor import ImageClip
 from ..tag.tag import Tag
-from ..tag.builtin_tag import BuiltinTag
+from enum import Enum
 
 # TODO: we should somehow assure that whenever a child is added to a parent, the parent is set.
 #  For example, if segment.lines.append(line), then line.parent should be set to segment.
 #  The same if segment.lines = [line1, line2], then line1.parent, and line2.parent should be set to segment.
+
+class ElementState(Enum):
+    WORD_BEING_NARRATED = "word-being-narrated"
+    WORD_NOT_NARRATED_YET = "word-not-narrated-yet"
+    WORD_ALREADY_NARRATED = "word-already-narrated"
+
+    LINE_BEING_NARRATED = "line-being-narrated"
+    LINE_NOT_NARRATED_YET = "line-not-narrated-yet"
+    LINE_ALREADY_NARRATED = "line-already-narrated"    
 
 @dataclass
 class TimeFragment:
@@ -29,10 +38,13 @@ class ElementLayout:
     size: Size = field(default_factory=Size)
 
 @dataclass
-class WordState: # TODO: rename to WordClip
-    tag: Tag # TODO: rename to 'state' (or 'states' if we allow multiple)
-    clip: VideoClip
+class WordClip:
+    states: List[ElementState]
+    image_clip: ImageClip
     parent: 'Word' = field(default_factory='Word')
+
+    def has_state(self, state: ElementState) -> bool:
+        return state in self.states
 
     def get_word(self) -> 'Word':
         return self.parent
@@ -49,18 +61,18 @@ class WordState: # TODO: rename to WordClip
 @dataclass
 class Word:
     text: str = ""
-    tags: Set[Tag] = field(default_factory=lambda: {BuiltinTag.WORD})
+    tags: Set[Tag] = field(default_factory=set)
     layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment)
-    states: List[WordState] = field(default_factory=list)
+    clips: List[WordClip] = field(default_factory=list)
     parent: 'Line' = field(default_factory='Line')
 
-    def add_state(self, state: WordState) -> None:
-        self.states.append(state)
-        state.parent = self
+    def add_clip(self, clip: WordClip) -> None:
+        self.clips.append(clip)
+        clip.parent = self
 
-    def get_clips(self) -> List[VideoClip]:
-        return [state.clip for state in self.states]
+    def get_image_clips(self) -> List[ImageClip]:
+        return [clip.image_clip for clip in self.clips]
 
     def get_line(self) -> 'Line':
         return self.parent
@@ -85,11 +97,11 @@ class Line:
     def get_text(self) -> str:
         return ' '.join([word.text for word in self.words])
     
-    def get_clips(self) -> List[VideoClip]:
-        return [clip for word in self.words for clip in word.get_clips()]
+    def get_image_clips(self) -> List[ImageClip]:
+        return [clip for word in self.words for clip in word.get_image_clips()]
     
-    def get_word_states(self) -> List[WordState]:
-        return [word_state for word in self.words for word_state in word.states]
+    def get_word_clips(self) -> List[WordClip]:
+        return [clip for word in self.words for clip in word.clips]
     
     def get_segment(self) -> 'Segment':
         return self.parent
@@ -111,11 +123,11 @@ class Segment:
     def get_text(self) -> str:
         return ' '.join([line.get_text() for line in self.lines])
     
-    def get_clips(self) -> List[VideoClip]:
-        return [clip for line in self.lines for clip in line.get_clips()]
+    def get_image_clips(self) -> List[ImageClip]:
+        return [clip for line in self.lines for clip in line.get_image_clips()]
     
-    def get_word_states(self) -> List[WordState]:
-        return [word_state for line in self.lines for word_state in line.get_word_states()]
+    def get_word_clips(self) -> List[WordClip]:
+        return [clip for line in self.lines for clip in line.get_word_clips()]
     
     def get_words(self) -> List[Word]:
         return [word for line in self.lines for word in line.words]
@@ -131,11 +143,11 @@ class Document:
         self.segments.append(segment)
         segment.parent = self
 
-    def get_clips(self) -> List[VideoClip]:
-        return [clip for segment in self.segments for clip in segment.get_clips()]
+    def get_image_clips(self) -> List[ImageClip]:
+        return [clip for segment in self.segments for clip in segment.get_image_clips()]
 
-    def get_word_states(self) -> List[WordState]:
-        return [word_state for segment in self.segments for word_state in segment.get_word_states()]
+    def get_word_clips(self) -> List[WordClip]:
+        return [clip for segment in self.segments for clip in segment.get_word_clips()]
     
     def get_words(self) -> List[Word]:
         return [word for segment in self.segments for word in segment.get_words()]

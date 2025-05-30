@@ -1,13 +1,6 @@
 from .tag import Tag
 
-# TODO: tenemos que dividir esto en tres conceptos: 1. default class (word), states (los 3 mencionados), tags (sirven para identificar un elemento)
 class BuiltinTag:
-    WORD = Tag("word")
-    # TODO: estos no deberían ser tags, dado que son estados. No deberían usarse para seleccionar palabras.
-    WORD_BEING_NARRATED = Tag("word-being-narrated")
-    WORD_NOT_NARRATED_YET = Tag("word-not-narrated-yet")
-    WORD_ALREADY_NARRATED = Tag("word-already-narrated")
-
     FIRST_WORD_IN_DOCUMENT = Tag("first-word-in-document")
     FIRST_WORD_IN_SEGMENT = Tag("first-word-in-segment")
     FIRST_WORD_IN_LINE = Tag("first-word-in-line")
