@@ -14,8 +14,8 @@ class LayoutCalculator:
         """
         for segment in document.segments:
             for line in segment.lines:
-                line.layout.size.width = sum(w.layout.size.width for w in line.words) + (len(line.words) - 1) * self.options.word_spacing
-                line.layout.size.height = max(w.layout.size.height for w in line.words)
+                line.layout.size.width = sum(w.layout.size.width for w in line.words.values()) + (len(line.words) - 1) * self.options.word_spacing
+                line.layout.size.height = max(w.layout.size.height for w in line.words.values())
 
             segment.layout.size.width = max(l.layout.size.width for l in segment.lines)
             segment.layout.size.height = sum(l.layout.size.height for l in segment.lines)

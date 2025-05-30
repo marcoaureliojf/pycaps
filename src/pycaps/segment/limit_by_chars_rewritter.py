@@ -1,6 +1,6 @@
 from .base_segment_rewritter import BaseSegmentRewritter
 from typing import List
-from ..tagger.models import Document, Segment, Line, Word, TimeFragment
+from ..tagger.models import Document, Segment, Line, Word, TimeFragment, ElementState
 
 class LimitByCharsRewritter(BaseSegmentRewritter):
     """
@@ -36,10 +36,10 @@ class LimitByCharsRewritter(BaseSegmentRewritter):
         new_segments = []
         segment_index = 0
         word_index = 0
-        segments = document.segments
+        segments = document.get_segments()
         while segment_index < len(segments):
             segment = segments[segment_index]
-            segment_words = segment.lines[0].words
+            segment_words = segment.get_words()
             word_end_index = self.__get_word_end_index(word_index, segment_words)
             current_words = segment_words[word_index:word_end_index]
             if len(current_words) == 0:
@@ -49,9 +49,9 @@ class LimitByCharsRewritter(BaseSegmentRewritter):
 
             segment_time = TimeFragment(start=current_words[0].time.start, end=current_words[-1].time.end)
             new_segment = Segment(time=segment_time, parent=document)
-            new_line = Line(words=current_words, time=segment_time, parent=new_segment)
-            for word in current_words: word.parent = new_line
-            new_segment.lines.append(new_line)
+            new_line = Line(time=segment_time, parent=new_segment)
+            new_line.add_words(current_words)
+            new_segment.add_line(new_line)
             new_segments.append(new_segment)
             word_index = word_end_index
 

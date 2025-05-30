@@ -2,6 +2,7 @@ from .base_segment_rewritter import BaseSegmentRewritter
 from ..models import TranscriptionSegment
 from ..tagger.models import Document, Segment, Line, Word, TimeFragment
 
+# TODO: deprecated, use LimitByCharsRewritter instead
 class LimitByWordsRewritter(BaseSegmentRewritter):
     """
     A segmenter that limits the number of words in each segment.

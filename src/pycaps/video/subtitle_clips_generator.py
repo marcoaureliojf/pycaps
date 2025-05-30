@@ -17,7 +17,7 @@ class SubtitleClipsGenerator:
         Updates the position of the moviepy clips of the words in the document.
         """
         for word in document.get_words():
-            for clip in word.clips:
+            for clip in word.clips.values():
                 word_slot_size = word.layout.size
                 word_slot_position = word.layout.position
                 word_clip_size = clip.image_clip.size
@@ -41,7 +41,7 @@ class SubtitleClipsGenerator:
                         line.time.start
                     )
                     if line_not_narrated_yet:
-                        word.clips.append(line_not_narrated_yet)
+                        word.clips[line_not_narrated_yet.state] = line_not_narrated_yet
 
                     line_being_narrated_word_not_narrated_yet = self.__create_word_clip(
                         word,
@@ -50,7 +50,7 @@ class SubtitleClipsGenerator:
                         word.time.start
                     )
                     if line_being_narrated_word_not_narrated_yet:
-                        word.clips.append(line_being_narrated_word_not_narrated_yet)
+                        word.clips[line_being_narrated_word_not_narrated_yet.state] = line_being_narrated_word_not_narrated_yet
 
                     line_being_narrated_word_being_narrated = self.__create_word_clip(
                         word,
@@ -59,7 +59,7 @@ class SubtitleClipsGenerator:
                         word.time.end
                     )
                     if line_being_narrated_word_being_narrated:
-                        word.clips.append(line_being_narrated_word_being_narrated)
+                        word.clips[line_being_narrated_word_being_narrated.state] = line_being_narrated_word_being_narrated
 
                     line_being_narrated_word_already_narrated = self.__create_word_clip(
                         word,
@@ -68,7 +68,7 @@ class SubtitleClipsGenerator:
                         line.time.end
                     )
                     if line_being_narrated_word_already_narrated:
-                        word.clips.append(line_being_narrated_word_already_narrated)
+                        word.clips[line_being_narrated_word_already_narrated.state] = line_being_narrated_word_already_narrated
 
                     line_already_narrated_word_already_narrated = self.__create_word_clip(
                         word,
@@ -77,7 +77,7 @@ class SubtitleClipsGenerator:
                         segment.time.end
                     )
                     if line_already_narrated_word_already_narrated:
-                        word.clips.append(line_already_narrated_word_already_narrated)
+                        word.clips[line_already_narrated_word_already_narrated.state] = line_already_narrated_word_already_narrated
        
     def __create_word_clip(self, word: Word, states: List[ElementState], start: float, end: float) -> Optional[WordClip]:
         if end <= start:
@@ -95,4 +95,4 @@ class SubtitleClipsGenerator:
             .set_start(start)
             .set_duration(end - start)
         )
-        return WordClip(states=states, image_clip=clip, parent=word)
+        return WordClip(state=states, image_clip=clip, parent=word)

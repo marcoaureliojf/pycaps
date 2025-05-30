@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Set
+from typing import List, Set, Dict, Optional
 from moviepy.editor import ImageClip
 from ..tag.tag import Tag
 from enum import Enum
@@ -9,6 +9,10 @@ from enum import Enum
 #  The same if segment.lines = [line1, line2], then line1.parent, and line2.parent should be set to segment.
 
 class ElementState(Enum):
+    BEING_NARRATED = "being-narrated"
+    NOT_NARRATED_YET = "not-narrated-yet"
+    ALREADY_NARRATED = "already-narrated"
+
     WORD_BEING_NARRATED = "word-being-narrated"
     WORD_NOT_NARRATED_YET = "word-not-narrated-yet"
     WORD_ALREADY_NARRATED = "word-already-narrated"
@@ -49,12 +53,9 @@ class ElementLayout:
 
 @dataclass
 class WordClip:
-    states: List[ElementState]
+    state: ElementState
     image_clip: ImageClip
     parent: 'Word' = field(default_factory='Word')
-
-    def has_state(self, state: ElementState) -> bool:
-        return state in self.states
 
     def get_word(self) -> 'Word':
         return self.parent
@@ -76,15 +77,15 @@ class Word:
     #            same with the position: it's the x,y of the word slot (the image clip is centered in the word slot)
     layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment)
-    clips: List[WordClip] = field(default_factory=list)
+    clips: Dict[ElementState, WordClip] = field(default_factory=dict)
     parent: 'Line' = field(default_factory='Line')
 
     def add_clip(self, clip: WordClip) -> None:
-        self.clips.append(clip)
+        self.clips[clip.state] = clip
         clip.parent = self
 
     def get_image_clips(self) -> List[ImageClip]:
-        return [clip.image_clip for clip in self.clips]
+        return [clip.image_clip for clip in self.clips.values()]
 
     def get_line(self) -> 'Line':
         return self.parent
@@ -101,10 +102,19 @@ class Line:
     layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment) # TODO: We could calculate it using the words (same for segment)
     parent: 'Segment' = field(default_factory='Segment')
+    state: ElementState = ElementState.BEING_NARRATED
+
+    def add_words(self, words: List[Word]) -> None:
+        self.words.extend(words)
+        for word in words:
+            word.parent = self
 
     def add_word(self, word: Word) -> None:
         self.words.append(word)
         word.parent = self
+
+    def get_words(self) -> List[Word]:
+        return self.words
 
     def get_text(self) -> str:
         return ' '.join([word.text for word in self.words])
@@ -113,7 +123,7 @@ class Line:
         return [clip for word in self.words for clip in word.get_image_clips()]
     
     def get_word_clips(self) -> List[WordClip]:
-        return [clip for word in self.words for clip in word.clips]
+        return [clip for word in self.words for clip in word.clips.values()]
     
     def get_segment(self) -> 'Segment':
         return self.parent
@@ -123,26 +133,39 @@ class Line:
 
 @dataclass
 class Segment:
-    lines: List[Line] = field(default_factory=list)
+    lines: Dict[ElementState, List[Line]] = field(default_factory=lambda: {state: [] for state in ElementState})
     layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment)
     parent: 'Document' = field(default_factory='Document')
 
     def add_line(self, line: Line) -> None:
-        self.lines.append(line)
+        self.lines[line.state].append(line)
         line.parent = self
 
-    def get_text(self) -> str:
-        return ' '.join([line.get_text() for line in self.lines])
+    def get_text(self, line_state: Optional[ElementState] = None) -> str:
+        if line_state is None:
+            return ' '.join([line.get_text() for lines in self.lines.values() for line in lines])
+        return ' '.join([line.get_text() for line in self.lines[line_state]])
     
-    def get_image_clips(self) -> List[ImageClip]:
-        return [clip for line in self.lines for clip in line.get_image_clips()]
+    def get_image_clips(self, line_state: Optional[ElementState] = None) -> List[ImageClip]:
+        if line_state is None:
+            return [clip for lines in self.lines.values() for line in lines for clip in line.get_image_clips()]
+        return [clip for line in self.lines[line_state] for clip in line.get_image_clips()]
     
-    def get_word_clips(self) -> List[WordClip]:
-        return [clip for line in self.lines for clip in line.get_word_clips()]
+    def get_word_clips(self, line_state: Optional[ElementState] = None) -> List[WordClip]:
+        if line_state is None:
+            return [clip for lines in self.lines.values() for line in lines for clip in line.get_word_clips()]
+        return [clip for line in self.lines[line_state] for clip in line.get_word_clips()]
     
-    def get_words(self) -> List[Word]:
-        return [word for line in self.lines for word in line.words]
+    def get_words(self, line_state: Optional[ElementState] = None) -> List[Word]:
+        if line_state is None:
+            return [word for lines in self.lines.values() for line in lines for word in line.get_words()]
+        return [word for line in self.lines[line_state] for word in line.get_words()]
+    
+    def get_lines(self, line_state: Optional[ElementState] = None) -> List[Line]:
+        if line_state is None:
+            return [line for lines in self.lines.values() for line in lines]
+        return self.lines[line_state]
     
     def get_document(self) -> 'Document':
         return self.parent
@@ -155,18 +178,21 @@ class Document:
         self.segments.append(segment)
         segment.parent = self
 
-    def get_image_clips(self) -> List[ImageClip]:
-        return [clip for segment in self.segments for clip in segment.get_image_clips()]
+    def get_image_clips(self, line_state: Optional[ElementState] = None) -> List[ImageClip]:
+        return [clip for segment in self.segments for clip in segment.get_image_clips(line_state)]
 
-    def get_word_clips(self) -> List[WordClip]:
-        return [clip for segment in self.segments for clip in segment.get_word_clips()]
+    def get_word_clips(self, line_state: Optional[ElementState] = None) -> List[WordClip]:
+        return [clip for segment in self.segments for clip in segment.get_word_clips(line_state)]
     
-    def get_words(self) -> List[Word]:
-        return [word for segment in self.segments for word in segment.get_words()]
+    def get_words(self, line_state: Optional[ElementState] = None) -> List[Word]:
+        return [word for segment in self.segments for word in segment.get_words(line_state)]
     
-    def get_lines(self) -> List[Line]:
-        return [line for segment in self.segments for line in segment.lines]
+    def get_lines(self, line_state: Optional[ElementState] = None) -> List[Line]:
+        return [line for segment in self.segments for line in segment.get_lines(line_state)]
     
-    def get_text(self) -> str:
-        return ' '.join([segment.get_text() for segment in self.segments])
+    def get_segments(self) -> List[Segment]:
+        return self.segments
+
+    def get_text(self, line_state: Optional[ElementState] = None) -> str:
+        return ' '.join([segment.get_text(line_state) for segment in self.segments])
 
