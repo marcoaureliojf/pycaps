@@ -1,5 +1,12 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Callable, Union
+
+class Easing:
+    LINEAR = lambda t: t
+    EASE_IN = lambda t: t**2
+    EASE_OUT = lambda t: 1 - (1 - t)**2
+    EASE_IN_OUT = lambda t: t**2 * (3 - 2 * t)
 
 class AnimationType(Enum):
     FADE_IN = "fade_in"
@@ -21,4 +28,4 @@ class AnimationConfig:
     type: AnimationType
     duration: float = 0.5
     delay: float = 0.0
-    easing: str = "ease-in-out"
+    easing: Callable[[float], float] = Easing.LINEAR

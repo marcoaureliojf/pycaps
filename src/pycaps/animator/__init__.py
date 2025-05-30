@@ -8,5 +8,5 @@ from .animation import (
     SlideInFromLeftAnimationEffect,
     WaveAnimationEffect,
 )
-from .animation_config import AnimationConfig, AnimationType
+from .animation_config import AnimationConfig, AnimationType, Easing
 from .element_animator import ElementAnimator

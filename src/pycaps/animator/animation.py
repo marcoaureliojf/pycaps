@@ -1,7 +1,7 @@
 from typing import List, Tuple, Callable, Dict
 from ..tagger.models import WordClip, Word
 import numpy as np
-from .animation_config import AnimationConfig
+from .animation_config import AnimationConfig, Easing
 from ..element import EventType, ElementType
 from moviepy.editor import VideoClip
 
@@ -24,7 +24,7 @@ class BaseAnimation:
 
     def _apply_position(self, clip: WordClip, offset: float, get_position_fn: Callable[[float], Tuple[float, float]]) -> None:
         start_pos = clip.get_word().layout.position
-        clip.image_clip = clip.image_clip.set_position(lambda t: get_position_fn(t + offset) if t + offset >= 0 else (start_pos.x, start_pos.y))
+        clip.image_clip = clip.image_clip.set_position(lambda t: get_position_fn(self._normalice_time(t + offset)) if t + offset >= 0 else (start_pos.x, start_pos.y))
 
     def _apply_opacity(self, clip: WordClip, offset: float, get_opacity_fn: Callable[[float], float]) -> None:
         def fl(gf, t):
@@ -34,12 +34,30 @@ class BaseAnimation:
             clip_frame = gf(t)
             if t + offset < 0:
                 return clip_frame
-            return clip_frame * get_opacity_fn(t + offset)
+            return clip_frame * get_opacity_fn(self._normalice_time(t + offset))
 
         if clip.image_clip.mask is None:
             clip.image_clip = clip.image_clip.add_mask()
 
         clip.image_clip = clip.image_clip.fl(fl, apply_to=['mask'])
+
+    def _normalice_time(self, t: float) -> float:
+        '''
+        Normalize the time to be between 0 and 1 using the duration of the animation
+        And apply the easing function to the time
+        '''
+        if self._config.duration == 0:
+            raise ValueError("Animation duration can't be 0")
+        
+        normalice = lambda n: min(1, max(0, n))
+        progress = normalice(t / self._config.duration)
+        return normalice(self._apply_easing(progress))
+
+    def _apply_easing(self, t: float) -> float:
+        if not isinstance(self._config.easing, Callable):    
+            raise ValueError(f"Invalid easing function: {self._config.easing}")
+        
+        return self._config.easing(t)
 
     def __get_time_offset(self, clip: WordClip) -> float:
         if self._event_type == EventType.ON_NARRATION_STARTS:
@@ -66,23 +84,17 @@ class BaseAnimation:
 
 class FadeInAnimationEffect(BaseAnimation):
     def _apply_animation(self, clip: WordClip, offset: float) -> None:
-        self._apply_opacity(clip, offset, lambda t: min(1, t / self._config.duration))
+        self._apply_opacity(clip, offset, lambda t: t)
 
 class FadeOutAnimationEffect(BaseAnimation):
     def _apply_animation(self, clip: WordClip, offset: float) -> None:
-        self._apply_opacity(clip, offset, lambda t: max(0, 1 - t / self._config.duration))
+        self._apply_opacity(clip, offset, lambda t: 1 - t)
 
 class BounceInAnimationEffect(BaseAnimation):
     def _apply_animation(self, clip: WordClip, offset: float) -> None:
         def get_position(t: float) -> Tuple[float, float]:
             pos = clip.get_word().layout.position
-            if t < 0:
-                return pos.x, pos.y
-            elif t < self._config.duration:
-                y = pos.y + 50 * (1 - t / self._config.duration)**2 # TODO: use ease function
-            else:
-                y = pos.y
-            return pos.x, y
+            return pos.x, pos.y + 50 * (1 - t)**2
         
         self._apply_position(clip, offset, get_position)
 
@@ -90,13 +102,7 @@ class SlideInFromLeftAnimationEffect(BaseAnimation):
     def _apply_animation(self, clip: WordClip, offset: float) -> None:
         def get_position(t: float) -> Tuple[float, float]:
             pos = clip.get_word().layout.position
-            if t < 0:
-                return pos.x - 100, pos.y
-            elif t < self._config.duration:
-                x = pos.x - 100 + (t / self._config.duration) * 100
-            else:
-                x = pos.x
-            return x, pos.y
+            return pos.x - 100 + t * 100, pos.y
         
         self._apply_position(clip, offset, get_position)
 
