@@ -31,18 +31,52 @@ class SubtitleClipsGenerator:
         Adds the MoviePy ImageClips for each word in the document received.
         """
         for segment in document.segments:
-            for word in segment.get_words():
-                not_narrated = self.__create_word_clip(word, [ElementState.WORD_NOT_NARRATED_YET], segment.time.start, word.time.start)
-                if not_narrated:
-                    word.clips.append(not_narrated)
+            for line in segment.lines:
+                for word in line.words:
+                    line_not_narrated_yet = self.__create_word_clip(
+                        word,
+                        [ElementState.LINE_NOT_NARRATED_YET, ElementState.WORD_NOT_NARRATED_YET],
+                        segment.time.start,
+                        line.time.start
+                    )
+                    if line_not_narrated_yet:
+                        word.clips.append(line_not_narrated_yet)
 
-                being_narrated = self.__create_word_clip(word, [ElementState.WORD_BEING_NARRATED], word.time.start, word.time.end)
-                if being_narrated:
-                    word.clips.append(being_narrated)
+                    line_being_narrated_word_not_narrated_yet = self.__create_word_clip(
+                        word,
+                        [ElementState.LINE_BEING_NARRATED, ElementState.WORD_NOT_NARRATED_YET],
+                        line.time.start,
+                        word.time.start
+                    )
+                    if line_being_narrated_word_not_narrated_yet:
+                        word.clips.append(line_being_narrated_word_not_narrated_yet)
 
-                already_narrated = self.__create_word_clip(word, [ElementState.WORD_ALREADY_NARRATED], word.time.end, segment.time.end)
-                if already_narrated:
-                    word.clips.append(already_narrated)
+                    line_being_narrated_word_being_narrated = self.__create_word_clip(
+                        word,
+                        [ElementState.LINE_BEING_NARRATED, ElementState.WORD_BEING_NARRATED],
+                        word.time.start,
+                        word.time.end
+                    )
+                    if line_being_narrated_word_being_narrated:
+                        word.clips.append(line_being_narrated_word_being_narrated)
+
+                    line_being_narrated_word_already_narrated = self.__create_word_clip(
+                        word,
+                        [ElementState.LINE_BEING_NARRATED, ElementState.WORD_ALREADY_NARRATED],
+                        word.time.end,
+                        line.time.end
+                    )
+                    if line_being_narrated_word_already_narrated:
+                        word.clips.append(line_being_narrated_word_already_narrated)
+
+                    line_already_narrated_word_already_narrated = self.__create_word_clip(
+                        word,
+                        [ElementState.LINE_ALREADY_NARRATED, ElementState.WORD_ALREADY_NARRATED],
+                        line.time.end,
+                        segment.time.end
+                    )
+                    if line_already_narrated_word_already_narrated:
+                        word.clips.append(line_already_narrated_word_already_narrated)
        
     def __create_word_clip(self, word: Word, states: List[ElementState], start: float, end: float) -> Optional[WordClip]:
         if end <= start:
