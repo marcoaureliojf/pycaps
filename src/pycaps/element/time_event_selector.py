@@ -35,7 +35,7 @@ class TimeEventSelector:
                 return self.__filter_by_segments(word_states)
 
     def __get_event_time_range(self, element: Union[Word, Line, Segment]) -> tuple[float, float]:
-        if self._event_type == EventType.STARTS_NARRATION:
+        if self._event_type == EventType.ON_NARRATION_STARTS:
             start = element.time.start + self._delay
         else:  # ENDS_NARRATION
             start = element.time.end - self._delay - self._duration

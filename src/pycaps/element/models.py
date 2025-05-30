@@ -7,8 +7,8 @@ class ElementType(Enum):
     SEGMENT = "segment"
 
 class EventType(Enum):
-    STARTS_NARRATION = "starts-narration"
-    ENDS_NARRATION = "ends-narration"
+    ON_NARRATION_STARTS = "starts-narration"
+    ON_NARRATION_ENDS = "ends-narration"
 
 @dataclass
 class Event:

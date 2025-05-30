@@ -11,7 +11,7 @@ class ElementAnimator:
             self,
             config: AnimationConfig,
             what: ElementType = ElementType.WORD,
-            when: EventType = EventType.STARTS_NARRATION,
+            when: EventType = EventType.ON_NARRATION_STARTS,
             tag_condition: Optional[TagCondition] = None,
         ) -> None:
         """

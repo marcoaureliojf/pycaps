@@ -78,7 +78,6 @@ class SubtitleClipsGenerator:
             .set_start(word.time.start)
             .set_duration(word.time.end - word.time.start)
             .set_position((word.layout.position.x, word.layout.position.y))
-            # .crossfadein(self.options.active_word_fade_duration) # TODO: this should be available as a animation
         )
         return WordState(tag=BuiltinTag.WORD_BEING_NARRATED, clip=clip, parent=word)
     
@@ -94,7 +93,7 @@ class SubtitleClipsGenerator:
         pil_image = Image.open(io.BytesIO(image.image)).convert("RGBA")
         np_image = np.array(pil_image)
         
-        clip = (
+        clip: ImageClip = (
             ImageClip(np_image)
             .set_start(segment_start_time)
             .set_duration(word.time.start - segment_start_time)

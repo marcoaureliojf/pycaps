@@ -34,14 +34,12 @@ class LayoutCalculator:
         Splits the segments into lines and calculates the positions of the words.
         """
         for segment in document.segments:
-            words = segment.get_words()
-            lines = self._split_words_into_lines(segment, words, video_width)
-            self._calculate_words_positions(lines, video_width, video_height)
-            layout = LayoutUtils.calculate_segment_layout(lines)
-            segment.lines = lines
+            self._split_words_into_lines(segment, video_width)
+            self._calculate_words_positions(segment.lines, video_width, video_height)
+            layout = LayoutUtils.calculate_segment_layout(segment.lines)
             segment.layout = layout
 
-    def _split_words_into_lines(self, segment: Segment, words: List[Word], video_width: int) -> List[Line]:
+    def _split_words_into_lines(self, segment: Segment, video_width: int) -> None:
         """Splits pre-measured words into lines based on layout options."""
         lines: List[Line] = []
         current_line_words: List[Word] = []
@@ -49,7 +47,7 @@ class LayoutCalculator:
         max_w = video_width * self.options.max_width_ratio
         word_spacing = self.options.word_spacing
 
-        for word in words:
+        for word in segment.get_words():
             word_size = word.layout.size
             word_width_with_spacing = word_size.width + word_spacing
 
@@ -69,13 +67,10 @@ class LayoutCalculator:
         
         self._append_new_line(segment, lines, current_line_words, current_line_total_width)
         self._adjust_lines_to_constraints(lines)
-        return lines
-
+        segment.lines = lines
+        
     def _adjust_lines_to_constraints(self, lines: List[Line]) -> None:
         """Adjusts lines according to min/max constraints and overflow strategy."""
-        if len(lines) >= self.options.min_number_of_lines:
-            return
-        
         # If we have fewer lines than minimum, split the longest line
         while len(lines) < self.options.min_number_of_lines:
             longest_line = max(lines, key=lambda l: l.layout.size.width)
@@ -102,7 +97,10 @@ class LayoutCalculator:
                 time=TimeFragment(start=second_half[0].time.start, end=second_half[-1].time.end),
                 parent=longest_line.parent
             )
-            
+
+            for word in first_half: word.parent = first_line
+            for word in second_half: word.parent = second_line
+
             lines.remove(longest_line)
             lines.extend([first_line, second_line])
         

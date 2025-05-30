@@ -29,8 +29,8 @@ class ElementLayout:
     size: Size = field(default_factory=Size)
 
 @dataclass
-class WordState:
-    tag: Tag
+class WordState: # TODO: rename to WordClip
+    tag: Tag # TODO: rename to 'state' (or 'states' if we allow multiple)
     clip: VideoClip
     parent: 'Word' = field(default_factory='Word')
 
@@ -75,7 +75,7 @@ class Word:
 class Line:
     words: List[Word] = field(default_factory=list)
     layout: ElementLayout = field(default_factory=ElementLayout)
-    time: TimeFragment = field(default_factory=TimeFragment)
+    time: TimeFragment = field(default_factory=TimeFragment) # TODO: We could calculate it using the words (same for segment)
     parent: 'Segment' = field(default_factory='Segment')
 
     def add_word(self, word: Word) -> None:
