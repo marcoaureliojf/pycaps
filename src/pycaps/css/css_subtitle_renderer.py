@@ -124,7 +124,7 @@ class CssSubtitleRenderer():
         css_classes_str = ' '.join(css_classes)
         self.page.evaluate(script, [text, css_classes_str])
 
-    def render(self, word: Word) -> Optional[RenderedSubtitle]:
+    def render(self, word: Word, states: List[ElementState] = []) -> Optional[RenderedSubtitle]:
         if not self.page:
             raise RuntimeError("Renderer is not open open() with video dimensions first.")
         

@@ -1,6 +1,6 @@
 from .base_transcriber import AudioTranscriber
 from typing import Optional
-from ..tagger.models import Document, Segment, Line, Word, TimeFragment, ElementState
+from ..tagger.models import Document, Segment, Line, Word, TimeFragment
 import whisper
 
 class WhisperAudioTranscriber(AudioTranscriber):
@@ -45,8 +45,7 @@ class WhisperAudioTranscriber(AudioTranscriber):
         for segment_info in result["segments"]:
             segment_time = TimeFragment(start=float(segment_info["start"]), end=float(segment_info["end"]))
             segment = Segment(time=segment_time, parent=document)
-            line = Line(time=segment_time, parent=segment)
-            segment.add_line(line)
+            segment.lines.append(Line(time=segment_time, parent=segment))
 
             if not "words" in segment_info or not isinstance(segment_info["words"], list):
                 print(f"Segment '{segment_info['text']}' has no detailed word data.")
@@ -59,9 +58,9 @@ class WhisperAudioTranscriber(AudioTranscriber):
                     continue
 
                 word_time = TimeFragment(start=float(word_entry["start"]), end=float(word_entry["end"]))
+                line = segment.lines[0]
                 word = Word(text=word_text, time=word_time, parent=line)
-                # so far is everything in one single line (we split it in next steps of the pipeline)
-                line.add_word(word)
+                line.words.append(word) # so far is everything in one single line (we split it in next steps of the pipeline)
 
             document.segments.append(segment)
         
