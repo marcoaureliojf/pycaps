@@ -1,11 +1,13 @@
 from .caps_pipeline import CapsPipeline
 from ..models import SubtitleLayoutOptions
-from ..layout.layout_calculator import LayoutCalculator
 from ..transcriber.base_transcriber import AudioTranscriber
 from typing import Dict, Any
 from ..segment import BaseSegmentRewritter
 import os
 from ..animator.element_animator import ElementAnimator
+from ..layout.line_splitter import LineSplitter
+from ..layout.layout_updater import LayoutUpdater
+from ..layout.positions_calculator import PositionsCalculator
 
 class CapsPipelineBuilder:
 
@@ -29,7 +31,9 @@ class CapsPipelineBuilder:
         return self
     
     def with_layout_options(self, layout_options: SubtitleLayoutOptions) -> "CapsPipelineBuilder":
-        self._caps_pipeline._layout_calculator = LayoutCalculator(layout_options)
+        self._caps_pipeline._line_splitter = LineSplitter(layout_options)
+        self._caps_pipeline._layout_updater = LayoutUpdater(layout_options)
+        self._caps_pipeline._positions_calculator = PositionsCalculator(layout_options)
         return self
     
     def with_css(self, css_file_path: str) -> "CapsPipelineBuilder":

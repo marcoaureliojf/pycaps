@@ -94,7 +94,7 @@ class FadeOutAnimationEffect(BaseAnimation):
 class BounceInAnimationEffect(BaseAnimation):
     def _apply_animation(self, clip: WordClip, offset: float) -> None:
         def get_position(t: float) -> Tuple[float, float]:
-            pos = clip.get_word().layout.position
+            pos = clip.layout.position
             return pos.x, pos.y + 50 * (1 - t)**2
         
         self._apply_position(clip, offset, get_position)
@@ -102,7 +102,7 @@ class BounceInAnimationEffect(BaseAnimation):
 class SlideInFromLeftAnimationEffect(BaseAnimation):
     def _apply_animation(self, clip: WordClip, offset: float) -> None:
         def get_position(t: float) -> Tuple[float, float]:
-            pos = clip.get_word().layout.position
+            pos = clip.layout.position
             return pos.x - 100 + t * 100, pos.y
         
         self._apply_position(clip, offset, get_position)
@@ -113,6 +113,6 @@ class WaveAnimationEffect(BaseAnimation):
             wave_amplitude = 7
             wave_period = 3
             y_offset = wave_amplitude * np.sin(2 * np.pi * t / wave_period)
-            return clip.get_word().layout.position.x, clip.get_word().layout.position.y + y_offset
+            return clip.layout.position.x, clip.layout.position.y + y_offset
         
         self._apply_position(clip, offset, get_position)

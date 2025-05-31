@@ -8,6 +8,10 @@ from enum import Enum
 #  For example, if segment.lines.append(line), then line.parent should be set to segment.
 #  The same if segment.lines = [line1, line2], then line1.parent, and line2.parent should be set to segment.
 
+
+# TODO: I should handle caching for methods like get_words.
+#  It should be refreshed automatically when a child is added or removed.
+
 class ElementState(Enum):
     WORD_BEING_NARRATED = "word-being-narrated"
     WORD_NOT_NARRATED_YET = "word-not-narrated-yet"
@@ -25,6 +29,14 @@ class ElementState(Enum):
             [ElementState.LINE_BEING_NARRATED, ElementState.WORD_BEING_NARRATED],
             [ElementState.LINE_BEING_NARRATED, ElementState.WORD_ALREADY_NARRATED],
             [ElementState.LINE_ALREADY_NARRATED, ElementState.WORD_ALREADY_NARRATED],
+        ]
+    
+    @staticmethod
+    def get_all_line_states() -> List['ElementState']:
+        return [
+            ElementState.LINE_NOT_NARRATED_YET,
+            ElementState.LINE_BEING_NARRATED,
+            ElementState.LINE_ALREADY_NARRATED,
         ]
 
 @dataclass
@@ -50,8 +62,9 @@ class ElementLayout:
 @dataclass
 class WordClip:
     states: List[ElementState]
-    image_clip: ImageClip
+    image_clip: Optional[ImageClip] = None
     parent: 'Word' = field(default_factory='Word')
+    layout: ElementLayout = field(default_factory=ElementLayout)
 
     def has_state(self, state: ElementState) -> bool:
         return state in self.states
@@ -73,8 +86,8 @@ class Word:
     text: str = ""
     tags: Set[Tag] = field(default_factory=set)
     # IMPORTANT: it saves the maximum width/height of their clips (the word slot size)
-    #            same with the position: it's the x,y of the word slot (the image clip is centered in the word slot)
-    layout: ElementLayout = field(default_factory=ElementLayout)
+    #            same with the position: it's the x,y of the word slot
+    max_layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment)
     clips: List[WordClip] = field(default_factory=list)
     parent: 'Line' = field(default_factory='Line')
@@ -98,7 +111,7 @@ class Word:
 @dataclass
 class Line:
     words: List[Word] = field(default_factory=list)
-    layout: ElementLayout = field(default_factory=ElementLayout)
+    max_layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment) # TODO: We could calculate it using the words (same for segment)
     parent: 'Segment' = field(default_factory='Segment')
 
@@ -124,7 +137,7 @@ class Line:
 @dataclass
 class Segment:
     lines: List[Line] = field(default_factory=list)
-    layout: ElementLayout = field(default_factory=ElementLayout)
+    max_layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment)
     parent: 'Document' = field(default_factory='Document')
 

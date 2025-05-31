@@ -5,11 +5,13 @@ from ..css.css_subtitle_renderer import CssSubtitleRenderer
 from ..video.subtitle_clips_generator import SubtitleClipsGenerator
 from ..video.video_generator import VideoGenerator
 from ..layout.word_width_calculator import WordWidthCalculator
-from ..layout.layout_calculator import LayoutCalculator
+from ..layout.positions_calculator import PositionsCalculator
+from ..layout.line_splitter import LineSplitter
+from ..layout.layout_updater import LayoutUpdater
 from ..tagger.semantic_tagger import get_default_tagger
-from ..models import SubtitleLayoutOptions
 from ..segment import BaseSegmentRewritter
 from ..animator.element_animator import ElementAnimator
+from ..models import SubtitleLayoutOptions
 
 class CapsPipeline:
     def __init__(self):
@@ -17,11 +19,15 @@ class CapsPipeline:
         self._renderer: CssSubtitleRenderer = CssSubtitleRenderer()
         self._clips_generator: SubtitleClipsGenerator = SubtitleClipsGenerator(self._renderer)
         self._word_width_calculator: WordWidthCalculator = WordWidthCalculator(self._renderer)
-        self._layout_calculator: LayoutCalculator = LayoutCalculator(SubtitleLayoutOptions())
         self._semantic_tagger = get_default_tagger()
         self._video_generator: VideoGenerator = VideoGenerator()
         self._segment_rewritters: list[BaseSegmentRewritter] = []
         self._animators: list[ElementAnimator] = []
+
+        layout_options = SubtitleLayoutOptions()
+        self._positions_calculator: PositionsCalculator = PositionsCalculator(layout_options)
+        self._line_splitter: LineSplitter = LineSplitter(layout_options)
+        self._layout_updater: LayoutUpdater = LayoutUpdater(layout_options)
 
         self._input_video_path: Optional[str] = None
         self._output_video_path: Optional[str] = None
@@ -47,11 +53,11 @@ class CapsPipeline:
             print(f"Opening renderer for video dimensions: {video_clip.w}x{video_clip.h}")
             self._renderer.open(video_width=video_clip.w, video_height=video_clip.h)
 
-            print("Calculating word widths...")
+            print("Calculating words widths...")
             self._word_width_calculator.calculate(document)
 
-            print("Calculating layout for each segment...")
-            self._layout_calculator.calculate(document, video_clip.w, video_clip.h)
+            print("Splitting segments into lines...")
+            self._line_splitter.split_into_lines(document, video_clip.w)
 
             print("Tagging words with semantic information...")
             self._semantic_tagger.tag(document)
@@ -59,11 +65,18 @@ class CapsPipeline:
             print("Generating subtitle clips...")
             self._clips_generator.generate(document)
 
-            print("Repositioning words...")
-            self._word_width_calculator.update_widths_using_moviepy_clips(document)
-            self._layout_calculator.refresh_lines_and_segments_sizes(document)
-            self._layout_calculator.update_words_positions(document, video_clip.w, video_clip.h)
-            self._clips_generator.update_word_clips_position(document)
+            print("Updating elements max sizes...")
+            self._layout_updater.update_max_sizes(document)
+
+            print("Calculating words positions...")
+            self._positions_calculator.calculate(document, video_clip.w, video_clip.h)
+            # self._word_width_calculator.update_widths_using_moviepy_clips(document)
+            # self._layout_calculator.refresh_lines_and_segments_sizes(document)
+            # self._layout_calculator.update_words_positions(document, video_clip.w, video_clip.h)
+            # self._clips_generator.update_word_clips_position(document, video_clip.w, video_clip.h)
+
+            print("Updating elements max positions...")
+            self._layout_updater.update_max_positions(document)
 
             print("Running animators...")
             for animator in self._animators:
