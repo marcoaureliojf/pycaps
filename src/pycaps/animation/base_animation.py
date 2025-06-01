@@ -98,7 +98,9 @@ class BaseAnimation(ABC):
     
     def __get_on_start_offset(self, clip: WordClip) -> float:
         start_time = 0
-        if self._what == ElementType.LINE:
+        if self._what == ElementType.WORD:
+            start_time = clip.get_word().time.start
+        elif self._what == ElementType.LINE:
             start_time = clip.get_line().time.start
         elif self._what == ElementType.SEGMENT:
             start_time = clip.get_segment().time.start
@@ -107,7 +109,9 @@ class BaseAnimation(ABC):
 
     def __get_on_end_offset(self, clip: WordClip) -> float:
         end_time = 0
-        if self._what == ElementType.LINE:
+        if self._what == ElementType.WORD:
+            end_time = clip.get_word().time.end
+        elif self._what == ElementType.LINE:
             end_time = clip.get_line().time.end
         elif self._what == ElementType.SEGMENT:
             end_time = clip.get_segment().time.end
