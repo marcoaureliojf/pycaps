@@ -7,7 +7,7 @@ class PlaywrightScreenshotCapturer:
     @staticmethod
     def capture(locator: Locator) -> Image:
         png_bytes = locator.screenshot(omit_background=True, type="png")
-        image = Image.open(io.BytesIO(png_bytes))
+        image = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
         image = PlaywrightScreenshotCapturer._trim_extra_fully_transparent_pixels(image)
         return image
 
