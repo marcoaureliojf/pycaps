@@ -1,5 +1,6 @@
 from ..models import SubtitleLayoutOptions
 from ..tagger.models import Document
+from math import inf
 
 class LayoutUpdater:
     def __init__(self, layout_options: SubtitleLayoutOptions):
@@ -7,7 +8,7 @@ class LayoutUpdater:
 
     def update_max_sizes(self, document: Document) -> None:
         """
-        Refreshes the words, lines and segments max sizes, using the moviepy clips sizes as reference.
+        Refreshes the words, lines and segments max sizes, using the word clips sizes as reference.
         """
         for segment in document.segments:
             segment_width = 0
@@ -29,14 +30,16 @@ class LayoutUpdater:
             segment.max_layout.size.width = segment_width
             segment.max_layout.size.height = segment_height
 
-
     def update_max_positions(self, document: Document) -> None:
+        '''
+        Refreshes the words, lines and segments max positions, using the word clips positions as reference.
+        '''
         for segment in document.segments:
-            segment_x = 0
-            segment_y = 0
+            segment_x = inf
+            segment_y = inf
             for line in segment.lines:
-                line_x = 0
-                line_y = 0
+                line_x = inf
+                line_y = inf
                 for word in line.words:
                     word.max_layout.position.x = min(clip.layout.position.x for clip in word.clips)
                     word.max_layout.position.y = min(clip.layout.position.y for clip in word.clips)

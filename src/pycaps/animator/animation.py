@@ -1,46 +1,62 @@
-from typing import List, Tuple, Callable, Dict
-from ..tagger.models import WordClip, Word
+from typing import List, Tuple, Callable, Optional
+from ..tagger.models import WordClip
 import numpy as np
-from .animation_config import AnimationConfig, Easing
+from .animation_config import AnimationConfig
 from ..element import EventType, ElementType
-from moviepy.editor import VideoClip
 
 class BaseAnimation:
     def __init__(self, config: AnimationConfig, element_type: ElementType, event_type: EventType) -> None:
-        self._config = config
-        self._element_type = element_type
-        self._event_type = event_type
+        self._config: AnimationConfig = config
+        self._element_type: ElementType = element_type
+        self._event_type: EventType = event_type
+        self._position_transform: Optional[Callable[[], None]] = None
+        self._size_transform: Optional[Callable[[], None]] = None
+        self._opacity_transform: Optional[Callable[[], None]] = None
 
     def _apply_animation(self, clip: WordClip, offset: float) -> None:
         pass
 
     def run(self, clips: List[WordClip]) -> None:
         for clip in clips:
-            # Important: note that the position of the clip is updated but the layout.x and layout.y are not updated
-            #  We decided to keep the original position, since the word will have different clips in different positions (being narrated, not narrated, etc.)
-            #  So, the position set in word.layout.position, is the original position for the word, before animating
-
             self._apply_animation(clip, self.__get_time_offset(clip))
+
+            # apply transforms in order (order is important)
+            if self._size_transform: self._size_transform()
+            if self._position_transform: self._position_transform()
+            if self._opacity_transform: self._opacity_transform()
 
     def _apply_position(self, clip: WordClip, offset: float, get_position_fn: Callable[[float], Tuple[float, float]]) -> None:
         start_pos = clip.image_clip.pos(0)
-        clip.image_clip = clip.image_clip.set_position(
-            lambda t: get_position_fn(self._normalice_time(t + offset)) if t + offset >= 0 else (start_pos[0], start_pos[1]))
+        def transform() -> None:
+            clip.image_clip = clip.image_clip.set_position(
+                lambda t: get_position_fn(self._normalice_time(t + offset)) if t + offset >= 0 else start_pos)
+        
+        self._position_transform = transform
 
+    def _apply_size(self, clip: WordClip, offset: float, get_resize_fn: Callable[[float], float]) -> None:
+        def transform() -> None:
+            clip.image_clip = clip.image_clip.resize(
+                lambda t: get_resize_fn(self._normalice_time(t + offset)) if t + offset >= 0 else 1)
+        
+        self._size_transform = transform
+    
     def _apply_opacity(self, clip: WordClip, offset: float, get_opacity_fn: Callable[[float], float]) -> None:
-        def fl(gf, t):
-            # please, note that gf(t) is clip.get_frame(t), which was previously called (in blit_on) and memoized
-            # so, getting it shouldn't be a performance issue
-            # this function will be called when clip.mask.get_frame(t) is called
-            clip_frame = gf(t)
-            if t + offset < 0:
-                return clip_frame
-            return clip_frame * get_opacity_fn(self._normalice_time(t + offset))
+        def transform() -> None:
+            def fl(gf, t):
+                # please, note that gf(t) is clip.get_frame(t), which was previously called (in blit_on) and memoized
+                # so, getting it shouldn't be a performance issue
+                # this function will be called when clip.mask.get_frame(t) is called
+                clip_frame = gf(t)
+                if t + offset < 0:
+                    return clip_frame
+                return clip_frame * get_opacity_fn(self._normalice_time(t + offset))
 
-        if clip.image_clip.mask is None:
-            clip.image_clip = clip.image_clip.add_mask()
+            if clip.image_clip.mask is None:
+                clip.image_clip = clip.image_clip.add_mask()
 
-        clip.image_clip = clip.image_clip.fl(fl, apply_to=['mask'])
+            clip.image_clip = clip.image_clip.fl(fl, apply_to=['mask'])
+        
+        self._opacity_transform = transform
 
     def _normalice_time(self, t: float) -> float:
         '''
@@ -98,6 +114,110 @@ class BounceInAnimationEffect(BaseAnimation):
             return pos.x, pos.y + 50 * (1 - t)**2
         
         self._apply_position(clip, offset, get_position)
+
+class CenteredPopInEffect(BaseAnimation):
+    def _apply_animation(self, clip: WordClip, offset: float) -> None:
+        group_center = self._get_group_center(clip)
+        word_original_width, word_original_height = clip.layout.size.width, clip.layout.size.height
+        word_final_center = (
+            clip.layout.position.x + word_original_width / 2,
+            clip.layout.position.y + word_original_height / 2
+        )
+    
+        def get_size_factor(t: float) -> float:
+            return 0.8 + 0.2 * (t**0.5)
+
+        def get_position(t: float) -> Tuple[float, float]:
+            scale = get_size_factor(t)
+            current_width = word_original_width * scale
+            current_height = word_original_height * scale
+
+            current_center_x = group_center[0] + (word_final_center[0] - group_center[0]) * t
+            current_center_y = group_center[1] + (word_final_center[1] - group_center[1]) * t
+
+            final_x = current_center_x - (current_width / 2)
+            final_y = current_center_y - (current_height / 2)
+            
+            return (final_x, final_y)
+
+        self._apply_opacity(clip, offset, lambda t: t)
+        self._apply_size(clip, offset, get_size_factor)
+        self._apply_position(clip, offset, get_position)
+
+    def _get_group_center(self, clip: WordClip) -> Tuple[float, float]:
+        if self._element_type == ElementType.LINE:
+            line = clip.get_line()
+            return (
+                line.max_layout.position.x + line.max_layout.size.width / 2,
+                line.max_layout.position.y + line.max_layout.size.height / 2
+            )
+        
+        if self._element_type == ElementType.SEGMENT:
+            segment = clip.get_segment()
+            return (
+                segment.max_layout.position.x + segment.max_layout.size.width / 2,
+                segment.max_layout.position.y + segment.max_layout.size.height / 2
+            )
+
+        return (
+            clip.layout.position.x + clip.layout.size.width / 2,
+            clip.layout.position.y + clip.layout.size.height / 2
+        )
+    
+class BlockScaleInEffect(BaseAnimation):
+
+    def _apply_animation(self, clip: WordClip, offset: float) -> None:
+        group_center = self._get_group_center(clip)
+        word_final_center = (
+            clip.layout.position.x + clip.layout.size.width / 2,
+            clip.layout.position.y + clip.layout.size.height / 2
+        )
+        relative_pos_vector = (
+            word_final_center[0] - group_center[0],
+            word_final_center[1] - group_center[1]
+        )
+
+        def get_size_factor(t: float) -> float:
+            return 0.8 + 0.2 * (t**0.5)
+
+        def get_position(t: float) -> Tuple[float, float]:
+            progress = get_size_factor(t)
+            
+            current_width = clip.layout.size.width * progress
+            current_height = clip.layout.size.height * progress
+
+            current_center_x = group_center[0] + (relative_pos_vector[0] * progress)
+            current_center_y = group_center[1] + (relative_pos_vector[1] * progress)
+
+            final_x = current_center_x - (current_width / 2)
+            final_y = current_center_y - (current_height / 2)
+            
+            return (final_x, final_y)
+
+        self._apply_opacity(clip, offset, lambda t: t)
+        self._apply_position(clip, offset, get_position)
+        self._apply_size(clip, offset, get_size_factor)
+
+
+    def _get_group_center(self, clip: WordClip) -> Tuple[float, float]:
+        if self._element_type == ElementType.LINE:
+            line = clip.get_line()
+            return (
+                line.max_layout.position.x + line.max_layout.size.width / 2,
+                line.max_layout.position.y + line.max_layout.size.height / 2
+            )
+        
+        if self._element_type == ElementType.SEGMENT:
+            segment = clip.get_segment()
+            return (
+                segment.max_layout.position.x + segment.max_layout.size.width / 2,
+                segment.max_layout.position.y + segment.max_layout.size.height / 2
+            )
+
+        return (
+            clip.layout.position.x + clip.layout.size.width / 2,
+            clip.layout.position.y + clip.layout.size.height / 2
+        )
 
 class SlideInFromLeftAnimationEffect(BaseAnimation):
     def _apply_animation(self, clip: WordClip, offset: float) -> None:

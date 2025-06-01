@@ -34,7 +34,9 @@ from .animator import (
     BounceInAnimationEffect,
     SlideInFromLeftAnimationEffect,
     WaveAnimationEffect,
-    Easing
+    Easing,
+    CenteredPopInEffect,
+    BlockScaleInEffect
 )
 from .element import (
     ElementType,

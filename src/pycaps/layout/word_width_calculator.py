@@ -13,7 +13,9 @@ class WordWidthCalculator:
             max_width = 0
             max_height = 0
             for states in all_word_states:
-                word_image: RenderedSubtitle = self._renderer.render(word, states)
+                word_image = self._renderer.render(word, states)
+                if word_image is None:
+                    continue
                 max_width = max(max_width, word_image.width)
                 max_height = max(max_height, word_image.height)
             word.max_layout.size.width = max_width

@@ -22,6 +22,8 @@ class AnimationType(Enum):
     SCALE_IN = "scale_in"
     SCALE_OUT = "scale_out"
     WAVE = "wave"
+    CENTERED_POP_IN = "centered_pop_in"
+    BLOCK_SCALE_IN = "block_scale_in"
 
 @dataclass(frozen=True)
 class AnimationConfig:

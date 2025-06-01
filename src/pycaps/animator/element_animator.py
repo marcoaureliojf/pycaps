@@ -1,6 +1,14 @@
 from ..tagger.models import Document
 from .animation_config import AnimationConfig, AnimationType
-from .animation import BaseAnimation, FadeInAnimationEffect, FadeOutAnimationEffect, BounceInAnimationEffect, SlideInFromLeftAnimationEffect
+from .animation import (
+    BaseAnimation,
+    FadeInAnimationEffect,
+    FadeOutAnimationEffect,
+    BounceInAnimationEffect,
+    SlideInFromLeftAnimationEffect,
+    CenteredPopInEffect,
+    BlockScaleInEffect
+)
 from typing import Dict, Callable, Optional
 from ..tag.tag_condition import TagCondition
 from ..element.models import ElementType, EventType
@@ -43,4 +51,6 @@ class ElementAnimator:
             AnimationType.FADE_OUT: lambda: FadeOutAnimationEffect(self._config, self._what, self._when),
             AnimationType.BOUNCE_IN: lambda: BounceInAnimationEffect(self._config, self._what, self._when),
             AnimationType.SLIDE_IN: lambda: SlideInFromLeftAnimationEffect(self._config, self._what, self._when),
+            AnimationType.CENTERED_POP_IN: lambda: CenteredPopInEffect(self._config, self._what, self._when),
+            AnimationType.BLOCK_SCALE_IN: lambda: BlockScaleInEffect(self._config, self._what, self._when),
         }

@@ -2,7 +2,7 @@ from typing import List, Optional
 from ..tagger.models import ElementState
 from ..models import SubtitleLayoutOptions
 from ..utils.alignment_utils import AlignmentUtils
-from ..tagger.models import Document, Line
+from ..tagger.models import Document, Segment, Line
 
 class PositionsCalculator:
     def __init__(self, layout_options: SubtitleLayoutOptions):
@@ -13,18 +13,18 @@ class PositionsCalculator:
         Calculates the positions of the words in the document.
         """
         for segment in document.segments:
-            self._calculate_words_positions(segment.lines, video_width, video_height)
+            self.update_words_positions_in_segment(segment, video_width, video_height)
     
-    # I'm not sure if this is the best approach.
-    # Each word slot will be calculated per line state.
-    # So, for example, if in a line already narrated the word slots are shorter than when the line is being narrated,
-    # It will cause that the words have different positions for the same line in different states.
-    # Then a line "Hello world" can be rendered as "Hello   world" or "Hello world" in different states.
-    # The adventage of this approach is that line size as a whole can change in different states (useful for .line-being-narrated class)
-    def _calculate_words_positions(self, lines: List[Line], video_width: int, video_height: int) -> None:
-        y = self._calculate_base_y_position(lines, video_height)
+    # I'm not sure if this is the best approach, but it is good enough for now.
+    def update_words_positions_in_segment(
+            self,
+            segment: Segment,
+            video_width: int,
+            video_height: int,
+        ) -> None:
+        y = self._calculate_base_y_position(segment, video_height)
 
-        for line in lines:
+        for line in segment.lines:
             if self._is_stable_line(line):
                 for state in ElementState.get_all_line_states():
                     words_width = self._get_words_width_for_line_state(line, state)
@@ -37,7 +37,14 @@ class PositionsCalculator:
 
             y += line.max_layout.size.height
 
-    def _set_clip_positions(self, line: Line, words_width: List[int], y: int, video_width: int, state: Optional[ElementState] = None) -> None:
+    def _set_clip_positions(
+            self,
+            line: Line,
+            words_width: List[int],
+            y: int,
+            video_width: int,
+            state: Optional[ElementState] = None,
+        ) -> None:
         line_width = sum(words_width) + (len(words_width) - 1) * self._options.word_spacing
         start_x_for_line = (video_width - line_width) // 2
         slot_x = start_x_for_line
@@ -90,11 +97,10 @@ class PositionsCalculator:
             words_width.append(max_clip_width)
         return words_width
 
-
-    def _calculate_base_y_position(self, lines: List[Line], video_height: int) -> float:
+    def _calculate_base_y_position(self, segment: Segment, video_height: int) -> float:
         """Calculates the base Y position for the subtitle block."""
-        if not lines:
+        if not segment.lines:
             return 0.0
             
-        total_block_height = sum(line.max_layout.size.height for line in lines)
+        total_block_height = sum(line.max_layout.size.height for line in segment.lines)
         return AlignmentUtils.get_vertical_alignment_position(self._options.vertical_align, total_block_height, video_height)
