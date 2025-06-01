@@ -25,18 +25,17 @@ from .models import (
     EmojiAlign
 ) # Exponer data classes
 from .segment import LimitByWordsRewritter, LimitByCharsRewritter
-from .animator import (
-    AnimationType,
+from .animation import (
     AnimationConfig,
-    ElementAnimator,
-    FadeInAnimationEffect,
-    FadeOutAnimationEffect,
-    BounceInAnimationEffect,
-    SlideInFromLeftAnimationEffect,
-    WaveAnimationEffect,
+    BaseAnimation,
+    FadeIn,
+    FadeOut,
+    BounceIn,
+    SlideIn,
+    ZoomIn,
+    PopIn,
     Easing,
-    CenteredPopInEffect,
-    BlockScaleInEffect
+    SlideInConfig
 )
 from .element import (
     ElementType,

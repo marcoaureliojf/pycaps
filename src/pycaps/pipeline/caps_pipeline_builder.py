@@ -4,10 +4,10 @@ from ..transcriber.base_transcriber import AudioTranscriber
 from typing import Dict, Any
 from ..segment import BaseSegmentRewritter
 import os
-from ..animator.element_animator import ElementAnimator
 from ..layout.line_splitter import LineSplitter
 from ..layout.layout_updater import LayoutUpdater
 from ..layout.positions_calculator import PositionsCalculator
+from ..animation import BaseAnimation
 
 class CapsPipelineBuilder:
 
@@ -51,8 +51,8 @@ class CapsPipelineBuilder:
         self._caps_pipeline._segment_rewritters.append(segment_rewritter)
         return self
     
-    def add_animator(self, animator: ElementAnimator) -> "CapsPipelineBuilder":
-        self._caps_pipeline._animators.append(animator)
+    def add_animation(self, animation: BaseAnimation) -> "CapsPipelineBuilder":
+        self._caps_pipeline._animations.append(animation)
         return self
 
     def build(self) -> CapsPipeline:

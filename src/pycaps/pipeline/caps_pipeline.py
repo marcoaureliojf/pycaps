@@ -10,7 +10,7 @@ from ..layout.line_splitter import LineSplitter
 from ..layout.layout_updater import LayoutUpdater
 from ..tagger.semantic_tagger import get_default_tagger
 from ..segment import BaseSegmentRewritter
-from ..animator.element_animator import ElementAnimator
+from ..animation import BaseAnimation
 from ..models import SubtitleLayoutOptions
 
 class CapsPipeline:
@@ -22,7 +22,7 @@ class CapsPipeline:
         self._semantic_tagger = get_default_tagger()
         self._video_generator: VideoGenerator = VideoGenerator()
         self._segment_rewritters: list[BaseSegmentRewritter] = []
-        self._animators: list[ElementAnimator] = []
+        self._animations: list[BaseAnimation] = []
 
         layout_options = SubtitleLayoutOptions()
         self._positions_calculator: PositionsCalculator = PositionsCalculator(layout_options)
@@ -70,17 +70,13 @@ class CapsPipeline:
 
             print("Calculating words positions...")
             self._positions_calculator.calculate(document, video_clip.w, video_clip.h)
-            # self._word_width_calculator.update_widths_using_moviepy_clips(document)
-            # self._layout_calculator.refresh_lines_and_segments_sizes(document)
-            # self._layout_calculator.update_words_positions(document, video_clip.w, video_clip.h)
-            # self._clips_generator.update_word_clips_position(document, video_clip.w, video_clip.h)
 
             print("Updating elements max positions...")
             self._layout_updater.update_max_positions(document)
 
-            print("Running animators...")
-            for animator in self._animators:
-                animator.animate(document)
+            print("Running animations...")
+            for animation in self._animations:
+                animation.run(document)
 
             print("Generating final video...")
             self._video_generator.generate(document)
