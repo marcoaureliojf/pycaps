@@ -1,0 +1,19 @@
+from ...preset_animation import PresetAnimation
+from ...animation import Animation
+from ..primitive import FadeInPrimitive
+from typing import List
+from ...animation_config import Transformer
+
+class FadeOut(PresetAnimation):
+
+    def __init__(self, duration: float = 0.2, delay: float = 0.0):
+        super().__init__(duration, delay)
+
+    def _build_animations(self) -> List[Animation]:
+        return [
+            FadeInPrimitive(
+                duration=self._duration,
+                delay=self._delay,
+                transformer=Transformer.INVERT
+            )
+        ]

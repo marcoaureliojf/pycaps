@@ -7,7 +7,10 @@ import os
 from ..layout.line_splitter import LineSplitter
 from ..layout.layout_updater import LayoutUpdater
 from ..layout.positions_calculator import PositionsCalculator
-from ..animation import BaseAnimation
+from ..animation import Animation, ElementAnimator
+from ..element import ElementType, EventType
+from ..tag.tag_condition import TagCondition
+from typing import Optional
 
 class CapsPipelineBuilder:
 
@@ -51,8 +54,8 @@ class CapsPipelineBuilder:
         self._caps_pipeline._segment_rewritters.append(segment_rewritter)
         return self
     
-    def add_animation(self, animation: BaseAnimation) -> "CapsPipelineBuilder":
-        self._caps_pipeline._animations.append(animation)
+    def add_animation(self, animation: Animation, when: EventType, what: ElementType, tag_condition: Optional[TagCondition] = None) -> "CapsPipelineBuilder":
+        self._caps_pipeline._animators.append(ElementAnimator(animation, when, what, tag_condition)) 
         return self
 
     def build(self) -> CapsPipeline:

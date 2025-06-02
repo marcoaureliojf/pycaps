@@ -1,5 +1,5 @@
 from ..transcriber.base_transcriber import AudioTranscriber
-from typing import Optional
+from typing import Optional, List
 from ..transcriber.whisper_audio_transcriber import WhisperAudioTranscriber
 from ..css.css_subtitle_renderer import CssSubtitleRenderer
 from ..video.subtitle_clips_generator import SubtitleClipsGenerator
@@ -10,7 +10,7 @@ from ..layout.line_splitter import LineSplitter
 from ..layout.layout_updater import LayoutUpdater
 from ..tagger.semantic_tagger import get_default_tagger
 from ..segment import BaseSegmentRewritter
-from ..animation import BaseAnimation
+from ..animation import ElementAnimator
 from ..models import SubtitleLayoutOptions
 
 class CapsPipeline:
@@ -22,7 +22,7 @@ class CapsPipeline:
         self._semantic_tagger = get_default_tagger()
         self._video_generator: VideoGenerator = VideoGenerator()
         self._segment_rewritters: list[BaseSegmentRewritter] = []
-        self._animations: list[BaseAnimation] = []
+        self._animators: List[ElementAnimator] = []
 
         layout_options = SubtitleLayoutOptions()
         self._positions_calculator: PositionsCalculator = PositionsCalculator(layout_options)
@@ -75,8 +75,8 @@ class CapsPipeline:
             self._layout_updater.update_max_positions(document)
 
             print("Running animations...")
-            for animation in self._animations:
-                animation.run(document)
+            for animator in self._animators:
+                animator.run(document)
 
             print("Generating final video...")
             self._video_generator.generate(document)

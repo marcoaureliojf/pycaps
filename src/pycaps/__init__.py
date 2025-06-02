@@ -23,25 +23,15 @@ from .models import (
     VerticalAlignmentType,
     TextOverflowStrategy,
     EmojiAlign
-) # Exponer data classes
-from .segment import LimitByWordsRewritter, LimitByCharsRewritter
-from .animation import (
-    AnimationConfig,
-    BaseAnimation,
-    FadeIn,
-    FadeOut,
-    BounceIn,
-    SlideIn,
-    ZoomIn,
-    PopIn,
-    Easing,
-    SlideInConfig
 )
+from .segment import LimitByWordsRewritter, LimitByCharsRewritter
+from .animation import *
 from .element import (
     ElementType,
     EventType,
     WordClipSelector,
 )
 from .tag import Tag, TagCondition, BuiltinTag, BuiltinTagCondition, TagConditionFactory
+from .tagger.semantic_tagger import get_default_tagger
 
 __version__ = "0.1.0" 

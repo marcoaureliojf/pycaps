@@ -1,15 +1,18 @@
-from .fade_in import FadeIn
-from .fade_out import FadeOut
-from .bounce_in import BounceIn
-from .slide_in import SlideIn
-from .zoom_in import ZoomIn
-from .pop_in import PopIn
+from .primitive import *
+from .preset import *
 
 __all__ = [
     "FadeIn",
     "FadeOut",
-    "BounceIn",
     "SlideIn",
+    "SlideOut",
     "ZoomIn",
+    "ZoomOut",
     "PopIn",
+    "PopOut",
+    "PopInBounce",
+    "FadeInPrimitive",
+    "PopInPrimitive",
+    "ZoomInPrimitive",
+    "SlideInPrimitive",
 ]
