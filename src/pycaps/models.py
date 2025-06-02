@@ -43,7 +43,7 @@ class TextOverflowStrategy(Enum):
 @dataclass(frozen=True)
 class SubtitleLayoutOptions:
     """Options for configuring the subtitle layout."""
-    word_spacing: int = 10
+    word_spacing: int = 0 # it's recommended to use padding via css instead of this parameter
     max_width_ratio: float = 0.8
     max_number_of_lines: int = 2
     min_number_of_lines: int = 1

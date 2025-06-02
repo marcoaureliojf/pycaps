@@ -1,5 +1,7 @@
-from typing import Dict, Optional
+from typing import Dict
 from ..tag.tag import Tag
+from openai import OpenAI
+import os
 
 class LlmTagger:
     """
@@ -9,9 +11,7 @@ class LlmTagger:
     """
 
     def __init__(self):
-        # Here you would typically initialize your LLM client
-        # For example: self._client = OpenAI()
-        pass
+        self._client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     def process(self, text: str, rules: Dict[Tag, str]) -> str:
         """
@@ -26,8 +26,11 @@ class LlmTagger:
             Example: "I feel <emotion>happy</emotion> about my <finance>investment</finance>"
         """
         prompt = self._build_prompt(text, rules)
-        response = self._call_llm(prompt)
-        return self._process_response(response)
+        response = self._client.responses.create(
+            model="gpt-4.1-mini",
+            input=prompt
+        )
+        return self._process_response(response.output_text)
 
     def _build_prompt(self, text: str, rules: Dict[Tag, str]) -> str:
         """
@@ -47,40 +50,23 @@ Important guidelines:
 1. Use XML-like tags with the exact class names provided
 2. Only tag specific words or short phrases (max 3 words), not entire sentences
 3. Tags should not overlap
-4. Preserve the exact original text, only adding tags
-5. If a term matches multiple categories, use the most specific one
-6. Do not add any explanations or additional text. Just return the text with the tags.
+4. Avoid tagging consecutive words/phrases. That is, between two terms tagged, there should be at least one word that does not have any tag.
+5. Interprete the commas and dots as natural pauses between tags. That is, a tagged phrase should not contain commas or dots.
+6. Preserve the exact original text, only adding tags
+7. If a term matches multiple categories, use the most specific one
+8. Do not add any explanations or additional text. Just return the text with the tags.
 
 Text to analyze:
 {text}
 
 Tagged version:"""
 
-    def _call_llm(self, prompt: str) -> str:
-        """
-        Makes the actual call to the LLM service.
-        This is a mock implementation - replace with actual LLM call.
-        """
-        # Mock implementation - in reality, you would:
-        # response = openai.ChatCompletion.create(
-        #     model="gpt-4",
-        #     messages=[
-        #         {"role": "system", "content": "You are a precise text analysis tool..."},
-        #         {"role": "user", "content": prompt}
-        #     ],
-        #     temperature=0.1  # Low temperature for consistent results
-        # )
-        # return response.choices[0].message.content
-
-        # For now, return a mock response
-        return "I feel <emotion>happy</emotion> about my <finance>investment</finance> returns"
-
     def _process_response(self, response: str) -> str:
         """
         Processes and validates the LLM response.
         Ensures the response follows the expected format and contains valid tags.
         """
-        # Here you could add validation logic, such as:
+        # Here we could add validation logic, such as:
         # - Verify that all tags are properly closed
         # - Check that only allowed tag names are used
         # - Ensure the text structure is preserved

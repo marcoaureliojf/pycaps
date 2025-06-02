@@ -3,3 +3,5 @@ from .base_effect_generator import BaseEffectGenerator
 from .decorator.emoji_effect_decorator import EmojiEffectDecorator
 from .decorator.animation_effect_decorator import BounceInAnimationEffect, SlideInFromLeftAnimationEffect, WaveAnimationEffect
 from .decorator.effect_by_sentence_decorator import FirstSegmentPerSentenceEffectDecorator
+from .emoji_in_word_effect import EmojiInWordEffect
+from .effect import Effect

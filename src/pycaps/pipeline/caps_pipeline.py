@@ -12,6 +12,7 @@ from ..tagger.semantic_tagger import get_default_tagger
 from ..segment import BaseSegmentRewritter
 from ..animation import ElementAnimator
 from ..models import SubtitleLayoutOptions
+from ..effect.effect import Effect
 
 class CapsPipeline:
     def __init__(self):
@@ -23,6 +24,7 @@ class CapsPipeline:
         self._video_generator: VideoGenerator = VideoGenerator()
         self._segment_rewritters: list[BaseSegmentRewritter] = []
         self._animators: List[ElementAnimator] = []
+        self._effects: List[Effect] = []
 
         layout_options = SubtitleLayoutOptions()
         self._positions_calculator: PositionsCalculator = PositionsCalculator(layout_options)
@@ -61,6 +63,10 @@ class CapsPipeline:
 
             print("Tagging words with semantic information...")
             self._semantic_tagger.tag(document)
+
+            print("Applying effects...")
+            for effect in self._effects:
+                effect.run(document)
 
             print("Generating subtitle clips...")
             self._clips_generator.generate(document)

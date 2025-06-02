@@ -11,6 +11,7 @@ from ..animation import Animation, ElementAnimator
 from ..element import ElementType, EventType
 from ..tag.tag_condition import TagCondition
 from typing import Optional
+from ..effect.effect import Effect
 
 class CapsPipelineBuilder:
 
@@ -56,6 +57,10 @@ class CapsPipelineBuilder:
     
     def add_animation(self, animation: Animation, when: EventType, what: ElementType, tag_condition: Optional[TagCondition] = None) -> "CapsPipelineBuilder":
         self._caps_pipeline._animators.append(ElementAnimator(animation, when, what, tag_condition)) 
+        return self
+    
+    def add_effect(self, effect: Effect) -> "CapsPipelineBuilder":
+        self._caps_pipeline._effects.append(effect)
         return self
 
     def build(self) -> CapsPipeline:

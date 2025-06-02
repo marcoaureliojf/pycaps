@@ -12,7 +12,9 @@ from .effect import (
     BounceInAnimationEffect,
     SlideInFromLeftAnimationEffect,
     WaveAnimationEffect,
-    FirstSegmentPerSentenceEffectDecorator
+    FirstSegmentPerSentenceEffectDecorator,
+    EmojiInWordEffect,
+    Effect,
 )
 from .models import (
     TranscriptionSegment,
