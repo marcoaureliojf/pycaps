@@ -105,14 +105,14 @@ class EmojiInSegmentEffect(Effect):
             align = random.choice([EmojiAlign.BOTTOM, EmojiAlign.TOP])
 
         time = TimeFragment(start=segment.time.start, end=segment.time.end)
-        new_line = Line(time=time, parent=segment)
-        emoji_word = Word(text=emoji, tags={BuiltinTag.EMOJI_FOR_SEGMENT}, time=time, parent=new_line)
-        new_line.add_word(emoji_word)
+        new_line = Line(time=time)
+        emoji_word = Word(text=emoji, tags={BuiltinTag.EMOJI_FOR_SEGMENT}, time=time)
+        new_line.words.add(emoji_word)
 
         if align == EmojiAlign.BOTTOM:
-            segment.lines.append(new_line)
+            segment.lines.add(new_line)
         else:
-            segment.lines.insert(0, new_line)
+            segment.lines.add(new_line, 0)
 
     def __get_video_script_summary(self, document: Document) -> str:
         if self._video_script_summary is None:

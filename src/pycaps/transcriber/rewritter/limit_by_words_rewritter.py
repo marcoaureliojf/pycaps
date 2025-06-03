@@ -35,11 +35,11 @@ class LimitByWordsRewritter(BaseSegmentRewritter):
                 continue
 
             segment_time = TimeFragment(start=current_words[0].time.start, end=current_words[-1].time.end)
-            new_segment = Segment(time=segment_time, parent=document)
-            new_line = Line(words=current_words, time=segment_time, parent=new_segment)
-            for word in current_words: word.parent = new_line
-            new_segment.lines.append(new_line)
+            new_segment = Segment(time=segment_time)
+            new_line = Line(time=segment_time)
+            new_line.words.set_all(current_words)
+            new_segment.lines.add(new_line)
             new_segments.append(new_segment)
             word_index += self.limit
 
-        document.segments = new_segment
+        document.segments.set_all(new_segments)

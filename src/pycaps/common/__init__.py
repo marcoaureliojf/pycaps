@@ -15,6 +15,7 @@ from .types import (
     EventType,
     ElementState,
 )
+from .element_container import ElementContainer
 
 __all__ = [
     "Tag",
@@ -30,4 +31,5 @@ __all__ = [
     "ElementType",
     "EventType",
     "ElementState",
+    "ElementContainer",
 ]

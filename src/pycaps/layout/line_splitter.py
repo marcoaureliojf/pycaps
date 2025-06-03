@@ -41,7 +41,7 @@ class LineSplitter:
         
         self._append_new_line(segment, lines, current_line_words)
         self._adjust_lines_to_constraints(lines)
-        segment.lines = lines
+        segment.lines.set_all(lines)
 
     def _adjust_lines_to_constraints(self, lines: List[Line]) -> None:
         """Adjusts lines according to min/max constraints and overflow strategy."""
@@ -56,19 +56,11 @@ class LineSplitter:
             first_half = longest_line.words[:mid_point]
             second_half = longest_line.words[mid_point:]
             
-            first_line = Line(
-                words=first_half,
-                time=TimeFragment(start=first_half[0].time.start, end=first_half[-1].time.end),
-                parent=longest_line.parent
-            )
-            second_line = Line(
-                words=second_half,
-                time=TimeFragment(start=second_half[0].time.start, end=second_half[-1].time.end),
-                parent=longest_line.parent
-            )
+            first_line = Line(time=TimeFragment(start=first_half[0].time.start, end=first_half[-1].time.end))
+            second_line = Line(time=TimeFragment(start=second_half[0].time.start, end=second_half[-1].time.end))
 
-            for word in first_half: word.parent = first_line
-            for word in second_half: word.parent = second_line
+            first_line.words.set_all(first_half)
+            second_line.words.set_all(second_half)
 
             lines.remove(longest_line)
             lines.extend([first_line, second_line])
@@ -77,6 +69,6 @@ class LineSplitter:
         if not words:
             return
         time = TimeFragment(start=words[0].time.start, end=words[-1].time.end)
-        line = Line(words=words, time=time, parent=segment)
-        for word in words: word.parent = line
+        line = Line(time=time)
+        line.words.set_all(words)
         lines.append(line)
