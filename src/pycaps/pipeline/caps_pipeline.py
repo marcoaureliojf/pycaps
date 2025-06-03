@@ -13,6 +13,7 @@ from ..segment import BaseSegmentRewritter
 from ..animation import ElementAnimator
 from ..models import SubtitleLayoutOptions
 from ..effect.effect import Effect
+import time
 
 class CapsPipeline:
     def __init__(self):
@@ -32,7 +33,7 @@ class CapsPipeline:
         self._layout_updater: LayoutUpdater = LayoutUpdater(layout_options)
 
         self._input_video_path: Optional[str] = None
-        self._output_video_path: Optional[str] = None
+        self._output_video_path: Optional[str] = f"output_{time.strftime('%Y%m%d_%H%M%S')}.mp4"
 
     def run(self) -> None:
         """
