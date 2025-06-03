@@ -1,8 +1,8 @@
-from ...preset_animation import PresetAnimation
 from ...animation import Animation
+from ...preset_animation import PresetAnimation
 from ..primitive import ZoomInPrimitive, FadeInPrimitive
-from ...animation_config import OvershootConfig, Transformer
 from typing import List
+from ...definitions import OvershootConfig, Transformer
 
 class ZoomIn(PresetAnimation):
 

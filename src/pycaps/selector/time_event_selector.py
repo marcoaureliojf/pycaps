@@ -1,7 +1,6 @@
 from typing import List, Union
-from ..utils.time_utils import times_intersect
-from .models import ElementType, EventType
-from ..tagger.models import Word, Line, Segment, WordClip
+from pycaps.common import ElementType, EventType, Word, Line, Segment, WordClip
+from pycaps.utils import times_intersect
 
 class TimeEventSelector:
     """

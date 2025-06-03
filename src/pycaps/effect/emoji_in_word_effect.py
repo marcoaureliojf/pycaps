@@ -1,6 +1,6 @@
-from ..effect.effect import Effect
-from ..tagger.models import Document, Word
-from ..tag.tag_condition import TagCondition
+from .effect import Effect
+from pycaps.common import Document, Word
+from pycaps.tag import TagCondition
 from typing import List, Optional
 import random
 

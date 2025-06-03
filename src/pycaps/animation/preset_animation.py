@@ -1,6 +1,4 @@
-from .basic_animation import BasicAnimation
-from ..element import ElementType
-from ..tagger.models import WordClip
+from pycaps.common import ElementType, WordClip
 from typing import List
 from .animation import Animation
 from abc import abstractmethod

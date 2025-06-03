@@ -1,5 +1,5 @@
 from typing import Dict
-from ..tag.tag import Tag
+from pycaps.common import Tag
 from openai import OpenAI
 import os
 

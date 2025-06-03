@@ -1,6 +1,5 @@
 from .base_segment_rewritter import BaseSegmentRewritter
-from ..models import TranscriptionSegment
-from ..tagger.models import Document, Segment, Line, Word, TimeFragment
+from pycaps.common import Document, Segment, Line, TimeFragment
 
 class LimitByWordsRewritter(BaseSegmentRewritter):
     """

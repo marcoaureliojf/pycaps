@@ -1,17 +1,12 @@
-from .caps_pipeline import CapsPipeline
-from ..models import SubtitleLayoutOptions
-from ..transcriber.base_transcriber import AudioTranscriber
-from typing import Dict, Any
-from ..segment import BaseSegmentRewritter
 import os
-from ..layout.line_splitter import LineSplitter
-from ..layout.layout_updater import LayoutUpdater
-from ..layout.positions_calculator import PositionsCalculator
-from ..animation import Animation, ElementAnimator
-from ..element import ElementType, EventType
-from ..tag.tag_condition import TagCondition
-from typing import Optional
-from ..effect.effect import Effect
+from .caps_pipeline import CapsPipeline
+from pycaps.layout import SubtitleLayoutOptions, LineSplitter, LayoutUpdater, PositionsCalculator
+from pycaps.transcriber import AudioTranscriber, BaseSegmentRewritter
+from typing import Dict, Any, Optional
+from pycaps.animation import Animation, ElementAnimator
+from pycaps.common import ElementType, EventType
+from pycaps.tag import TagCondition
+from pycaps.effect import Effect
 
 class CapsPipelineBuilder:
 

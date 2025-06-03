@@ -1,5 +1,4 @@
-from ..element import ElementType
-from ..tagger.models import WordClip
+from pycaps.common import WordClip, ElementType
 from abc import ABC, abstractmethod
 
 class Animation(ABC):

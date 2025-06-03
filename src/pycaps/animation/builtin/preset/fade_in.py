@@ -1,5 +1,5 @@
-from ...preset_animation import PresetAnimation
 from ...animation import Animation
+from ...preset_animation import PresetAnimation
 from ..primitive import FadeInPrimitive
 from typing import List
 

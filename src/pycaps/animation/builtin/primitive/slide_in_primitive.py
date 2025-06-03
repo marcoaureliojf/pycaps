@@ -1,8 +1,7 @@
 from ...basic_animation import BasicAnimation
-from ...animation_config import Direction
-from ....tagger.models import WordClip
+from ...definitions import Direction, OvershootConfig, Transformer
+from pycaps.common import WordClip
 from typing import Tuple, Callable, Optional
-from ...animation_config import Transformer, OvershootConfig
 
 class SlideInPrimitive(BasicAnimation):
     def __init__(

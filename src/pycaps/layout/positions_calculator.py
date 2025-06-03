@@ -1,8 +1,7 @@
 from typing import List, Optional
-from ..tagger.models import ElementState
-from ..models import SubtitleLayoutOptions
-from ..utils.alignment_utils import AlignmentUtils
-from ..tagger.models import Document, Segment, Line
+from pycaps.common import ElementState, Document, Segment, Line
+from .layout_utils import LayoutUtils
+from .definitions import SubtitleLayoutOptions
 
 class PositionsCalculator:
     def __init__(self, layout_options: SubtitleLayoutOptions):
@@ -103,4 +102,4 @@ class PositionsCalculator:
             return 0.0
             
         total_block_height = sum(line.max_layout.size.height for line in segment.lines)
-        return AlignmentUtils.get_vertical_alignment_position(self._options.vertical_align, total_block_height, video_height)
+        return LayoutUtils.get_vertical_alignment_position(self._options.vertical_align, total_block_height, video_height)

@@ -1,6 +1,6 @@
 from typing import List
-from ..tagger.models import WordClip
-from ..tag.tag_condition import TagCondition
+from pycaps.common import WordClip
+from pycaps.tag import TagCondition
 
 class TagBasedSelector:
     def __init__(self, tag_condition: TagCondition):

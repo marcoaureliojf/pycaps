@@ -1,12 +1,12 @@
-from ..effect import Effect
-from ..tagger.models import Document, Segment, Line, TimeFragment, Word
+from .effect import Effect
+from pycaps.common import Document, Segment, Line, TimeFragment, Word
+from pycaps.utils import ScriptUtils
 from typing import Optional
 import random
 from enum import Enum
 from openai import OpenAI
 import os
-from ..tag.builtin_tag import BuiltinTag
-from ..utils.script_utils import ScriptUtils
+from pycaps.tag import BuiltinTag
 
 class EmojiAlign(Enum):
     BOTTOM = "bottom"

@@ -1,8 +1,8 @@
-from ...preset_animation import PresetAnimation
 from ...animation import Animation
+from ...preset_animation import PresetAnimation
 from ..primitive import PopInPrimitive, FadeInPrimitive
 from typing import List
-from ...animation_config import OvershootConfig
+from ...definitions import OvershootConfig
 
 class PopInBounce(PresetAnimation):
 

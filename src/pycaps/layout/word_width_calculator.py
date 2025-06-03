@@ -1,7 +1,5 @@
-from ..tagger.models import Document
-from ..css.css_subtitle_renderer import CssSubtitleRenderer
-from ..models import RenderedSubtitle
-from ..tagger.models import ElementState
+from pycaps.common import Document, ElementState
+from pycaps.renderer import CssSubtitleRenderer
 
 class WordWidthCalculator:
     def __init__(self, renderer: CssSubtitleRenderer):

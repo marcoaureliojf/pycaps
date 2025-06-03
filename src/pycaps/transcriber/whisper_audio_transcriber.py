@@ -1,6 +1,6 @@
 from .base_transcriber import AudioTranscriber
 from typing import Optional
-from ..tagger.models import Document, Segment, Line, Word, TimeFragment
+from pycaps.common import Document, Segment, Line, Word, TimeFragment
 import whisper
 
 class WhisperAudioTranscriber(AudioTranscriber):

@@ -1,8 +1,7 @@
 from typing import Optional, List
-from ..element import ElementType, EventType
-from ..tag.tag_condition import TagCondition
-from ..element.word_clip_selector import WordClipSelector
-from ..tagger.models import Document, WordClip
+from pycaps.common import ElementType, EventType, Document, WordClip
+from pycaps.tag import TagCondition
+from pycaps.selector import WordClipSelector
 from .animation import Animation
 
 class ElementAnimator:

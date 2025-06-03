@@ -1,19 +1,13 @@
-from ..transcriber.base_transcriber import AudioTranscriber
-from typing import Optional, List
-from ..transcriber.whisper_audio_transcriber import WhisperAudioTranscriber
-from ..css.css_subtitle_renderer import CssSubtitleRenderer
-from ..video.subtitle_clips_generator import SubtitleClipsGenerator
-from ..video.video_generator import VideoGenerator
-from ..layout.word_width_calculator import WordWidthCalculator
-from ..layout.positions_calculator import PositionsCalculator
-from ..layout.line_splitter import LineSplitter
-from ..layout.layout_updater import LayoutUpdater
-from ..tagger.semantic_tagger import get_default_tagger
-from ..segment import BaseSegmentRewritter
-from ..animation import ElementAnimator
-from ..models import SubtitleLayoutOptions
-from ..effect.effect import Effect
 import time
+from pycaps.transcriber import AudioTranscriber, WhisperAudioTranscriber, BaseSegmentRewritter
+from pycaps.renderer import CssSubtitleRenderer
+from pycaps.video import SubtitleClipsGenerator, VideoGenerator
+from pycaps.layout import WordWidthCalculator, PositionsCalculator, LineSplitter, LayoutUpdater
+from pycaps.tag import get_default_tagger
+from pycaps.animation import ElementAnimator
+from pycaps.layout import SubtitleLayoutOptions
+from pycaps.effect import Effect
+from typing import Optional, List
 
 class CapsPipeline:
     def __init__(self):

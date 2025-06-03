@@ -1,7 +1,6 @@
 from typing import Tuple, Callable, Optional
-from ..tagger.models import WordClip
-from .animation_config import Transformer
-from ..element import ElementType
+from pycaps.common import WordClip, ElementType
+from .definitions import Transformer
 from abc import abstractmethod
 from .animation import Animation
 

@@ -1,8 +1,8 @@
-from ...preset_animation import PresetAnimation
 from ...animation import Animation
+from ...preset_animation import PresetAnimation
 from ..primitive import ZoomInPrimitive, FadeInPrimitive
 from typing import List
-from ...animation_config import Transformer
+from ...definitions import Transformer
 
 class ZoomOut(PresetAnimation):
 

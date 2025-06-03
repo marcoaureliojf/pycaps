@@ -1,6 +1,6 @@
 from typing import List
-from ..models import SubtitleLayoutOptions, TextOverflowStrategy
-from ..tagger.models import Document, Line, Word, TimeFragment, Segment
+from .definitions import SubtitleLayoutOptions, TextOverflowStrategy
+from pycaps.common import Document, Line, Word, TimeFragment, Segment
 
 class LineSplitter:
     def __init__(self, layout_options: SubtitleLayoutOptions):

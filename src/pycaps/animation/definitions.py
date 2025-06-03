@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 from enum import Enum
+from dataclasses import dataclass
 
 class Direction(Enum):
     LEFT = "left"
@@ -11,9 +11,6 @@ class Direction(Enum):
 class OvershootConfig:
     amount: float = 0.1
     peak_at: float = 0.7
-
-class IgnoredOvershootConfig(OvershootConfig):
-    peak_at: float = -1.0
 
 class Transformer:
     LINEAR = lambda t: t

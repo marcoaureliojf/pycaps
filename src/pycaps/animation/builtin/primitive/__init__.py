@@ -3,4 +3,9 @@ from .pop_in_primitive import PopInPrimitive
 from .zoom_in_primitive import ZoomInPrimitive
 from .slide_in_primitive import SlideInPrimitive
 
-__all__ = ["FadeInPrimitive", "PopInPrimitive", "ZoomInPrimitive", "SlideInPrimitive"]
+__all__ = [
+    "FadeInPrimitive",
+    "PopInPrimitive",
+    "ZoomInPrimitive",
+    "SlideInPrimitive",
+]

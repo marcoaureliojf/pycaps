@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from .tag import Tag
 from typing import List
+from pycaps.common import Tag
 
 class TagCondition(ABC):
     @abstractmethod

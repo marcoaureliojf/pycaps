@@ -1,15 +1,13 @@
 from playwright.sync_api import sync_playwright, Page, Browser, Playwright
 from pathlib import Path
 import tempfile
-from typing import Optional
-from ..models import RenderedSubtitle
-from ..tagger.models import Word
-from typing import List
+from PIL.Image import Image
+from typing import Optional, List
+from pycaps.common import Word, ElementState
 import shutil
 import os
 import webbrowser
 from .rendered_image_cache import RenderedImageCache
-from ..tagger.models import ElementState
 from .playwright_screenshot_capturer import PlaywrightScreenshotCapturer
 
 class CssSubtitleRenderer():
@@ -124,7 +122,7 @@ class CssSubtitleRenderer():
         css_classes_str = ' '.join(css_classes)
         self.page.evaluate(script, [text, css_classes_str])
 
-    def render(self, word: Word, states: List[ElementState] = []) -> Optional[RenderedSubtitle]:
+    def render(self, word: Word, states: List[ElementState] = []) -> Optional[Image]:
         if not self.page:
             raise RuntimeError("Renderer is not open open() with video dimensions first.")
         
@@ -143,9 +141,8 @@ class CssSubtitleRenderer():
                 return None
 
             image = PlaywrightScreenshotCapturer.capture(locator)
-            rendered_subtitle = RenderedSubtitle(image, image.size[0], image.size[1])
-            self._cache.set(word.text, css_classes, rendered_subtitle)
-            return rendered_subtitle
+            self._cache.set(word.text, css_classes, image)
+            return image
         except Exception as e:
             raise RuntimeError(f"Error rendering '{word.text}' with tags '{word.tags}': {e}")
 

@@ -8,4 +8,14 @@ from .slide_out import SlideOut
 from .zoom_in import ZoomIn
 from .zoom_out import ZoomOut
 
-__all__ = ["FadeIn", "FadeOut", "PopIn", "PopOut", "PopInBounce", "SlideIn", "SlideOut", "ZoomIn", "ZoomOut"]
+__all__ = [
+    "FadeIn",
+    "FadeOut",
+    "PopIn",
+    "PopOut",
+    "PopInBounce",
+    "SlideIn",
+    "SlideOut",
+    "ZoomIn",
+    "ZoomOut",
+]

@@ -1,9 +1,8 @@
 from typing import List, Callable
-from ..tag.tag_condition import TagCondition
-from .models import ElementType, EventType
+from pycaps.tag import TagCondition
+from pycaps.common import ElementType, EventType, Document, WordClip
 from .tag_based_selector import TagBasedSelector
 from .time_event_selector import TimeEventSelector
-from ..tagger.models import Document, WordClip
 
 class WordClipSelector:
     """

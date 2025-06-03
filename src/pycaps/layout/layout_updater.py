@@ -1,5 +1,5 @@
-from ..models import SubtitleLayoutOptions
-from ..tagger.models import Document
+from .definitions import SubtitleLayoutOptions
+from pycaps.common import Document
 from math import inf
 
 class LayoutUpdater:

@@ -1,8 +1,8 @@
-from ...basic_animation import BasicAnimation
-from ....tagger.models import WordClip
 from typing import Tuple, Callable, Optional
-from ...animation_config import Transformer, OvershootConfig
-from ....utils.layout_utils import LayoutUtils
+from ...definitions import Transformer, OvershootConfig
+from ...basic_animation import BasicAnimation
+from pycaps.common import WordClip
+from pycaps.layout import LayoutUtils
 
 class PopInPrimitive(BasicAnimation):
     def __init__(

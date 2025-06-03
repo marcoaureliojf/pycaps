@@ -1,9 +1,8 @@
 from typing import Optional, Dict, Any
 import os
 from moviepy.editor import VideoFileClip, CompositeVideoClip
-from ..transcriber.base_transcriber import AudioTranscriber
 import tempfile
-from ..tagger.models import Document
+from pycaps.common import Document
 
 class VideoGenerator:
     def __init__(self):

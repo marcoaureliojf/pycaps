@@ -1,43 +1,11 @@
 from dataclasses import dataclass, field
-from typing import List, Optional, Set
 from moviepy.editor import ImageClip
-from ..tag.tag import Tag
-from enum import Enum
+from typing import List, Optional, Set
+from .types import ElementState
 
-# TODO: we should somehow assure that whenever a child is added to a parent, the parent is set.
-#  For example, if segment.lines.append(line), then line.parent should be set to segment.
-#  The same if segment.lines = [line1, line2], then line1.parent, and line2.parent should be set to segment.
-
-
-# TODO: I should handle caching for methods like get_words.
-#  It should be refreshed automatically when a child is added or removed.
-
-class ElementState(Enum):
-    WORD_BEING_NARRATED = "word-being-narrated"
-    WORD_NOT_NARRATED_YET = "word-not-narrated-yet"
-    WORD_ALREADY_NARRATED = "word-already-narrated"
-
-    LINE_BEING_NARRATED = "line-being-narrated"
-    LINE_NOT_NARRATED_YET = "line-not-narrated-yet"
-    LINE_ALREADY_NARRATED = "line-already-narrated"
-
-    @staticmethod
-    def get_all_valid_states_combinations() -> List[List['ElementState']]:
-        return [
-            [ElementState.LINE_NOT_NARRATED_YET, ElementState.WORD_NOT_NARRATED_YET],
-            [ElementState.LINE_BEING_NARRATED, ElementState.WORD_NOT_NARRATED_YET],
-            [ElementState.LINE_BEING_NARRATED, ElementState.WORD_BEING_NARRATED],
-            [ElementState.LINE_BEING_NARRATED, ElementState.WORD_ALREADY_NARRATED],
-            [ElementState.LINE_ALREADY_NARRATED, ElementState.WORD_ALREADY_NARRATED],
-        ]
-    
-    @staticmethod
-    def get_all_line_states() -> List['ElementState']:
-        return [
-            ElementState.LINE_NOT_NARRATED_YET,
-            ElementState.LINE_BEING_NARRATED,
-            ElementState.LINE_ALREADY_NARRATED,
-        ]
+@dataclass(frozen=True)
+class Tag:
+    name: str
 
 @dataclass
 class TimeFragment:
@@ -58,6 +26,18 @@ class Position:
 class ElementLayout:
     position: Position = field(default_factory=Position)
     size: Size = field(default_factory=Size)
+
+    def get_center(self) -> Position:
+        return Position(x=self.position.x + self.size.width / 2, y=self.position.y + self.size.height / 2)
+
+# TODO: we should somehow assure that whenever a child is added to a parent, the parent is set.
+#  For example, if segment.lines.append(line), then line.parent should be set to segment.
+#  The same if segment.lines = [line1, line2], then line1.parent, and line2.parent should be set to segment.
+
+
+# TODO: I should handle caching for methods like get_words.
+#  It should be refreshed automatically when a child is added or removed.
+
 
 @dataclass
 class WordClip:
@@ -182,4 +162,3 @@ class Document:
     
     def get_text(self) -> str:
         return ' '.join([segment.get_text() for segment in self.segments])
-

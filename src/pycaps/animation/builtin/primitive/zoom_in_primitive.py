@@ -1,8 +1,8 @@
-from ...basic_animation import BasicAnimation
-from ....tagger.models import WordClip
+from pycaps.common import WordClip
+from pycaps.layout import LayoutUtils
 from typing import Tuple, Callable, Optional
-from ...animation_config import Transformer, OvershootConfig, IgnoredOvershootConfig
-from ....utils.layout_utils import LayoutUtils
+from ...definitions import Transformer, OvershootConfig
+from ...basic_animation import BasicAnimation
 
 # TODO: it has an error while size is being animated, it's probably a precision error (because of using floats for the size in the scale)
 # To notice it, you need to use a color background for a whole line, and run this animation over the line.

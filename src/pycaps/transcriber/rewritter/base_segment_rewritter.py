@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ..tagger.models import Document
+from pycaps.common import Document
 
 class BaseSegmentRewritter(ABC):
 

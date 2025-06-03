@@ -1,8 +1,8 @@
-from ...preset_animation import PresetAnimation
 from ...animation import Animation
+from ...preset_animation import PresetAnimation
 from ..primitive import SlideInPrimitive, FadeInPrimitive
 from typing import List
-from ...animation_config import Direction, OvershootConfig
+from ...definitions import Direction, OvershootConfig
 
 class SlideIn(PresetAnimation):
 

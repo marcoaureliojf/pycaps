@@ -1,9 +1,8 @@
 from typing import Optional, List
-from ..tagger.models import Document, Word, WordClip, Line
-from ..css.css_subtitle_renderer import CssSubtitleRenderer
+from pycaps.common import Document, Word, WordClip, ElementState
+from pycaps.renderer import CssSubtitleRenderer
 from moviepy.editor import ImageClip
 import numpy as np
-from ..tagger.models import ElementState
 
 class SubtitleClipsGenerator:
 
@@ -71,7 +70,7 @@ class SubtitleClipsGenerator:
             return None
         
         clip: ImageClip = (
-            ImageClip(np.array(image.image))
+            ImageClip(np.array(image))
             .set_start(start)
             .set_duration(end - start)
         )

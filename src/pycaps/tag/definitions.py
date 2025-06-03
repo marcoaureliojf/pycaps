@@ -1,4 +1,4 @@
-from .tag import Tag
+from pycaps.common import Tag
 
 class BuiltinTag:
     FIRST_WORD_IN_DOCUMENT = Tag("first-word-in-document")

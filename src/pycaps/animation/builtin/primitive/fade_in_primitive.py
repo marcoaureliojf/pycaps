@@ -1,5 +1,5 @@
 from ...basic_animation import BasicAnimation
-from ....tagger.models import WordClip
+from pycaps.common import WordClip
 
 class FadeInPrimitive(BasicAnimation):
     def _apply_animation(self, clip: WordClip, offset: float) -> None:

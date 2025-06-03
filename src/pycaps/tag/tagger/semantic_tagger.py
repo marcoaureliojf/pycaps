@@ -1,8 +1,7 @@
 import re
 from typing import Callable, Dict
-from .models import Word, Document
-from ..tag.tag import Tag
-from ..tag.builtin_tag import BuiltinTag
+from pycaps.common import Word, Document, Tag
+from pycaps.tag import BuiltinTag
 from .llm_tagger import LlmTagger
 
 class _SemanticTagger:

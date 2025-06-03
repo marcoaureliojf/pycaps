@@ -1,8 +1,8 @@
-from ...preset_animation import PresetAnimation
 from ...animation import Animation
-from ..primitive import FadeInPrimitive
+from ...preset_animation import PresetAnimation
 from typing import List
-from ...animation_config import Transformer
+from ...definitions import Transformer
+from ..primitive import FadeInPrimitive
 
 class FadeOut(PresetAnimation):
 
