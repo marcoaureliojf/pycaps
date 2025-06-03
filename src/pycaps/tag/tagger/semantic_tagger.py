@@ -4,7 +4,7 @@ from pycaps.common import Word, Document, Tag
 from pycaps.tag import BuiltinTag
 from .llm_tagger import LlmTagger
 
-class _SemanticTagger:
+class SemanticTagger:
     '''
     Register of semantic rules for the word-level tagger.
     The matching words are tagged with the class name of the rule that matched.
@@ -21,6 +21,7 @@ class _SemanticTagger:
         self._llm_rules: Dict[Tag, str] = {}
         self._function_rules: Dict[Tag, Callable[[Document], list[Word]]] = {}
         self._llm_tagger = LlmTagger()
+        self._add_builtin_tags()
 
     def add_regex_rule(self, tag: Tag, pattern: str) -> None:
         """Register a new regex-based rule."""
@@ -122,22 +123,18 @@ class _SemanticTagger:
                (word_start < match_end <= word_end) or \
                (match_start <= word_start and match_end >= word_end)
 
-# TODO: instead of using strings for the tags, add these to the BuiltinTag enum
-_default_tagger = _SemanticTagger()
-_default_tagger.add_function_rule(BuiltinTag.FIRST_WORD_IN_DOCUMENT, lambda document: [document.segments[0].lines[0].words[0]])
-_default_tagger.add_function_rule(BuiltinTag.FIRST_WORD_IN_SEGMENT, lambda document: [segment.lines[0].words[0] for segment in document.segments])
-_default_tagger.add_function_rule(BuiltinTag.FIRST_WORD_IN_LINE, lambda document: [line.words[0] for line in document.get_lines()])
-_default_tagger.add_function_rule(BuiltinTag.LAST_WORD_IN_DOCUMENT, lambda document: [document.segments[-1].lines[-1].words[-1]])
-_default_tagger.add_function_rule(BuiltinTag.LAST_WORD_IN_SEGMENT, lambda document: [segment.lines[-1].words[-1] for segment in document.segments])
-_default_tagger.add_function_rule(BuiltinTag.LAST_WORD_IN_LINE, lambda document: [line.words[-1] for line in document.get_lines()])
+    def _add_builtin_tags(self) -> None:
+        self.add_function_rule(BuiltinTag.FIRST_WORD_IN_DOCUMENT, lambda document: [document.segments[0].lines[0].words[0]])
+        self.add_function_rule(BuiltinTag.FIRST_WORD_IN_SEGMENT, lambda document: [segment.lines[0].words[0] for segment in document.segments])
+        self.add_function_rule(BuiltinTag.FIRST_WORD_IN_LINE, lambda document: [line.words[0] for line in document.get_lines()])
+        self.add_function_rule(BuiltinTag.LAST_WORD_IN_DOCUMENT, lambda document: [document.segments[-1].lines[-1].words[-1]])
+        self.add_function_rule(BuiltinTag.LAST_WORD_IN_SEGMENT, lambda document: [segment.lines[-1].words[-1] for segment in document.segments])
+        self.add_function_rule(BuiltinTag.LAST_WORD_IN_LINE, lambda document: [line.words[-1] for line in document.get_lines()])
 
-_default_tagger.add_function_rule(BuiltinTag.FIRST_LINE_IN_DOCUMENT, lambda document: document.segments[0].lines[0].words)
-_default_tagger.add_function_rule(BuiltinTag.FIRST_LINE_IN_SEGMENT, lambda document: [word for segment in document.segments for word in segment.lines[0].words])
-_default_tagger.add_function_rule(BuiltinTag.LAST_LINE_IN_DOCUMENT, lambda document: document.segments[-1].lines[-1].words)
-_default_tagger.add_function_rule(BuiltinTag.LAST_LINE_IN_SEGMENT, lambda document: [word for segment in document.segments for word in segment.lines[-1].words])
+        self.add_function_rule(BuiltinTag.FIRST_LINE_IN_DOCUMENT, lambda document: document.segments[0].lines[0].words)
+        self.add_function_rule(BuiltinTag.FIRST_LINE_IN_SEGMENT, lambda document: [word for segment in document.segments for word in segment.lines[0].words])
+        self.add_function_rule(BuiltinTag.LAST_LINE_IN_DOCUMENT, lambda document: document.segments[-1].lines[-1].words)
+        self.add_function_rule(BuiltinTag.LAST_LINE_IN_SEGMENT, lambda document: [word for segment in document.segments for word in segment.lines[-1].words])
 
-_default_tagger.add_function_rule(BuiltinTag.FIRST_SEGMENT_IN_DOCUMENT, lambda document: document.segments[0].get_words())
-_default_tagger.add_function_rule(BuiltinTag.LAST_SEGMENT_IN_DOCUMENT, lambda document: document.segments[-1].get_words())
-
-def get_default_tagger() -> _SemanticTagger:
-    return _default_tagger
+        self.add_function_rule(BuiltinTag.FIRST_SEGMENT_IN_DOCUMENT, lambda document: document.segments[0].get_words())
+        self.add_function_rule(BuiltinTag.LAST_SEGMENT_IN_DOCUMENT, lambda document: document.segments[-1].get_words())

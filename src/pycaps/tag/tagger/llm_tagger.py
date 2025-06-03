@@ -1,7 +1,6 @@
 from typing import Dict
 from pycaps.common import Tag
-from openai import OpenAI
-import os
+from pycaps.ai import LlmProvider
 import re
 
 class LlmTagger:
@@ -12,7 +11,7 @@ class LlmTagger:
     """
 
     def __init__(self):
-        self._client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self._llm = LlmProvider.get()
 
     def process(self, text: str, rules: Dict[Tag, str]) -> str:
         """
@@ -27,10 +26,7 @@ class LlmTagger:
             Example: "I feel <emotion>happy</emotion> about my <finance>investment</finance>"
         """
         prompt = self._build_prompt(text, rules)
-        response = self._client.responses.create(
-            model="gpt-4.1-mini",
-            input=prompt
-        )
+        response = self._llm.send_message(prompt)
         return self._process_response(text, response.output_text, rules)
 
     def _build_prompt(self, text: str, rules: Dict[Tag, str]) -> str:

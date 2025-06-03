@@ -5,7 +5,7 @@ from pycaps.transcriber import AudioTranscriber, BaseSegmentRewritter, WhisperAu
 from typing import Dict, Any, Optional
 from pycaps.animation import Animation, ElementAnimator
 from pycaps.common import ElementType, EventType
-from pycaps.tag import TagCondition
+from pycaps.tag import TagCondition, SemanticTagger
 from pycaps.effect import Effect
 
 class CapsPipelineBuilder:
@@ -54,6 +54,10 @@ class CapsPipelineBuilder:
     
     def add_segment_rewritter(self, segment_rewritter: BaseSegmentRewritter) -> "CapsPipelineBuilder":
         self._caps_pipeline._segment_rewritters.append(segment_rewritter)
+        return self
+    
+    def with_semantic_tagger(self, semantic_tagger: SemanticTagger) -> "CapsPipelineBuilder":
+        self._caps_pipeline._semantic_tagger = semantic_tagger
         return self
     
     def add_animation(self, animation: Animation, when: EventType, what: ElementType, tag_condition: Optional[TagCondition] = None) -> "CapsPipelineBuilder":

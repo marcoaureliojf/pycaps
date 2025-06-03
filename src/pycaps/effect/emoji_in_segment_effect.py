@@ -4,9 +4,8 @@ from pycaps.utils import ScriptUtils
 from typing import Optional
 import random
 from enum import Enum
-from openai import OpenAI
-import os
 from pycaps.tag import BuiltinTag
+from pycaps.ai import LlmProvider
 
 class EmojiAlign(Enum):
     BOTTOM = "bottom"
@@ -38,7 +37,7 @@ class EmojiInSegmentEffect(Effect):
         self._emojies_frequencies = {}
         self._last_emoji = None
         self._consecutive_segments_with_emoji = 0
-        self._client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self._llm = LlmProvider.get()
         self._video_script_summary: Optional[str] = None
 
     def run(self, document: Document) -> None:
@@ -64,9 +63,8 @@ class EmojiInSegmentEffect(Effect):
             return None
 
         text = segment.get_text()
-        response = self._client.responses.create(
-            model="gpt-4.1-nano",
-            input=f"""
+        text_response = self._llm.send_message(
+            prompt=f"""
             Given the following subtitle text, decide whether it meaningfully conveys an emotion, action, or idea that can be represented with an emoji.
             If it does you will need to respond with a single, appropriate emoji only.
 
@@ -82,7 +80,6 @@ class EmojiInSegmentEffect(Effect):
             Subtitle to analyze: "{text}"
             """
         )
-        text_response = response.output_text
         if text_response == "None":
             return None
         

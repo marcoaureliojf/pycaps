@@ -5,8 +5,9 @@ from .transcriber import WhisperAudioTranscriber, AudioTranscriber, LimitByWords
 from .effect import *
 from .animation import *
 from .selector import WordClipSelector
-from .tag import TagCondition, BuiltinTag, TagConditionFactory, get_default_tagger
+from .tag import TagCondition, BuiltinTag, TagConditionFactory, SemanticTagger
 from .common import *
 from .layout.definitions import *
+from .ai import LlmProvider
 
 __version__ = "0.1.0" 

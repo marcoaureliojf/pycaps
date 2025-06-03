@@ -3,7 +3,7 @@ from pycaps.transcriber import AudioTranscriber, WhisperAudioTranscriber, BaseSe
 from pycaps.renderer import CssSubtitleRenderer
 from pycaps.video import SubtitleClipsGenerator, VideoGenerator
 from pycaps.layout import WordWidthCalculator, PositionsCalculator, LineSplitter, LayoutUpdater
-from pycaps.tag import get_default_tagger
+from pycaps.tag import SemanticTagger
 from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
 from pycaps.effect import Effect
@@ -15,7 +15,7 @@ class CapsPipeline:
         self._renderer: CssSubtitleRenderer = CssSubtitleRenderer()
         self._clips_generator: SubtitleClipsGenerator = SubtitleClipsGenerator(self._renderer)
         self._word_width_calculator: WordWidthCalculator = WordWidthCalculator(self._renderer)
-        self._semantic_tagger = get_default_tagger()
+        self._semantic_tagger: SemanticTagger = SemanticTagger()
         self._video_generator: VideoGenerator = VideoGenerator()
         self._segment_rewritters: list[BaseSegmentRewritter] = []
         self._animators: List[ElementAnimator] = []
