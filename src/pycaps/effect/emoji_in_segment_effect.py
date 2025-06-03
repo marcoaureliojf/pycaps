@@ -13,7 +13,14 @@ class EmojiAlign(Enum):
     TOP = "top"
     RANDOM = "random"
 
+# TODO: There's room for improvement here.
+# - We could avoid the overhead of calling the LLM for each choosen segment.
+# - For that, we should instead send the full script to the LLM and get the proper emojies for each segment.
+# - We should probably use something like structured responses for that.
 class EmojiInSegmentEffect(Effect):
+    '''
+    This effect adds an emoji to a segment text if it can be meaningfully represented with an emoji.
+    '''
     def __init__(
             self,
             chance_to_apply: float = 0.5,
