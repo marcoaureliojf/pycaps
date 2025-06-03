@@ -90,7 +90,7 @@ class Word:
     max_layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment)
     clips: List[WordClip] = field(default_factory=list)
-    parent: 'Line' = field(default_factory='Line')
+    parent: 'Line' = field(default_factory='Line') # TODO: this is wrong, we should use a factory for the Line class
 
     def add_clip(self, clip: WordClip) -> None:
         self.clips.append(clip)

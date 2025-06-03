@@ -15,6 +15,8 @@ from .effect import (
     FirstSegmentPerSentenceEffectDecorator,
     EmojiInWordEffect,
     Effect,
+    EmojiInSegmentEffect,
+    EmojiAlign
 )
 from .models import (
     TranscriptionSegment,
@@ -24,7 +26,6 @@ from .models import (
     VerticalAlignment,
     VerticalAlignmentType,
     TextOverflowStrategy,
-    EmojiAlign
 )
 from .segment import LimitByWordsRewritter, LimitByCharsRewritter
 from .animation import *

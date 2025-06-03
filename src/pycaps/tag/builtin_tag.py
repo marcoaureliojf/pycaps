@@ -15,3 +15,5 @@ class BuiltinTag:
 
     FIRST_SEGMENT_IN_DOCUMENT = Tag("first-segment-in-document")
     LAST_SEGMENT_IN_DOCUMENT = Tag("last-segment-in-document")
+
+    EMOJI_FOR_SEGMENT = Tag("emoji-for-segment")
