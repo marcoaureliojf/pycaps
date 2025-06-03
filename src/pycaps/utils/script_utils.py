@@ -26,6 +26,9 @@ class ScriptUtils:
             """
         )
         summary = response.output_text
+        number_of_words = len(summary.split())
+        if number_of_words > 75:
+            summary = " ".join(summary.split()[:75]) + "..."
         ScriptUtils.basic_summary_cache[cache_key] = summary
         return summary
     
