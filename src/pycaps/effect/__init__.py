@@ -2,10 +2,14 @@
 from .emoji_in_word_effect import EmojiInWordEffect
 from .effect import Effect
 from .emoji_in_segment_effect import EmojiInSegmentEffect, EmojiAlign
+from .modify_words_effect import ModifyWordsEffect
+from .to_uppercase_effect import ToUppercaseEffect
 
 __all__ = [
     "EmojiInWordEffect",
     "EmojiInSegmentEffect",
+    "ModifyWordsEffect",
+    "ToUppercaseEffect",
     "EmojiAlign",
     "Effect",
 ]

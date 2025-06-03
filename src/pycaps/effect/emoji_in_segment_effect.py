@@ -41,7 +41,7 @@ class EmojiInSegmentEffect(Effect):
         self._client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self._video_script_summary: Optional[str] = None
 
-    def run(self, document: Document):
+    def run(self, document: Document) -> None:
         for segment in document.segments:
             if random.random() > self._chance_to_apply:
                 self._consecutive_segments_with_emoji = 0

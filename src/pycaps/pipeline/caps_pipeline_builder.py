@@ -1,7 +1,7 @@
 import os
 from .caps_pipeline import CapsPipeline
 from pycaps.layout import SubtitleLayoutOptions, LineSplitter, LayoutUpdater, PositionsCalculator
-from pycaps.transcriber import AudioTranscriber, BaseSegmentRewritter
+from pycaps.transcriber import AudioTranscriber, BaseSegmentRewritter, WhisperAudioTranscriber
 from typing import Dict, Any, Optional
 from pycaps.animation import Animation, ElementAnimator
 from pycaps.common import ElementType, EventType
@@ -44,7 +44,11 @@ class CapsPipelineBuilder:
         self._caps_pipeline._renderer.set_custom_css(css_content)
         return self
     
-    def with_audio_transcriber(self, audio_transcriber: AudioTranscriber) -> "CapsPipelineBuilder":
+    def with_whisper_config(self, language: Optional[str] = None, model_size: str = "base") -> "CapsPipelineBuilder":
+        self._caps_pipeline._transcriber = WhisperAudioTranscriber(model_size=model_size, language=language)
+        return self
+    
+    def with_custom_audio_transcriber(self, audio_transcriber: AudioTranscriber) -> "CapsPipelineBuilder":
         self._caps_pipeline._transcriber = audio_transcriber
         return self
     
@@ -65,4 +69,6 @@ class CapsPipelineBuilder:
             raise ValueError("Input video path is required")
         if not self._caps_pipeline._output_video_path:
             raise ValueError("Output video path is required")
-        return self._caps_pipeline
+        pipeline = self._caps_pipeline
+        self._caps_pipeline = CapsPipeline()
+        return pipeline

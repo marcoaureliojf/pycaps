@@ -17,7 +17,7 @@ class EmojiInWordEffect(Effect):
         if len(self._emojies) == 0:
             raise ValueError("Emojies list cannot be empty")
 
-    def run(self, document: Document):
+    def run(self, document: Document) -> None:
         last_matching_word: Optional[Word] = None
         last_used_emoji: Optional[str] = None
         for word in document.get_words():
