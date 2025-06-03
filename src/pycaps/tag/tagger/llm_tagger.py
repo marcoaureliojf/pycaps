@@ -2,6 +2,7 @@ from typing import Dict
 from pycaps.common import Tag
 from openai import OpenAI
 import os
+import re
 
 class LlmTagger:
     """
@@ -30,7 +31,7 @@ class LlmTagger:
             model="gpt-4.1-mini",
             input=prompt
         )
-        return self._process_response(response.output_text)
+        return self._process_response(text, response.output_text, rules)
 
     def _build_prompt(self, text: str, rules: Dict[Tag, str]) -> str:
         """
@@ -48,27 +49,31 @@ class LlmTagger:
 
 Important guidelines:
 1. Use XML-like tags with the exact class names provided
-2. Only tag specific words or short phrases (max 3 words), not entire sentences
+2. Only tag specific words or short phrases (max 3-4 words), not entire sentences
 3. Tags should not overlap
-4. Avoid tagging consecutive words/phrases. That is, between two terms tagged, there should be at least one word that does not have any tag.
-5. Interprete the commas and dots as natural pauses between tags. That is, a tagged phrase should not contain commas or dots.
-6. Preserve the exact original text, only adding tags
-7. If a term matches multiple categories, use the most specific one
-8. Do not add any explanations or additional text. Just return the text with the tags.
+4. Preserve the exact original text, only adding tags
+5. If a term matches multiple categories, use the most specific one
+6. Do not add any explanations or additional text. Just return the text with the tags.
 
 Text to analyze:
 {text}
 
 Tagged version:"""
 
-    def _process_response(self, response: str) -> str:
+    def _process_response(self, original_text: str, tagged_text: str, rules: Dict[Tag, str]) -> str:
         """
-        Processes and validates the LLM response.
+        Validates the LLM response.
         Ensures the response follows the expected format and contains valid tags.
+        Returns the original text if the tagged text is not valid, otherwise returns the tagged text received.
         """
-        # Here we could add validation logic, such as:
-        # - Verify that all tags are properly closed
-        # - Check that only allowed tag names are used
-        # - Ensure the text structure is preserved
-        # For now, we'll just return the response as is
-        return response 
+        tagged_text_without_tags = tagged_text.strip()
+        for tag in rules.keys():
+            pattern = f'<{tag.name}>(.*?)</{tag.name}>'
+            tagged_text_without_tags = re.sub(pattern, r'\1', tagged_text_without_tags)
+        
+        if original_text != tagged_text_without_tags:
+            print(f"WARNING: The tagged text is not equal to the original text: {original_text} != {tagged_text_without_tags}")
+            print("Using the original text instead.")
+            return original_text
+        
+        return tagged_text.strip()

@@ -43,11 +43,12 @@ class _SemanticTagger:
     def _apply_regex_rules(self, document: Document) -> None:
         """Apply regex rules to the document."""
         words = document.get_words()
-        text = document.get_text()
+        text = document.get_text().strip()
 
         for tag, pattern in self._regex_rules.items():
             matches = re.finditer(pattern, text)
-            self._tag_matching_words(words, matches, tag)
+            matches_positions = [(match.start(), match.end()) for match in matches]
+            self._tag_matching_words(words, matches_positions, tag)
 
     def _apply_llm_rules(self, document: Document) -> None:
         """
@@ -64,14 +65,35 @@ class _SemanticTagger:
             return
 
         words = document.get_words()
-        text = document.get_text()
+        text = document.get_text().strip()
         
         tagged_text = self._llm_tagger.process(text, self._llm_rules)
-        
+        text_positions_mapping = self._build_text_positions_mapping(tagged_text)
         for tag in self._llm_rules.keys():
             pattern = f'<{tag.name}>(.*?)</{tag.name}>'
             matches = re.finditer(pattern, tagged_text)
-            self._tag_matching_words(words, matches, tag)
+            matches_positions = [(m.start(1), m.end(1)) for m in matches]
+            mapped_matches_positions = [(text_positions_mapping.get(start, 0), text_positions_mapping.get(end, 0)) for start, end in matches_positions]
+            self._tag_matching_words(words, mapped_matches_positions, tag)
+    
+    def _build_text_positions_mapping(self, tagged_text: str) -> dict[int, int]:
+        """Build a mapping of positions in the tagged text to the original text."""
+        mapping = {}
+        tagged_pos = 0
+        original_pos = 0
+        in_tag = False
+        while tagged_pos < len(tagged_text):
+            char = tagged_text[tagged_pos]
+            if char == '<':
+                in_tag = True
+            if not in_tag:
+                mapping[tagged_pos] = original_pos
+                original_pos += 1
+            if char == '>':
+                in_tag = False
+            tagged_pos += 1
+
+        return mapping
 
     def _apply_function_rules(self, document: Document) -> None:
         """Apply function-based rules to the document."""
@@ -80,18 +102,15 @@ class _SemanticTagger:
             for word in get_words_to_tag(document):
                 word.tags.add(tag)
 
-    def _tag_matching_words(self, words: list[Word], matches, tag: Tag) -> None:
+    def _tag_matching_words(self, words: list[Word], matches_positions: list[tuple[int, int]], tag: Tag) -> None:
         """Tag words that match the found patterns."""
-        for match in matches:
-            start_pos = match.start()
-            end_pos = match.end()
-            
+        for match_start, match_end in matches_positions:
             current_pos = 0
             for word in words:
                 word_start = current_pos
-                word_end = current_pos + len(word.text) + 1  # +1 for space
+                word_end = current_pos + len(word.text) + 1 # for space char
                 
-                if self._word_overlaps_with_match(word_start, word_end, start_pos, end_pos):
+                if self._word_overlaps_with_match(word_start, word_end, match_start, match_end):
                     word.tags.add(tag)
                 
                 current_pos = word_end
