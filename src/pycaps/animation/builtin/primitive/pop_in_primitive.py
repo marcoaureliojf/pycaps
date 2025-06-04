@@ -1,10 +1,10 @@
 from typing import Tuple, Callable, Optional
 from ...definitions import Transformer, OvershootConfig
-from ...basic_animation import BasicAnimation
+from ...primitive_animation import PrimitiveAnimation
 from pycaps.common import WordClip
 from pycaps.layout import LayoutUtils
 
-class PopInPrimitive(BasicAnimation):
+class PopInPrimitive(PrimitiveAnimation):
     def __init__(
         self,
         duration: float,

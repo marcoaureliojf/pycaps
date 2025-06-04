@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from pycaps.common import Document
 
-class BaseSegmentRewritter(ABC):
+class BaseSegmentRewriter(ABC):
 
     @abstractmethod
     def rewrite(self, document: Document) -> None:

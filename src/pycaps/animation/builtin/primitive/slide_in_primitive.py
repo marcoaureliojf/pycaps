@@ -1,9 +1,9 @@
-from ...basic_animation import BasicAnimation
+from ...primitive_animation import PrimitiveAnimation
 from ...definitions import Direction, OvershootConfig, Transformer
 from pycaps.common import WordClip
 from typing import Tuple, Callable, Optional
 
-class SlideInPrimitive(BasicAnimation):
+class SlideInPrimitive(PrimitiveAnimation):
     def __init__(
             self,
             duration: float,

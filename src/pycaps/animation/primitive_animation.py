@@ -4,7 +4,7 @@ from .definitions import Transformer
 from abc import abstractmethod
 from .animation import Animation
 
-class BasicAnimation(Animation):
+class PrimitiveAnimation(Animation):
     def __init__(
             self,
             duration: float,

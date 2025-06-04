@@ -4,3 +4,4 @@ playwright
 Pillow
 numpy
 opencv-python
+pydantic

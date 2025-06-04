@@ -7,7 +7,7 @@ from enum import Enum
 from pycaps.tag import BuiltinTag
 from pycaps.ai import LlmProvider
 
-class EmojiAlign(Enum):
+class EmojiAlign(str, Enum):
     BOTTOM = "bottom"
     TOP = "top"
     RANDOM = "random"

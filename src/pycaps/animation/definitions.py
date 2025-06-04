@@ -1,14 +1,16 @@
 from enum import Enum
 from dataclasses import dataclass
+from pydantic import BaseModel, ConfigDict
 
-class Direction(Enum):
+class Direction(str, Enum):
     LEFT = "left"
     RIGHT = "right"
     UP = "up"
     DOWN = "down"
 
-@dataclass(frozen=True)
-class OvershootConfig:
+class OvershootConfig(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    
     amount: float = 0.1
     peak_at: float = 0.7
 

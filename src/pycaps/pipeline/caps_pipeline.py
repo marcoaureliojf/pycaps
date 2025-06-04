@@ -1,5 +1,5 @@
 import time
-from pycaps.transcriber import AudioTranscriber, WhisperAudioTranscriber, BaseSegmentRewritter
+from pycaps.transcriber import AudioTranscriber, WhisperAudioTranscriber, BaseSegmentRewriter
 from pycaps.renderer import CssSubtitleRenderer
 from pycaps.video import SubtitleClipsGenerator, VideoGenerator
 from pycaps.layout import WordWidthCalculator, PositionsCalculator, LineSplitter, LayoutUpdater
@@ -17,7 +17,7 @@ class CapsPipeline:
         self._word_width_calculator: WordWidthCalculator = WordWidthCalculator(self._renderer)
         self._semantic_tagger: SemanticTagger = SemanticTagger()
         self._video_generator: VideoGenerator = VideoGenerator()
-        self._segment_rewritters: list[BaseSegmentRewritter] = []
+        self._segment_rewriters: list[BaseSegmentRewriter] = []
         self._animators: List[ElementAnimator] = []
         self._effects: List[Effect] = []
 
@@ -43,9 +43,9 @@ class CapsPipeline:
             if len(document.segments) == 0:
                 raise RuntimeError("Transcription returned no segments. Subtitles will not be added.")
             
-            print("Running segments rewritters...")
-            for rewritter in self._segment_rewritters:
-                rewritter.rewrite(document)
+            print("Running segments rewriters...")
+            for rewriter in self._segment_rewriters:
+                rewriter.rewrite(document)
 
             print(f"Opening renderer for video dimensions: {video_clip.w}x{video_clip.h}")
             self._renderer.open(video_width=video_clip.w, video_height=video_clip.h)

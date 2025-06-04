@@ -1,7 +1,7 @@
 import os
 from .caps_pipeline import CapsPipeline
 from pycaps.layout import SubtitleLayoutOptions, LineSplitter, LayoutUpdater, PositionsCalculator
-from pycaps.transcriber import AudioTranscriber, BaseSegmentRewritter, WhisperAudioTranscriber
+from pycaps.transcriber import AudioTranscriber, BaseSegmentRewriter, WhisperAudioTranscriber
 from typing import Dict, Any, Optional
 from pycaps.animation import Animation, ElementAnimator
 from pycaps.common import ElementType, EventType
@@ -52,8 +52,8 @@ class CapsPipelineBuilder:
         self._caps_pipeline._transcriber = audio_transcriber
         return self
     
-    def add_segment_rewritter(self, segment_rewritter: BaseSegmentRewritter) -> "CapsPipelineBuilder":
-        self._caps_pipeline._segment_rewritters.append(segment_rewritter)
+    def add_segment_rewriter(self, segment_rewriter: BaseSegmentRewriter) -> "CapsPipelineBuilder":
+        self._caps_pipeline._segment_rewriters.append(segment_rewriter)
         return self
     
     def with_semantic_tagger(self, semantic_tagger: SemanticTagger) -> "CapsPipelineBuilder":

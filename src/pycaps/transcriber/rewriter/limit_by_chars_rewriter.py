@@ -1,7 +1,7 @@
-from .base_segment_rewritter import BaseSegmentRewritter
+from .base_segment_rewriter import BaseSegmentRewriter
 from pycaps.common import Document, Segment, Line, Word, TimeFragment, ElementContainer
 
-class LimitByCharsRewritter(BaseSegmentRewritter):
+class LimitByCharsRewriter(BaseSegmentRewriter):
     """
     A segmenter that limits the number of characters in each segment.
     It will divide each segment received into chunks of a maximum of `limit` characters.
@@ -18,7 +18,7 @@ class LimitByCharsRewritter(BaseSegmentRewritter):
     segment 3: "This is a"
     segment 4: "test"
     """
-    def __init__(self, max_limit: int, min_limit: int = 0, avoid_finishing_segment_with_word_shorter_than: int = 4):
+    def __init__(self, max_limit: int = 30, min_limit: int = 15, avoid_finishing_segment_with_word_shorter_than: int = 4):
         '''
         max_limit: the maximum number of characters in each segment
         min_limit: the minimum number of characters in each segment. 
@@ -27,9 +27,12 @@ class LimitByCharsRewritter(BaseSegmentRewritter):
             This is useful to avoid finishing a segment in an unnatural way.
             If the value is 0, it will not be used.
         '''
-        self.max_limit = max_limit
-        self.min_limit = min_limit
-        self.avoid_finishing_segment_with_word_shorter_than = avoid_finishing_segment_with_word_shorter_than
+        self._max_limit = max_limit
+        self._min_limit = min_limit
+        self._avoid_finishing_segment_with_word_shorter_than = avoid_finishing_segment_with_word_shorter_than
+
+        if self._min_limit > self._max_limit:
+            raise ValueError(f"min_limit ({self._min_limit}) must be less than max_limit ({self._max_limit})")
 
     def rewrite(self, document: Document) -> None:
         new_segments = []
@@ -61,20 +64,20 @@ class LimitByCharsRewritter(BaseSegmentRewritter):
         chars_count = 0
         while current_index < len(words):
             current_word = words[current_index]
-            if chars_count + len(current_word.text) > self.max_limit:
+            if chars_count + len(current_word.text) > self._max_limit:
                 break
             
             chars_count += len(current_word.text)
             current_index += 1
         
-        if self.avoid_finishing_segment_with_word_shorter_than > 0:
+        if self._avoid_finishing_segment_with_word_shorter_than > 0:
             last_word = words[current_index - 1]
-            while current_index < len(words) and len(last_word.text) < self.avoid_finishing_segment_with_word_shorter_than:
+            while current_index < len(words) and len(last_word.text) < self._avoid_finishing_segment_with_word_shorter_than:
                 current_index += 1
                 last_word = words[current_index - 1]
 
         remaning_chars_count = sum([len(word.text) for word in words[current_index:]])
-        if remaning_chars_count < self.min_limit:
+        if remaning_chars_count < self._min_limit:
             return len(words)
 
         return current_index

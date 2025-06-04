@@ -2,14 +2,14 @@
 
 from .builtin import *
 from .definitions import Transformer, OvershootConfig, Direction
-from .basic_animation import BasicAnimation
+from .primitive_animation import PrimitiveAnimation
 from .preset_animation import PresetAnimation
 from .animation import Animation
 from .element_animator import ElementAnimator
 
 __all__ = [
     "Animation",
-    "BasicAnimation",
+    "PrimitiveAnimation",
     "PresetAnimation",
     "ElementAnimator",
     "Transformer",

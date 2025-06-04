@@ -27,7 +27,7 @@ class LlmTagger:
         """
         prompt = self._build_prompt(text, rules)
         response = self._llm.send_message(prompt)
-        return self._process_response(text, response.output_text, rules)
+        return self._process_response(text, response, rules)
 
     def _build_prompt(self, text: str, rules: Dict[Tag, str]) -> str:
         """

@@ -1,14 +1,14 @@
 from enum import Enum
 from typing import List
 
-class ElementType(Enum):
+class ElementType(str, Enum):
     WORD = "word"
     LINE = "line"
     SEGMENT = "segment"
 
-class EventType(Enum):
-    ON_NARRATION_STARTS = "starts-narration"
-    ON_NARRATION_ENDS = "ends-narration"
+class EventType(str, Enum):
+    ON_NARRATION_STARTS = "narration-starts"
+    ON_NARRATION_ENDS = "narration-ends"
 
 class ElementState(Enum):
     WORD_BEING_NARRATED = "word-being-narrated"
