@@ -35,6 +35,7 @@ class JsonConfigLoader:
             if self._config.output:
                 self._builder.with_output_video(self._config.output)
 
+            self._load_video_config()
             self._load_whisper_config()
             self._load_layout_options()
             self._load_segment_rewriter()
@@ -47,6 +48,14 @@ class JsonConfigLoader:
                 return self._builder
         except ValidationError as e:
             raise ValueError(f"Invalid config: {e}")
+
+    def _load_video_config(self) -> None:
+        if self._config.video is None:
+            return
+        video_data = self._config.video
+        if video_data.resolution is not None:
+            self._builder.with_video_resolution(video_data.resolution)
+        self._builder.with_fps(video_data.fps)
 
     def _load_whisper_config(self) -> None:
         if self._config.whisper is None:

@@ -1,6 +1,14 @@
 from enum import Enum
 from typing import List
 
+class VideoResolution(str, Enum):
+    _4K = "4k"
+    _2K = "2k"
+    _1080P = "1080p"
+    _720P = "720p"
+    _480P = "480p"
+    _360P = "360p"
+
 class ElementType(str, Enum):
     WORD = "word"
     LINE = "line"

@@ -8,7 +8,7 @@ from pycaps.tag import SemanticTagger
 from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
 from pycaps.effect import Effect
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 class CapsPipeline:
     def __init__(self):
@@ -29,6 +29,7 @@ class CapsPipeline:
 
         self._input_video_path: Optional[str] = None
         self._output_video_path: Optional[str] = None
+        self._moviepy_write_options: Dict[str, Any] = {}
 
     def run(self) -> None:
         """
@@ -38,6 +39,7 @@ class CapsPipeline:
             print(f"Starting caps pipeline execution: {self._input_video_path}")
             video_extension = os.path.splitext(self._input_video_path)[1]
             self._output_video_path = f"output_{time.strftime('%Y%m%d_%H%M%S')}{video_extension}" if self._output_video_path is None else self._output_video_path
+            self._video_generator.set_moviepy_write_options(self._moviepy_write_options)
             self._video_generator.start(self._input_video_path, self._output_video_path)
             video_clip = self._video_generator.get_video_clip()
 

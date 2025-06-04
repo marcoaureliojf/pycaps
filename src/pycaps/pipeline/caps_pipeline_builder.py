@@ -4,7 +4,7 @@ from pycaps.layout import SubtitleLayoutOptions, LineSplitter, LayoutUpdater, Po
 from pycaps.transcriber import AudioTranscriber, BaseSegmentRewriter, WhisperAudioTranscriber
 from typing import Dict, Any, Optional
 from pycaps.animation import Animation, ElementAnimator
-from pycaps.common import ElementType, EventType
+from pycaps.common import ElementType, EventType, VideoResolution
 from pycaps.tag import TagCondition, SemanticTagger
 from pycaps.effect import Effect
 
@@ -24,11 +24,21 @@ class CapsPipelineBuilder:
         return self
     
     def with_custom_audio_file(self, audio_path: str) -> "CapsPipelineBuilder":
-        self._caps_pipeline._audio_path = audio_path
+        self._caps_pipeline._video_generator.set_audio_path(audio_path)
         return self
     
     def with_moviepy_write_options(self, moviepy_write_options: Dict[str, Any]) -> "CapsPipelineBuilder":
         self._caps_pipeline._moviepy_write_options = moviepy_write_options
+        return self
+    
+    def with_fps(self, fps: int) -> "CapsPipelineBuilder":
+        if fps < 12 or fps > 60:
+            raise ValueError("FPS must be between 12 and 60")
+        self._caps_pipeline._moviepy_write_options["fps"] = fps
+        return self
+    
+    def with_video_resolution(self, resolution: VideoResolution) -> "CapsPipelineBuilder":
+        self._caps_pipeline._video_generator.set_video_resolution(resolution)
         return self
     
     def with_layout_options(self, layout_options: SubtitleLayoutOptions) -> "CapsPipelineBuilder":
@@ -71,8 +81,6 @@ class CapsPipelineBuilder:
     def build(self) -> CapsPipeline:
         if not self._caps_pipeline._input_video_path:
             raise ValueError("Input video path is required")
-        if not self._caps_pipeline._output_video_path:
-            raise ValueError("Output video path is required")
         pipeline = self._caps_pipeline
         self._caps_pipeline = CapsPipeline()
         return pipeline

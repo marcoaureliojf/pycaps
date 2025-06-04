@@ -1,8 +1,8 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Literal
 import os
 from moviepy.editor import VideoFileClip, CompositeVideoClip
 import tempfile
-from pycaps.common import Document
+from pycaps.common import Document, VideoResolution
 from pathlib import Path
 
 class VideoGenerator:
@@ -17,12 +17,16 @@ class VideoGenerator:
         self._is_temp_audio_file: bool = False
         self._final_video: Optional[VideoFileClip] = None
         self._video_clip: Optional[VideoFileClip] = None
+        self._video_resolution: Optional[VideoResolution] = None
 
     def set_audio_path(self, audio_path: str):
         self._audio_path = audio_path
 
     def set_moviepy_write_options(self, moviepy_write_options: Dict[str, Any]):
         self._moviepy_write_options = moviepy_write_options
+
+    def set_video_resolution(self, resolution: VideoResolution):
+        self._video_resolution = resolution
 
     def start(self, input_video_path: str, output_video_path: str):
         if not os.path.exists(input_video_path):
@@ -107,14 +111,16 @@ class VideoGenerator:
             "codec": codecs["codec"],
             "audio_codec": codecs["audio_codec"],
             "threads": os.cpu_count() or 2,
-            "logger": "bar"
+            "logger": "bar",
+            "fps": 30
         }
         if self._moviepy_write_options:
             default_write_options.update(self._moviepy_write_options)
         
+        self._final_video = self._apply_video_resolution(self._final_video)
         self._final_video.write_videofile(self._output_video_path, **default_write_options)
 
-    def get_codecs_for_output(self) -> list[str]:
+    def _get_codecs_for_output(self) -> list[str]:
         output_path = Path(self._output_video_path)
         ext = output_path.suffix.lower()
         codec_map = {
@@ -127,6 +133,27 @@ class VideoGenerator:
         }
 
         return codec_map.get(ext, codec_map[".mp4"])
+    
+    def _apply_video_resolution(self, video_clip: VideoFileClip) -> VideoFileClip:
+        if self._video_resolution is None:
+            return video_clip
+    
+        height: int
+        match self._video_resolution:
+            case VideoResolution._4K:
+                height = 4096
+            case VideoResolution._2K:
+                height = 2048
+            case VideoResolution._1080P:
+                height = 1080
+            case VideoResolution._720P:
+                height = 720
+            case VideoResolution._480P:
+                height = 480
+            case VideoResolution._360P:
+                height = 360
+        
+        return video_clip.resize(height=height)
 
     def close(self):
         self._remove_audio_file_if_needed()

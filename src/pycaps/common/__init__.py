@@ -14,6 +14,7 @@ from .types import (
     ElementType,
     EventType,
     ElementState,
+    VideoResolution,
 )
 from .element_container import ElementContainer
 

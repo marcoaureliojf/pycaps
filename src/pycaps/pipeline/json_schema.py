@@ -1,6 +1,6 @@
 from pycaps.layout import SubtitleLayoutOptions
 from pydantic import BaseModel, Field, ConfigDict, field_validator
-from pycaps.common import EventType, ElementType
+from pycaps.common import EventType, ElementType, VideoResolution
 from pycaps.effect import EmojiAlign
 from typing import Literal, Annotated, Optional
 from pycaps.animation import Direction, OvershootConfig
@@ -8,6 +8,10 @@ from pycaps.animation import Direction, OvershootConfig
 # TODO: we are copying the default values that receive the classes, we should avoid that
 class BaseConfigModel(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
+
+class VideoConfig(BaseConfigModel):
+    fps: int = 30
+    resolution: Optional[VideoResolution] = None
 
 class WhisperConfig(BaseConfigModel):
     language: Optional[str] = None
@@ -125,6 +129,7 @@ class JsonSchema(BaseConfigModel):
     input: str
     output: Optional[str] = None
     css: str
+    video: Optional[VideoConfig] = None
     whisper: Optional[WhisperConfig] = None
     layout: Optional[SubtitleLayoutOptions] = None
     rewriter: Optional[RewriterConfig] = None
