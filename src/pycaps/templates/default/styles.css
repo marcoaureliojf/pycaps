@@ -1,0 +1,11 @@
+.word {
+    font-size: 42px;
+    color: white;
+    font-family: 'Arial Black', Gadget, sans-serif;
+    font-weight: 900;
+    text-shadow: 
+        2px 2px 0px black, -2px 2px 0px black, 
+        2px -2px 0px black, -2px -2px 0px black,
+        3px 3px 5px rgba(0,0,0,0.7);
+    padding: 5px 10px;
+}

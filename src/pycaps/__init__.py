@@ -1,5 +1,5 @@
 # src/pycaps/__init__.py
-from .pipeline import CapsPipeline, CapsPipelineBuilder, JsonConfigLoader
+from .pipeline import CapsPipeline, CapsPipelineBuilder, JsonConfigLoader, TemplateLoader
 from .renderer import CssSubtitleRenderer
 from .transcriber import WhisperAudioTranscriber, AudioTranscriber, LimitByWordsRewriter, LimitByCharsRewriter
 from .effect import *

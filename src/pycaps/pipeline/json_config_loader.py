@@ -7,18 +7,21 @@ from pycaps.effect import EmojiInSegmentEffect, EmojiInWordEffect, ToUppercaseEf
 from pycaps.animation import (
     Animation,
     FadeIn, FadeOut, ZoomIn, ZoomOut, PopIn, PopOut, PopInBounce, SlideIn, SlideOut,
-    ZoomInPrimitive, PopInPrimitive, SlideInPrimitive, FadeInPrimitive
+    ZoomInPrimitive, PopInPrimitive, SlideInPrimitive, FadeInPrimitive,
+    Transformer
 )
 from .json_schema import JsonSchema, AnimationConfig
 from pydantic import ValidationError
 from pycaps.tag import SemanticTagger
 from pycaps.common import Tag
 from typing import overload, Literal
+import os
 
 class JsonConfigLoader:
     def __init__(self, json_path: str) -> None:
         with open(json_path, "r", encoding="utf-8") as f:
             self._data = json.load(f)
+        self._json_path = json_path
 
     @overload
     def load(self, should_build_pipeline: Literal[True] = True) -> CapsPipeline:
@@ -28,12 +31,17 @@ class JsonConfigLoader:
         ...
     def load(self, should_build_pipeline: bool = True) -> CapsPipeline | CapsPipelineBuilder:
         try:
+            base_path = os.path.dirname(self._json_path)
             self._config = JsonSchema(**self._data)
             self._builder = CapsPipelineBuilder()
-            self._builder.with_input_video(self._config.input)
-            self._builder.with_css(self._config.css)
+            if self._config.css:
+                self._builder.with_css(os.path.join(base_path, self._config.css))
+            if self._config.input:
+                self._builder.with_input_video(os.path.join(base_path, self._config.input))
             if self._config.output:
                 self._builder.with_output_video(self._config.output)
+            if self._config.resources:
+                self._builder.with_resources(os.path.join(base_path, self._config.resources))
 
             self._load_video_config()
             self._load_whisper_config()
@@ -120,13 +128,56 @@ class JsonConfigLoader:
             case "slide_out":
                 return SlideOut(animation.direction, animation.duration, animation.delay)
             case "zoom_in_primitive":
-                return ZoomInPrimitive(animation.duration, animation.delay, animation.transformer, animation.init_scale, animation.overshoot)
+                return ZoomInPrimitive(
+                    animation.duration,
+                    animation.delay,
+                    self._build_transformer(animation.transformer),
+                    animation.init_scale,
+                    animation.overshoot
+                )
             case "pop_in_primitive":
-                return PopInPrimitive(animation.duration, animation.delay, animation.transformer, animation.init_scale, animation.min_scale, animation.min_scale_at, animation.overshoot)
+                return PopInPrimitive(
+                    animation.duration,
+                    animation.delay,
+                    self._build_transformer(animation.transformer),
+                    animation.init_scale,
+                    animation.min_scale,
+                    animation.min_scale_at,
+                    animation.overshoot
+                )
             case "slide_in_primitive":
-                return SlideInPrimitive(animation.duration, animation.delay, animation.transformer, animation.direction, animation.distance, animation.overshoot)
+                return SlideInPrimitive(
+                    animation.duration,
+                    animation.delay,
+                    self._build_transformer(animation.transformer),
+                    animation.direction,
+                    animation.distance,
+                    animation.overshoot
+                )
             case "fade_in_primitive":
-                return FadeInPrimitive(animation.duration, animation.delay, animation.transformer)
+                return FadeInPrimitive(
+                    animation.duration,
+                    animation.delay,
+                    self._build_transformer(animation.transformer)
+                )
+            case _:
+                raise ValueError(f"Invalid animation type: {animation.type}")
+            
+
+    def _build_transformer(self, transformer: str) -> Transformer:
+        match transformer:
+            case "linear":
+                return Transformer.LINEAR
+            case "ease_in":
+                return Transformer.EASE_IN
+            case "ease_out":
+                return Transformer.EASE_OUT
+            case "ease_in_out":
+                return Transformer.EASE_IN_OUT
+            case "inverse":
+                return Transformer.INVERT
+            case _:
+                raise ValueError(f"Invalid transformer: {transformer}")
 
     def _load_tagger(self) -> None:
         tagger = SemanticTagger()

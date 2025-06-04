@@ -126,9 +126,10 @@ class RegexTaggerRuleConfig(BaseConfigModel):
 TaggerRule = Annotated[LlmTaggerRuleConfig | RegexTaggerRuleConfig, Field(discriminator="type")]
 
 class JsonSchema(BaseConfigModel):
-    input: str
+    input: Optional[str] = None
     output: Optional[str] = None
-    css: str
+    resources: Optional[str] = None
+    css: Optional[str] = None
     video: Optional[VideoConfig] = None
     whisper: Optional[WhisperConfig] = None
     layout: Optional[SubtitleLayoutOptions] = None

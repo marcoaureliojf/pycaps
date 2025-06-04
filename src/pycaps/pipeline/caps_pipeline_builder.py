@@ -22,6 +22,14 @@ class CapsPipelineBuilder:
             raise ValueError(f"Output video path already exists: {output_video_path}")
         self._caps_pipeline._output_video_path = output_video_path
         return self
+
+    def with_resources(self, resources_path: str) -> "CapsPipelineBuilder":
+        if not os.path.exists(resources_path):
+            raise ValueError(f"Resources path does not exist: {resources_path}")
+        if not os.path.isdir(resources_path):
+            raise ValueError(f"Resources path is not a directory: {resources_path}")
+        self._caps_pipeline._resources_dir = resources_path
+        return self
     
     def with_custom_audio_file(self, audio_path: str) -> "CapsPipelineBuilder":
         self._caps_pipeline._video_generator.set_audio_path(audio_path)

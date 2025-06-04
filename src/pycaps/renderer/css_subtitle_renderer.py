@@ -32,7 +32,7 @@ class CssSubtitleRenderer():
         self._custom_css = custom_css
         self._cache = RenderedImageCache(self._custom_css)
 
-    def open(self, video_width: int, video_height: int):
+    def open(self, video_width: int, video_height: int, resources_dir: Optional[Path] = None):
         """Initializes Playwright and loads the base HTML page."""
         if self.page:
             raise RuntimeError("Renderer is already open. Call close() first.")
@@ -43,7 +43,7 @@ class CssSubtitleRenderer():
         self.playwright_context = sync_playwright().start()
         self.browser = self.playwright_context.chromium.launch()
         self.page = self.browser.new_page(viewport={"width": video_width, "height": calculated_vp_height})
-        self._copy_resources_to_tempdir()
+        self._copy_resources_to_tempdir(resources_dir)
         path = self._create_html_page()
         self.page.goto(path.as_uri())
     
@@ -94,14 +94,15 @@ class CssSubtitleRenderer():
         html_path.write_text(html_template, encoding="utf-8")
         return html_path
 
-    def _copy_resources_to_tempdir(self) -> None:
+    def _copy_resources_to_tempdir(self, resources_dir: Optional[Path] = None) -> None:
         if not self.tempdir:
             raise RuntimeError("Temp directory must be initialized before copying resources.")
-
-        cwd = Path(os.getcwd())
-        resources_dir = cwd / "resources"
-        if not resources_dir.exists():
+        if not resources_dir:
             return
+        if not resources_dir.exists():
+            raise RuntimeError(f"Resources directory does not exist: {resources_dir}")
+        if not resources_dir.is_dir():
+            raise RuntimeError(f"Resources path is not a directory: {resources_dir}")
 
         destination = Path(self.tempdir.name)
         shutil.copytree(resources_dir, destination, dirs_exist_ok=True)

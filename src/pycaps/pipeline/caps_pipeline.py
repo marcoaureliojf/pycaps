@@ -9,6 +9,7 @@ from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
 from pycaps.effect import Effect
 from typing import Optional, List, Dict, Any
+from pathlib import Path
 
 class CapsPipeline:
     def __init__(self):
@@ -29,6 +30,7 @@ class CapsPipeline:
 
         self._input_video_path: Optional[str] = None
         self._output_video_path: Optional[str] = None
+        self._resources_dir: Optional[str] = None
         self._moviepy_write_options: Dict[str, Any] = {}
 
     def run(self) -> None:
@@ -53,7 +55,8 @@ class CapsPipeline:
                 rewriter.rewrite(document)
 
             print(f"Opening renderer for video dimensions: {video_clip.w}x{video_clip.h}")
-            self._renderer.open(video_width=video_clip.w, video_height=video_clip.h)
+            resources_dir = Path(self._resources_dir) if self._resources_dir else None
+            self._renderer.open(video_width=video_clip.w, video_height=video_clip.h, resources_dir=resources_dir)
 
             print("Calculating words widths...")
             self._word_width_calculator.calculate(document)

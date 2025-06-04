@@ -1,0 +1,46 @@
+{
+    "css": "styles.css",
+    "layout": {
+        "max_width_ratio": 0.9,
+        "max_number_of_lines": 2,
+        "min_number_of_lines": 1,
+        "vertical_align": {
+            "align": "center",
+            "offset": 0.15
+        }
+    },
+    "whisper": {
+        "model": "base"
+    },
+    "rewriter": {
+        "type": "limit_by_chars",
+        "min_chars": 10,
+        "max_chars": 25
+    },
+    "effects": [
+        {
+            "type": "emoji_in_segment",
+            "chance_to_apply": 0.3,
+            "align": "random",
+            "ignore_segments_with_duration_less_than": 0.8,
+            "max_uses_of_each_emoji": 1
+        }
+    ],
+    "animations": [
+        {
+            "type": "pop_in_primitive",
+            "when": "narration-starts",
+            "what": "word",
+            "duration": 0.15,
+            "delay": 0,
+            "min_scale": 0.9,
+            "init_scale": 0.95,
+            "min_scale_at": 0.5,
+            "overshoot": {
+                "amount": 0.05,
+                "peak_at": 0.8
+            }
+        }
+    ],
+    "tagger_rules": []
+}
