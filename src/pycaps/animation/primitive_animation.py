@@ -3,6 +3,8 @@ from pycaps.common import WordClip, ElementType
 from .definitions import Transformer
 from abc import abstractmethod
 from .animation import Animation
+import cv2
+import numpy as np
 
 class PrimitiveAnimation(Animation):
     def __init__(
@@ -40,10 +42,18 @@ class PrimitiveAnimation(Animation):
         self._position_transform = transform
 
     def _apply_size(self, clip: WordClip, offset: float, get_resize_fn: Callable[[float], float]) -> None:
+        original_size = clip.layout.size
         def transform() -> None:
-            clip.image_clip = clip.image_clip.resize(
-                lambda t: get_resize_fn(self._normalice_time(t + offset)) if t + offset >= 0 else 1)
-        
+            def fl(gf, t):
+                frame = gf(t)
+                if t + offset < 0:
+                    return frame
+                scale = get_resize_fn(self._normalice_time(t + offset))
+                nw, nh = original_size.width * scale, original_size.height * scale
+                return cv2.resize(+frame.astype(np.uint8), (round(nw), round(nh)), interpolation=cv2.INTER_AREA)
+            
+            clip.image_clip = clip.image_clip.fl(fl, apply_to=['mask'])
+
         self._size_transform = transform
     
     def _apply_opacity(self, clip: WordClip, offset: float, get_opacity_fn: Callable[[float], float]) -> None:
