@@ -62,7 +62,7 @@ EffectConfig = Annotated[EmojiInSegmentEffectConfig | EmojiInWordEffectConfig | 
 
 class BaseAnimationConfig(BaseConfigModel):
     type: Literal["fade_in", "fade_out", "zoom_in", "zoom_out", "pop_in", "pop_out", "pop_in_bounce"]
-    duration: float = 0.3
+    duration: float = 0.2
     delay: float = 0.0
     when: EventType
     what: ElementType
@@ -74,7 +74,7 @@ class SlideAnimationConfig(BaseAnimationConfig):
 
 class BaseAnimationPrimitiveConfig(BaseConfigModel):
     type: Literal["fade_in_primitive"]
-    duration: float = 0.3
+    duration: float = 0.2
     delay: float = 0.0
     transformer: Literal["linear", "ease_in", "ease_out", "ease_in_out", "inverse"] = "linear"
     what: ElementType
