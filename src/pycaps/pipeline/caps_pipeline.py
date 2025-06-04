@@ -1,4 +1,5 @@
 import time
+import os
 from pycaps.transcriber import AudioTranscriber, WhisperAudioTranscriber, BaseSegmentRewriter
 from pycaps.renderer import CssSubtitleRenderer
 from pycaps.video import SubtitleClipsGenerator, VideoGenerator
@@ -27,7 +28,7 @@ class CapsPipeline:
         self._layout_updater: LayoutUpdater = LayoutUpdater(layout_options)
 
         self._input_video_path: Optional[str] = None
-        self._output_video_path: Optional[str] = f"output_{time.strftime('%Y%m%d_%H%M%S')}.mp4"
+        self._output_video_path: Optional[str] = None
 
     def run(self) -> None:
         """
@@ -35,6 +36,8 @@ class CapsPipeline:
         """
         try:
             print(f"Starting caps pipeline execution: {self._input_video_path}")
+            video_extension = os.path.splitext(self._input_video_path)[1]
+            self._output_video_path = f"output_{time.strftime('%Y%m%d_%H%M%S')}{video_extension}" if self._output_video_path is None else self._output_video_path
             self._video_generator.start(self._input_video_path, self._output_video_path)
             video_clip = self._video_generator.get_video_clip()
 

@@ -3,6 +3,7 @@ import os
 from moviepy.editor import VideoFileClip, CompositeVideoClip
 import tempfile
 from pycaps.common import Document
+from pathlib import Path
 
 class VideoGenerator:
     def __init__(self):
@@ -101,9 +102,10 @@ class VideoGenerator:
                 print("Warning: Original video had no audio. Final video will also have no audio.")
 
         print(f"Writing final video to: {self._output_video_path}")
+        codecs = self._get_codecs_for_output()
         default_write_options = {
-            "codec": "libx264",
-            "audio_codec": "aac",
+            "codec": codecs["codec"],
+            "audio_codec": codecs["audio_codec"],
             "threads": os.cpu_count() or 2,
             "logger": "bar"
         }
@@ -111,6 +113,20 @@ class VideoGenerator:
             default_write_options.update(self._moviepy_write_options)
         
         self._final_video.write_videofile(self._output_video_path, **default_write_options)
+
+    def get_codecs_for_output(self) -> list[str]:
+        output_path = Path(self._output_video_path)
+        ext = output_path.suffix.lower()
+        codec_map = {
+            ".mp4":  {"codec": "libx264", "audio_codec": "aac"},
+            ".mov":  {"codec": "libx264", "audio_codec": "aac"},
+            ".avi":  {"codec": "mpeg4",   "audio_codec": "libmp3lame"},
+            ".mkv":  {"codec": "libx264", "audio_codec": "aac"},
+            ".webm": {"codec": "libvpx",  "audio_codec": "libvorbis"},
+            ".ogv":  {"codec": "libtheora", "audio_codec": "libvorbis"},
+        }
+
+        return codec_map.get(ext, codec_map[".mp4"])
 
     def close(self):
         self._remove_audio_file_if_needed()
