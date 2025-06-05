@@ -3,8 +3,7 @@
     font-size: 26px;
     color: white;
     font-weight: 900;
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 4px 6px;
     text-shadow: 
         -1px -1px 0 #000000,  
          1px -1px 0 #000000,
@@ -15,12 +14,8 @@
 }
 
 .word-not-narrated-yet {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.45);
     text-shadow: none;
-}
-
-.word-being-narrated {
-    color: #FFFF00;
 }
 
 .word-already-narrated {

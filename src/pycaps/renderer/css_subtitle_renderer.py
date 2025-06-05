@@ -12,6 +12,7 @@ from .playwright_screenshot_capturer import PlaywrightScreenshotCapturer
 
 class CssSubtitleRenderer():
 
+    DEFAULT_DEVICE_SCALE_FACTOR: int = 2
     DEFAULT_VIEWPORT_HEIGHT_RATIO: float = 0.25
     DEFAULT_MIN_VIEWPORT_HEIGHT: int = 150
     DEFAULT_CSS_CLASS_FOR_EACH_WORD: str = "word"
@@ -42,7 +43,7 @@ class CssSubtitleRenderer():
         self.tempdir = tempfile.TemporaryDirectory()
         self.playwright_context = sync_playwright().start()
         self.browser = self.playwright_context.chromium.launch()
-        context = self.browser.new_context(device_scale_factor=2, viewport={"width": video_width, "height": calculated_vp_height})
+        context = self.browser.new_context(device_scale_factor=self.DEFAULT_DEVICE_SCALE_FACTOR, viewport={"width": video_width, "height": calculated_vp_height})
         self.page = context.new_page()
         self._copy_resources_to_tempdir(resources_dir)
         path = self._create_html_page()
@@ -67,19 +68,23 @@ class CssSubtitleRenderer():
         <head>
             <meta charset="UTF-8">
             <style>
-                body {{
+                html, body {{
                     margin: 0;
                     padding: 0;
                     width: 100%;
                     height: 100%;
                     display: flex;
-                    align-items: center; 
-                    justify-content: center; 
+                    align-items: center;
+                    justify-content: center;
                     overflow: hidden;
-                    font-family: sans-serif; /* Default global font, can be overridden by specific styles */
-                }}
+                    font-family: sans-serif;
+                }} 
+
                 #subtitle-container {{
-                    display: inline-block; /* So the container fits the span's content */
+                    display: inline-block;
+                    width: 100%;
+                    height: 100%;
+                    align-content: center;
                 }}
                 {self._custom_css}
             </style>
@@ -142,7 +147,7 @@ class CssSubtitleRenderer():
                 self._cache.set(word.text, css_classes, None)
                 return None
 
-            image = PlaywrightScreenshotCapturer.capture(locator)
+            image = PlaywrightScreenshotCapturer.capture(locator, self.DEFAULT_DEVICE_SCALE_FACTOR)
             self._cache.set(word.text, css_classes, image)
             return image
         except Exception as e:
