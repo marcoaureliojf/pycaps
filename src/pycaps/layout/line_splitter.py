@@ -35,11 +35,11 @@ class LineSplitter:
                 current_line_words.append(word)
                 current_line_total_width += x_words_space + word_width
             else:
-                self._append_new_line(segment, lines, current_line_words)
+                self._append_new_line(lines, current_line_words)
                 current_line_words = [word]
                 current_line_total_width = word_width
         
-        self._append_new_line(segment, lines, current_line_words)
+        self._append_new_line(lines, current_line_words)
         self._adjust_lines_to_constraints(lines)
         segment.lines.set_all(lines)
 
@@ -62,10 +62,10 @@ class LineSplitter:
             first_line.words.set_all(first_half)
             second_line.words.set_all(second_half)
 
-            lines.remove(longest_line)
-            lines.extend([first_line, second_line])
+            to_remove = lines.index(longest_line)
+            lines[to_remove:to_remove+1] = [first_line, second_line] # replace the longest line with the two new ones
         
-    def _append_new_line(self, segment: Segment, lines: List[Line], words: List[Word]) -> None:
+    def _append_new_line(self, lines: List[Line], words: List[Word]) -> None:
         if not words:
             return
         time = TimeFragment(start=words[0].time.start, end=words[-1].time.end)
