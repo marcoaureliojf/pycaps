@@ -5,7 +5,6 @@ from PIL.Image import Image
 from typing import Optional, List
 from pycaps.common import Word, ElementState
 import shutil
-import os
 import webbrowser
 from .rendered_image_cache import RenderedImageCache
 from .playwright_screenshot_capturer import PlaywrightScreenshotCapturer

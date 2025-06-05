@@ -1,0 +1,28 @@
+{
+    "css": "styles.css",
+    "layout": {
+        "max_width_ratio": 0.9,
+        "max_number_of_lines": 2,
+        "min_number_of_lines": 1,
+        "vertical_align": {
+            "align": "bottom",
+            "offset": 0.0
+        }
+    },
+    "effects": [],
+    "animations": [
+        {
+            "type": "fade_in",
+            "when": "narration-starts",
+            "what": "segment",
+            "duration": 0.2
+        },
+        {
+            "type": "fade_out",
+            "when": "narration-ends",
+            "what": "segment",
+            "duration": 0.2
+        }
+    ],
+    "tagger_rules": []
+}
