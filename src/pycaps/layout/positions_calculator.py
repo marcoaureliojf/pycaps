@@ -34,7 +34,7 @@ class PositionsCalculator:
                 word_widths = [word.max_layout.size.width for word in line.words]
                 self._set_clip_positions(line, word_widths, y, video_width)
 
-            y += line.max_layout.size.height
+            y += line.max_layout.size.height + self._options.y_words_space
 
     def _set_clip_positions(
             self,
@@ -44,7 +44,7 @@ class PositionsCalculator:
             video_width: int,
             state: Optional[ElementState] = None,
         ) -> None:
-        line_width = sum(words_width) + (len(words_width) - 1) * self._options.word_spacing
+        line_width = sum(words_width) + (len(words_width) - 1) * self._options.x_words_space
         start_x_for_line = (video_width - line_width) // 2
         slot_x = start_x_for_line
         for i, word in enumerate(line.words):
@@ -56,7 +56,7 @@ class PositionsCalculator:
                     clip.layout.position.y = y + (line.max_layout.size.height - clip.layout.size.height) // 2
                     clip.image_clip = clip.image_clip.set_position((clip.layout.position.x, clip.layout.position.y))
 
-            slot_x += slot_width + self._options.word_spacing
+            slot_x += slot_width + self._options.x_words_space
 
     def _is_stable_line(self, line: Line) -> bool:
         '''

@@ -19,8 +19,8 @@ class LayoutUpdater:
                 for word in line.words:
                     word.max_layout.size.width = max(clip.layout.size.width for clip in word.clips)
                     word.max_layout.size.height = max(clip.layout.size.height for clip in word.clips)
-                    line_width += word.max_layout.size.width + self._options.word_spacing
-                    line_height = max(line_height, word.max_layout.size.height)
+                    line_width += word.max_layout.size.width + self._options.x_words_space
+                    line_height = max(line_height, word.max_layout.size.height + self._options.y_words_space)
 
                 line.max_layout.size.width = line_width
                 line.max_layout.size.height = line_height

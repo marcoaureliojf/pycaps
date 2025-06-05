@@ -30,7 +30,8 @@ class SubtitleLayoutOptions(BaseModel):
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
-    word_spacing: int = 0  # it's recommended to use padding via css instead of this parameter
+    x_words_space: int = 0  # you can use padding via css instead of this parameter
+    y_words_space: int = 0
     max_width_ratio: float = 0.8
     max_number_of_lines: int = 2
     min_number_of_lines: int = 1

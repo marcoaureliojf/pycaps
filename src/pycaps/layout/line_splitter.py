@@ -19,21 +19,21 @@ class LineSplitter:
         current_line_words: List[Word] = []
         current_line_total_width = 0
         max_w = video_width * self._options.max_width_ratio
-        word_spacing = self._options.word_spacing
+        x_words_space = self._options.x_words_space
 
         for word in segment.get_words():
             word_width = word.max_layout.size.width
-            word_width_with_spacing = word_width + word_spacing
+            word_width_with_spacing = word_width + x_words_space
 
             if (len(lines) >= self._options.max_number_of_lines - 1 and 
                 self._options.on_text_overflow_strategy == TextOverflowStrategy.EXCEED_MAX_WIDTH_RATIO_IN_LAST_LINE):
                 current_line_words.append(word)
-                current_line_total_width += word_spacing + word_width
+                current_line_total_width += x_words_space + word_width
                 continue
 
             if current_line_total_width + word_width_with_spacing <= max_w:
                 current_line_words.append(word)
-                current_line_total_width += word_spacing + word_width
+                current_line_total_width += x_words_space + word_width
             else:
                 self._append_new_line(segment, lines, current_line_words)
                 current_line_words = [word]
