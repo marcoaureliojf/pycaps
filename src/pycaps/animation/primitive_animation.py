@@ -5,6 +5,8 @@ from abc import abstractmethod
 from .animation import Animation
 import cv2
 import numpy as np
+import re
+from PIL import Image
 
 class PrimitiveAnimation(Animation):
     def __init__(
@@ -42,17 +44,30 @@ class PrimitiveAnimation(Animation):
         self._position_transform = transform
 
     def _apply_size(self, clip: WordClip, offset: float, get_resize_fn: Callable[[float], float]) -> None:
-        original_size = clip.layout.size
+        original_size = clip.image_clip.size
         def transform() -> None:
-            def fl(gf, t):
-                frame = gf(t)
+            def resize(frame, t):
                 if t + offset < 0:
                     return frame
                 scale = get_resize_fn(self._normalice_time(t + offset))
-                nw, nh = original_size.width * scale, original_size.height * scale
-                return cv2.resize(+frame.astype(np.uint8), (round(nw), round(nh)), interpolation=cv2.INTER_AREA)
-            
-            clip.image_clip = clip.image_clip.fl(fl, apply_to=['mask'])
+                if scale == 1.0:
+                    return frame
+
+                nw = int(original_size[0] * scale)
+                nh = int(original_size[1] * scale)
+                # source: https://docs.opencv.org/3.4/da/d54/group__imgproc__transform.html#ga47a974309e9102f5f08231edc7e7529d
+                # "To shrink an image, it will generally look best with INTER_AREA interpolation, whereas to enlarge an image,
+                #  it will generally look best with INTER_CUBIC (slow) or INTER_LINEAR (faster but still looks OK)."
+                interpolation_method = cv2.INTER_AREA if scale < 1.0 else cv2.INTER_CUBIC
+                return cv2.resize(frame, (nw, nh), interpolation=interpolation_method)
+
+            clip.image_clip = clip.image_clip.fl(lambda gf, t: resize(gf(t), t))
+            if clip.image_clip.mask is not None:
+                # moviepy normalices and transforms the mask to uint8 in their resize() function
+                # I think that is the reason why we lose quality in images with alpha channel (I'm not totally sure)
+                # For that reason, we'll use our own resize function
+                # Note that np.clip() is needed since some interpolation methods can return values out of range (0, 1)
+                clip.image_clip.mask = clip.image_clip.mask.fl(lambda gf, t: np.clip(resize(gf(t), t), 0, 1).astype(np.float64))
 
         self._size_transform = transform
     

@@ -6,7 +6,7 @@ import numpy as np
 class PlaywrightScreenshotCapturer:
     @staticmethod
     def capture(locator: Locator) -> Image.Image:
-        png_bytes = locator.screenshot(omit_background=True, type="png", animations="disabled")
+        png_bytes = locator.screenshot(omit_background=True, type="png", animations="disabled", scale="device")
         image = Image.open(io.BytesIO(png_bytes)).convert("RGBA")
         image = PlaywrightScreenshotCapturer._trim_extra_fully_transparent_pixels(image)
         return image

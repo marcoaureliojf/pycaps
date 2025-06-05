@@ -18,7 +18,7 @@ class EventType(str, Enum):
     ON_NARRATION_STARTS = "narration-starts"
     ON_NARRATION_ENDS = "narration-ends"
 
-class ElementState(Enum):
+class ElementState(str, Enum):
     WORD_BEING_NARRATED = "word-being-narrated"
     WORD_NOT_NARRATED_YET = "word-not-narrated-yet"
     WORD_ALREADY_NARRATED = "word-already-narrated"

@@ -40,6 +40,11 @@
                 "amount": 0.05,
                 "peak_at": 0.8
             }
+        },
+        {
+            "type": "fade_out",
+            "when": "narration-ends",
+            "what": "segment"
         }
     ],
     "tagger_rules": []

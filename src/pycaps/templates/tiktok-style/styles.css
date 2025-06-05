@@ -1,49 +1,33 @@
-/* Si tuvieras una fuente custom en tiktok_vibrant_resources/MyCoolFont.ttf */
-/* @font-face {
-    font-family: 'MyCoolFont';
-    src: url('tiktok_vibrant_resources/MyCoolFont.ttf');
-} */
-
 .word {
-    font-family: 'Arial Black', 'Impact', sans-serif; /* Fuente gruesa y llamativa */
-    font-size: 82px; /* Tamaño grande */
+    font-family: 'Arial Black', 'Impact', sans-serif;
+    font-size: 26px;
     color: white;
     font-weight: 900;
     padding: 8px 12px;
-    border-radius: 8px; /* Bordes redondeados si el fondo es visible */
+    border-radius: 8px;
     text-shadow: 
-        -2px -2px 0 #000000,  
-         2px -2px 0 #000000,
-        -2px  2px 0 #000000,
-         2px  2px 0 #000000, /* Contorno negro */
-         3px  3px 0 #FF00FF, /* Sombra magenta */
-        -3px -3px 0 #00FFFF; /* Sombra cyan opuesta */
-    /* Alternativa con fondo y menos sombras de texto:
-    background-color: rgba(0,0,0,0.5);
-    text-shadow: 2px 2px 3px rgba(0,0,0,0.7);
-    */
+        -1px -1px 0 #000000,  
+         1px -1px 0 #000000,
+        -1px  1px 0 #000000,
+         1px  1px 0 #000000,
+         2px  2px 0 #FF00FF,
+        -2px -2px 0 #00FFFF;
 }
 
 .word-not-narrated-yet {
-    /* color: #eaeaea; */
     color: rgba(255, 255, 255, 0.5);
     text-shadow: none;
 }
 
 .word-being-narrated {
-    color: #FFFF00; /* Amarillo brillante para la palabra actual */
-    /* La animación de pop_in_primitive se encargará del "efecto" de aparición */
-    /* text-shadow es heredado de .word pero el color amarillo lo hace resaltar */
+    color: #FFFF00;
 }
 
 .word-already-narrated {
-    color: #FFFFFF; /* Blanco para palabras ya narradas */
-    /* text-shadow es heredado de .word */
+    color: #FFFFFF;
 }
 
-/* Estilo para el emoji que pueda aparecer en el segmento (si usas el tag EMOJI_FOR_SEGMENT) */
 .emoji-for-segment {
-    /* Los emojis suelen tener su propio color, pero puedes añadir sombra si quieres */
     text-shadow: 1px 1px 2px black;
-    font-size: 60px; /* Ligeramente más grande que el texto */
+    font-size: 32px;
 }
