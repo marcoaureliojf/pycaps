@@ -36,10 +36,15 @@ class PrimitiveAnimation(Animation):
         if self._opacity_transform: self._opacity_transform()
 
     def _apply_position(self, clip: WordClip, offset: float, get_position_fn: Callable[[float], Tuple[float, float]]) -> None:
-        start_pos = clip.image_clip.pos(0)
+        old_position_transform = clip.image_clip.pos
         def transform() -> None:
-            clip.image_clip = clip.image_clip.set_position(
-                lambda t: get_position_fn(self._normalice_time(t + offset)) if t + offset >= 0 else start_pos)
+            def new_position_transform(t):
+                if t + offset < 0 or t + offset > self._duration:
+                    return old_position_transform(t)
+                
+                return get_position_fn(self._normalice_time(t + offset))
+
+            clip.image_clip = clip.image_clip.set_position(new_position_transform)
         
         self._position_transform = transform
 
