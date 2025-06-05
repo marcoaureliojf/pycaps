@@ -1,13 +1,13 @@
-from .effect import Effect
+from .text_effect import TextEffect
 from pycaps.common import Document, Word
 from pycaps.tag import TagCondition
 from typing import Callable, Optional
 
-class ModifyWordsEffect(Effect):
+class ModifyWordsEffect(TextEffect):
     """
     Effect that applies a custom modification to each word that matches a given tag condition.
 
-    This is useful to programmatically tweak visual properties, add metadata, or preprocess words
+    This is useful to programmatically tweak visual properties (generally text), add metadata, or preprocess words
     before rendering or animation steps.
 
     Example:

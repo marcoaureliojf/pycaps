@@ -46,8 +46,8 @@ class TimeEventSelector:
             clip for clip in clips
             if times_intersect(
                 *self.__get_event_time_range(clip.get_word()),
-                clip.image_clip.start,
-                clip.image_clip.end
+                clip.moviepy_clip.start,
+                clip.moviepy_clip.end
             )
         ]
 
@@ -56,8 +56,8 @@ class TimeEventSelector:
             clip for clip in clips
             if times_intersect(
                 *self.__get_event_time_range(clip.get_line()),
-                clip.image_clip.start,
-                clip.image_clip.end
+                clip.moviepy_clip.start,
+                clip.moviepy_clip.end
             )
         ]
 
@@ -66,7 +66,7 @@ class TimeEventSelector:
             clip for clip in clips
             if times_intersect(
                 *self.__get_event_time_range(clip.get_segment()),
-                clip.image_clip.start,
-                clip.image_clip.end
+                clip.moviepy_clip.start,
+                clip.moviepy_clip.end
             )
         ]

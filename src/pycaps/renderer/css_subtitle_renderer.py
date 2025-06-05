@@ -127,30 +127,33 @@ class CssSubtitleRenderer():
         css_classes = [self.DEFAULT_CSS_CLASS_FOR_EACH_WORD] + css_classes
         css_classes_str = ' '.join(css_classes)
         self.page.evaluate(script, [text, css_classes_str])
-
-    def render(self, word: Word, states: List[ElementState] = []) -> Optional[Image]:
+    
+    def render_text(self, text: str, css_classes: List[str] = []) -> Optional[Image]:
         if not self.page:
             raise RuntimeError("Renderer is not open open() with video dimensions first.")
         
-        css_classes = [t.name for t in word.tags] + [s.value for s in states]
-        if self._cache.has(word.text, css_classes):
-            return self._cache.get(word.text, css_classes)
+        if self._cache.has(text, css_classes):
+            return self._cache.get(text, css_classes)
 
-        self.__update_text_and_style(word.text, css_classes)
+        self.__update_text_and_style(text, css_classes)
         
         locator = self.page.locator("#subtitle-actual-text")
         try:
             bounding_box = locator.bounding_box()
             if not bounding_box or bounding_box['width'] <= 0 or bounding_box['height'] <= 0:
                 # HTML element is not visible (probably hidden by CSS).
-                self._cache.set(word.text, css_classes, None)
+                self._cache.set(text, css_classes, None)
                 return None
 
             image = PlaywrightScreenshotCapturer.capture(locator, self.DEFAULT_DEVICE_SCALE_FACTOR)
-            self._cache.set(word.text, css_classes, image)
+            self._cache.set(text, css_classes, image)
             return image
         except Exception as e:
-            raise RuntimeError(f"Error rendering '{word.text}' with tags '{word.tags}': {e}")
+            raise RuntimeError(f"Error rendering '{text}': {e}")
+
+    def render(self, word: Word, states: List[ElementState] = []) -> Optional[Image]:
+        css_classes = [t.name for t in word.tags] + [s.value for s in states]
+        return self.render_text(word.text, css_classes)
 
     def close(self):
         """Closes Playwright and cleans up resources."""

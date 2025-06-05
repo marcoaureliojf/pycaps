@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from moviepy.editor import ImageClip
+from moviepy.editor import VideoClip
 from typing import List, Optional, Set
 from .types import ElementState
 
@@ -38,7 +38,7 @@ class ElementLayout:
 class WordClip:
     _parent: Optional['Word'] = None
     states: List[ElementState] = field(default_factory=list)
-    image_clip: Optional[ImageClip] = None
+    moviepy_clip: Optional[VideoClip] = None
     layout: ElementLayout = field(default_factory=ElementLayout)
 
     def has_state(self, state: ElementState) -> bool:
@@ -74,8 +74,8 @@ class Word:
     def clips(self) -> 'ElementContainer[WordClip]':
         return self._clips
 
-    def get_image_clips(self) -> List[ImageClip]:
-        return [clip.image_clip for clip in self.clips]
+    def get_moviepy_clips(self) -> List[VideoClip]:
+        return [clip.moviepy_clip for clip in self.clips]
 
     def get_line(self) -> 'Line':
         return self._parent
@@ -103,8 +103,8 @@ class Line:
     def get_text(self) -> str:
         return ' '.join([word.text for word in self.words])
     
-    def get_image_clips(self) -> List[ImageClip]:
-        return [clip for word in self.words for clip in word.get_image_clips()]
+    def get_moviepy_clips(self) -> List[VideoClip]:
+        return [clip for word in self.words for clip in word.get_moviepy_clips()]
     
     def get_word_clips(self) -> List[WordClip]:
         return [clip for word in self.words for clip in word.clips]
@@ -132,8 +132,8 @@ class Segment:
     def get_text(self) -> str:
         return ' '.join([line.get_text() for line in self.lines])
     
-    def get_image_clips(self) -> List[ImageClip]:
-        return [clip for line in self.lines for clip in line.get_image_clips()]
+    def get_moviepy_clips(self) -> List[VideoClip]:
+        return [clip for line in self.lines for clip in line.get_moviepy_clips()]
     
     def get_word_clips(self) -> List[WordClip]:
         return [clip for line in self.lines for clip in line.get_word_clips()]
@@ -155,8 +155,8 @@ class Document:
     def segments(self) -> 'ElementContainer[Segment]':
         return self._segments
 
-    def get_image_clips(self) -> List[ImageClip]:
-        return [clip for segment in self.segments for clip in segment.get_image_clips()]
+    def get_moviepy_clips(self) -> List[VideoClip]:
+        return [clip for segment in self.segments for clip in segment.get_moviepy_clips()]
 
     def get_word_clips(self) -> List[WordClip]:
         return [clip for segment in self.segments for clip in segment.get_word_clips()]

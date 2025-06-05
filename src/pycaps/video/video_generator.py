@@ -92,7 +92,7 @@ class VideoGenerator:
         if not self._has_video_generation_started:
             raise RuntimeError("Video generation has not started. Call start() first.")
         
-        clips = document.get_image_clips()
+        clips = document.get_moviepy_clips()
         if not clips:
             print("No subtitle clips were generated. The original video (or with external audio if provided) will be saved.")
             self._final_video = self._video_clip 

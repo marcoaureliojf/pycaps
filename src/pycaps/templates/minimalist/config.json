@@ -17,7 +17,7 @@
         "min_chars": 20,
         "max_chars": 40
     },
-    "effects": [],
+    "text_effects": [],
     "animations": [
         {
             "type": "fade_in", 

@@ -1,4 +1,4 @@
-from .effect import Effect
+from .text_effect import TextEffect
 from pycaps.common import Document, Segment, Line, TimeFragment, Word
 from pycaps.utils import ScriptUtils
 from typing import Optional
@@ -16,7 +16,7 @@ class EmojiAlign(str, Enum):
 # - We could avoid the overhead of calling the LLM for each choosen segment.
 # - For that, we should instead send the full script to the LLM and get the proper emojies for each segment.
 # - We should probably use something like structured responses for that.
-class EmojiInSegmentEffect(Effect):
+class EmojiInSegmentEffect(TextEffect):
     '''
     This effect adds an emoji to a segment text if it can be meaningfully represented with an emoji.
     '''

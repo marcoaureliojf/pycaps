@@ -18,7 +18,7 @@
         "min_chars": 15,
         "max_chars": 30
     },
-    "effects": [],
+    "text_effects": [],
     "animations": [
         {
             "type": "zoom_in_primitive",

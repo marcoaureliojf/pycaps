@@ -17,7 +17,7 @@
         "min_chars": 10,
         "max_chars": 25
     },
-    "effects": [
+    "text_effects": [
         {
             "type": "emoji_in_segment",
             "chance_to_apply": 0.3,

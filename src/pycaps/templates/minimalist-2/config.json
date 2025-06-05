@@ -9,7 +9,7 @@
             "offset": 0.0
         }
     },
-    "effects": [],
+    "text_effects": [],
     "animations": [
         {
             "type": "fade_in",

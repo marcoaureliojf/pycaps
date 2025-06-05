@@ -74,7 +74,7 @@ class SubtitleClipsGenerator:
             .set_start(start)
             .set_duration(end - start)
         )
-        word_clip = WordClip(states=states, image_clip=clip, _parent=word)
+        word_clip = WordClip(states=states, moviepy_clip=clip, _parent=word)
         word_clip.layout.size.width = image.width
         word_clip.layout.size.height = image.height
         return word_clip

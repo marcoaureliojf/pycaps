@@ -19,6 +19,7 @@ __all__ = [
     "ZoomInPrimitive",
     "PopInPrimitive",
     "FadeInPrimitive",
+    "TypewritingAnimation",
     "FadeIn",
     "FadeOut",
     "PopIn",

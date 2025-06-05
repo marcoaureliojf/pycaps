@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional
 from pycaps.animation import Animation, ElementAnimator
 from pycaps.common import ElementType, EventType, VideoResolution
 from pycaps.tag import TagCondition, SemanticTagger
-from pycaps.effect import Effect
+from pycaps.effect import TextEffect, ClipEffect
 
 class CapsPipelineBuilder:
 
@@ -82,8 +82,12 @@ class CapsPipelineBuilder:
         self._caps_pipeline._animators.append(ElementAnimator(animation, when, what, tag_condition)) 
         return self
     
-    def add_effect(self, effect: Effect) -> "CapsPipelineBuilder":
-        self._caps_pipeline._effects.append(effect)
+    def add_text_effect(self, effect: TextEffect) -> "CapsPipelineBuilder":
+        self._caps_pipeline._text_effects.append(effect)
+        return self
+    
+    def add_clip_effect(self, effect: ClipEffect) -> "CapsPipelineBuilder":
+        self._caps_pipeline._clip_effects.append(effect)
         return self
 
     def build(self) -> CapsPipeline:

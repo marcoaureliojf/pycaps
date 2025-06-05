@@ -1,0 +1,62 @@
+from .clip_effect import ClipEffect
+from pycaps.common import Document, WordClip, ElementState
+from pycaps.tag import TagCondition
+from moviepy.editor import ImageClip, CompositeVideoClip
+import numpy as np
+from typing import Optional
+
+class TypewritingEffect(ClipEffect):
+    """
+    Affect that applies a typewriting effect to the words that match the tag condition.
+    This effect creates a new image clip for each letter of the word, so it's very slow.
+
+    If you need a faster alternative for this effect, check the TypewritingAnimation class.
+    """
+    def __init__(self, tag_condition: Optional[TagCondition] = None):
+        self.tag_condition: Optional[TagCondition] = tag_condition
+
+    def run(self, document: Document) -> None:
+        for word in document.get_words():
+            if self.tag_condition and not self.tag_condition.evaluate(word.tags):
+                continue
+            for clip in word.clips:
+                self._apply_typewriting(clip)
+    
+    def _apply_typewriting(self, clip: WordClip) -> None:
+        if not clip.has_state(ElementState.WORD_BEING_NARRATED):
+            return
+        word = clip.get_word()
+        number_of_letters = len(word.text)
+        word_duration = word.time.end - word.time.start
+        letter_duration = word_duration / number_of_letters
+        new_clips = []
+        for i in range(number_of_letters):
+            letters = word.text[:i+1]
+            css_classes = [t.name for t in word.tags] + [s.value for s in clip.states]
+            image = self._renderer.render_text(letters, css_classes)
+            if not image:
+                continue
+            y_position = 0
+            if clip.layout.size.height != image.height:
+                print("WARNING: The fragment height is not equal to the whole word height. This could cause the text to be misaligned.")
+                print(f"Word height: {clip.layout.size.height} | Fragment height: {image.height}")
+                print("If this is unexpected, report this issue")
+                print("As quick fix, try to use another font family or force a line-height/height for each word.")
+                y_position = (clip.layout.size.height - image.height) / 2
+            
+            image_clip: ImageClip = (
+                ImageClip(np.array(image))
+                .set_start(i * letter_duration)
+                .set_duration(letter_duration)
+                .set_position((0, y_position))
+            )
+            new_clips.append(image_clip)
+
+        if len(new_clips) > 0:
+            clip.moviepy_clip = CompositeVideoClip(new_clips, size=(clip.layout.size.width, clip.layout.size.height))
+            clip.moviepy_clip = (
+                clip.moviepy_clip
+                .set_position((clip.layout.position.x, clip.layout.position.y))
+                .set_start(word.time.start)
+                .set_duration(word_duration)
+            )

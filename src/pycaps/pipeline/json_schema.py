@@ -62,7 +62,13 @@ class ToUppercaseEffectConfig(BaseConfigModel):
     type: Literal["to_uppercase"]
     has_tags: list[str] = []
 
-EffectConfig = Annotated[EmojiInSegmentEffectConfig | EmojiInWordEffectConfig | ToUppercaseEffectConfig, Field(discriminator="type")]
+TextEffectConfig = Annotated[EmojiInSegmentEffectConfig | EmojiInWordEffectConfig | ToUppercaseEffectConfig, Field(discriminator="type")]
+
+class TypewritingEffectConfig(BaseConfigModel):
+    type: Literal["typewriting"]
+    has_tags: list[str] = []
+
+ClipEffectConfig = Annotated[TypewritingEffectConfig, Field(discriminator="type")]
 
 class BaseAnimationConfig(BaseConfigModel):
     type: Literal["fade_in", "fade_out", "zoom_in", "zoom_out", "pop_in", "pop_out", "pop_in_bounce"]
@@ -134,6 +140,7 @@ class JsonSchema(BaseConfigModel):
     whisper: Optional[WhisperConfig] = None
     layout: Optional[SubtitleLayoutOptions] = None
     rewriter: Optional[RewriterConfig] = None
-    effects: list[EffectConfig] = []
+    text_effects: list[TextEffectConfig] = []
+    clip_effects: list[ClipEffectConfig] = []
     animations: list[AnimationConfig] = []
     tagger_rules: list[TaggerRule] = []

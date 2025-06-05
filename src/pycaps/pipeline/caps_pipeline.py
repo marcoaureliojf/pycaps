@@ -7,7 +7,7 @@ from pycaps.layout import WordWidthCalculator, PositionsCalculator, LineSplitter
 from pycaps.tag import SemanticTagger
 from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
-from pycaps.effect import Effect
+from pycaps.effect import TextEffect, ClipEffect
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 
@@ -21,7 +21,8 @@ class CapsPipeline:
         self._video_generator: VideoGenerator = VideoGenerator()
         self._segment_rewriters: list[BaseSegmentRewriter] = []
         self._animators: List[ElementAnimator] = []
-        self._effects: List[Effect] = []
+        self._text_effects: List[TextEffect] = []
+        self._clip_effects: List[ClipEffect] = []
 
         layout_options = SubtitleLayoutOptions()
         self._positions_calculator: PositionsCalculator = PositionsCalculator(layout_options)
@@ -37,6 +38,7 @@ class CapsPipeline:
         """
         Runs the pipeline to process a video.
         """
+        start_time = time.time()
         try:
             print(f"Starting caps pipeline execution: {self._input_video_path}")
             video_extension = os.path.splitext(self._input_video_path)[1]
@@ -67,8 +69,8 @@ class CapsPipeline:
             print("Tagging words with semantic information...")
             self._semantic_tagger.tag(document)
 
-            print("Applying effects...")
-            for effect in self._effects:
+            print("Applying text effects...")
+            for effect in self._text_effects:
                 effect.run(document)
 
             print("Generating subtitle clips...")
@@ -83,9 +85,18 @@ class CapsPipeline:
             print("Updating elements max positions...")
             self._layout_updater.update_max_positions(document)
 
+            print("Applying clip effects...")
+            clip_effects_start_time = time.time()
+            for effect in self._clip_effects:
+                effect.set_renderer(self._renderer)
+                effect.run(document)
+            print(f"Clip effects time: {time.time() - clip_effects_start_time} seconds")
+
             print("Running animations...")
+            animations_start_time = time.time()
             for animator in self._animators:
                 animator.run(document)
+            print(f"Animations time: {time.time() - animations_start_time} seconds")
 
             print("Generating final video...")
             self._video_generator.generate(document)
@@ -98,7 +109,8 @@ class CapsPipeline:
             print("Cleaning up resources...")
             self._video_generator.close()
             self._renderer.close()
-            print("Cleanup finished.") 
+            print("Cleanup finished.")
+            print(f"Total time: {time.time() - start_time} seconds")
 
     # TODO: improve preview: we should register all the existing css classes (and keys),
     # and then allow viewing a word example with any of those classes

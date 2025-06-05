@@ -1,10 +1,10 @@
-from .effect import Effect
+from .text_effect import TextEffect
 from pycaps.common import Document, Word
 from pycaps.tag import TagCondition
 from typing import List, Optional
 import random
 
-class EmojiInWordEffect(Effect):
+class EmojiInWordEffect(TextEffect):
     '''
     This effect will add an emoji to the end of each phrase that matches the tag condition.
     '''

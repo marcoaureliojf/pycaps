@@ -3,7 +3,7 @@ from .caps_pipeline_builder import CapsPipelineBuilder
 from .caps_pipeline import CapsPipeline
 from pycaps.transcriber import LimitByWordsRewriter, LimitByCharsRewriter
 from pycaps.tag import TagConditionFactory, TagCondition
-from pycaps.effect import EmojiInSegmentEffect, EmojiInWordEffect, ToUppercaseEffect
+from pycaps.effect import EmojiInSegmentEffect, EmojiInWordEffect, ToUppercaseEffect, TypewritingEffect
 from pycaps.animation import (
     Animation,
     FadeIn, FadeOut, ZoomIn, ZoomOut, PopIn, PopOut, PopInBounce, SlideIn, SlideOut,
@@ -47,7 +47,8 @@ class JsonConfigLoader:
             self._load_whisper_config()
             self._load_layout_options()
             self._load_segment_rewriter()
-            self._load_effects()
+            self._load_text_effects()
+            self._load_clip_effects()
             self._load_animations()
             self._load_tagger()
             if should_build_pipeline:
@@ -89,14 +90,21 @@ class JsonConfigLoader:
         elif data.type == "limit_by_chars":
             self._builder.add_segment_rewriter(LimitByCharsRewriter(data.max_chars, data.min_chars, data.avoid_finishing_segment_with_word_shorter_than))
 
-    def _load_effects(self) -> None:
-        for effect in self._config.effects:
-            if effect.type == "emoji_in_segment":
-                self._builder.add_effect(EmojiInSegmentEffect(effect.chance_to_apply, effect.align, effect.ignore_segments_with_duration_less_than, effect.max_uses_of_each_emoji, effect.max_consecutive_segments_with_emoji))
-            elif effect.type == "emoji_in_word":
-                self._builder.add_effect(EmojiInWordEffect(effect.emojies, self._build_tag_condition(effect.has_tags), effect.avoid_use_same_emoji_in_a_row))
-            elif effect.type == "to_uppercase":
-                self._builder.add_effect(ToUppercaseEffect(self._build_tag_condition(effect.has_tags)))
+    def _load_text_effects(self) -> None:
+        for effect in self._config.text_effects:
+            match effect.type:
+                case "emoji_in_segment":
+                    self._builder.add_text_effect(EmojiInSegmentEffect(effect.chance_to_apply, effect.align, effect.ignore_segments_with_duration_less_than, effect.max_uses_of_each_emoji, effect.max_consecutive_segments_with_emoji))
+                case "emoji_in_word":
+                    self._builder.add_text_effect(EmojiInWordEffect(effect.emojies, self._build_tag_condition(effect.has_tags), effect.avoid_use_same_emoji_in_a_row))
+                case "to_uppercase":
+                    self._builder.add_text_effect(ToUppercaseEffect(self._build_tag_condition(effect.has_tags)))
+
+    def _load_clip_effects(self) -> None:
+        for effect in self._config.clip_effects:
+            match effect.type:
+                case "typewriting":
+                    self._builder.add_clip_effect(TypewritingEffect(self._build_tag_condition(effect.has_tags)))
 
     def _load_animations(self) -> None:
         for animation_config in self._config.animations:

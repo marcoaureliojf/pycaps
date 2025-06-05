@@ -1,9 +1,9 @@
-from .effect import Effect
+from .text_effect import TextEffect
 from pycaps.common import Document, Word
 from pycaps.tag import TagCondition
 from typing import Optional
 
-class ToUppercaseEffect(Effect):
+class ToUppercaseEffect(TextEffect):
     def __init__(self, tag_condition: Optional[TagCondition] = None):
         self.tag_condition = tag_condition
 

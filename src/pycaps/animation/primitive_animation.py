@@ -5,8 +5,6 @@ from abc import abstractmethod
 from .animation import Animation
 import cv2
 import numpy as np
-import re
-from PIL import Image
 
 class PrimitiveAnimation(Animation):
     def __init__(
@@ -36,7 +34,7 @@ class PrimitiveAnimation(Animation):
         if self._opacity_transform: self._opacity_transform()
 
     def _apply_position(self, clip: WordClip, offset: float, get_position_fn: Callable[[float], Tuple[float, float]]) -> None:
-        old_position_transform = clip.image_clip.pos
+        old_position_transform = clip.moviepy_clip.pos
         def transform() -> None:
             def new_position_transform(t):
                 if t + offset < 0 or t + offset > self._duration:
@@ -44,12 +42,12 @@ class PrimitiveAnimation(Animation):
                 
                 return get_position_fn(self._normalice_time(t + offset))
 
-            clip.image_clip = clip.image_clip.set_position(new_position_transform)
+            clip.moviepy_clip = clip.moviepy_clip.set_position(new_position_transform)
         
         self._position_transform = transform
 
     def _apply_size(self, clip: WordClip, offset: float, get_resize_fn: Callable[[float], float]) -> None:
-        original_size = clip.image_clip.size
+        original_size = clip.moviepy_clip.size
         def transform() -> None:
             def resize(frame, t):
                 if t + offset < 0:
@@ -66,13 +64,13 @@ class PrimitiveAnimation(Animation):
                 interpolation_method = cv2.INTER_AREA if scale < 1.0 else cv2.INTER_CUBIC
                 return cv2.resize(frame, (nw, nh), interpolation=interpolation_method)
 
-            clip.image_clip = clip.image_clip.fl(lambda gf, t: resize(gf(t), t))
-            if clip.image_clip.mask is not None:
+            clip.moviepy_clip = clip.moviepy_clip.fl(lambda gf, t: resize(gf(t), t))
+            if clip.moviepy_clip.mask is not None:
                 # moviepy normalices and transforms the mask to uint8 in their resize() function
                 # I think that is the reason why we lose quality in images with alpha channel (I'm not totally sure)
                 # For that reason, we'll use our own resize function
                 # Note that np.clip() is needed since some interpolation methods can return values out of range (0, 1)
-                clip.image_clip.mask = clip.image_clip.mask.fl(lambda gf, t: np.clip(resize(gf(t), t), 0, 1).astype(np.float64))
+                clip.moviepy_clip.mask = clip.moviepy_clip.mask.fl(lambda gf, t: np.clip(resize(gf(t), t), 0, 1).astype(np.float64))
 
         self._size_transform = transform
     
@@ -87,10 +85,10 @@ class PrimitiveAnimation(Animation):
                     return clip_frame
                 return clip_frame * get_opacity_fn(self._normalice_time(t + offset))
 
-            if clip.image_clip.mask is None:
-                clip.image_clip = clip.image_clip.add_mask()
+            if clip.moviepy_clip.mask is None:
+                clip.moviepy_clip = clip.moviepy_clip.add_mask()
 
-            clip.image_clip = clip.image_clip.fl(fl, apply_to=['mask'])
+            clip.moviepy_clip = clip.moviepy_clip.fl(fl, apply_to=['mask'])
         
         self._opacity_transform = transform
 
