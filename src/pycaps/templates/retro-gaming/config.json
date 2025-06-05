@@ -20,15 +20,12 @@
         "max_chars": 40
     },
     "text_effects": [],
-    "animations": [
+    "clip_effects": [
         {
-            "type": "fade_in_primitive",
-            "when": "narration-starts",
-            "what": "word",
-            "duration": 0.05,
-            "delay": 0,
-            "transformer": "linear"
-        },
+            "type": "typewriting"
+        }
+    ],
+    "animations": [
         {
             "type": "slide_in_primitive",
             "when": "narration-starts",

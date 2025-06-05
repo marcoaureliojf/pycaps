@@ -20,6 +20,10 @@
     color: #FFFFFF;
 }
 
+.word-not-narrated-yet {
+    display: none;
+}
+
 .line-being-narrated {
     background-color: rgba(30, 30, 100, 0.85);
 }
