@@ -13,5 +13,5 @@ class TagBasedSelector:
     def select(self, clips: List[WordClip]) -> List[WordClip]:
         return [
             clip for clip in clips
-            if self._tag_condition.evaluate(clip.get_word().tags)
+            if self._tag_condition.evaluate(list(clip.get_word().get_all_tags()))
         ]

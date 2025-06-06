@@ -1,6 +1,6 @@
 import re
-from typing import Callable, Dict
-from pycaps.common import Word, Document, Tag
+from typing import Callable, Dict, Union
+from pycaps.common import Word, Document, Tag, Line, Segment
 from pycaps.tag import BuiltinTag
 from .llm_tagger import LlmTagger
 
@@ -19,7 +19,7 @@ class SemanticTagger:
     def __init__(self):
         self._regex_rules: Dict[Tag, str] = {}
         self._llm_rules: Dict[Tag, str] = {}
-        self._function_rules: Dict[Tag, Callable[[Document], list[Word]]] = {}
+        self._function_rules: Dict[Tag, Callable[[Document], list[Union[Word, Line, Segment]]]] = {}
         self._llm_tagger = LlmTagger()
         self._add_builtin_tags()
 
@@ -31,7 +31,7 @@ class SemanticTagger:
         """Register a new LLM-based rule."""
         self._llm_rules[tag] = topic
 
-    def add_function_rule(self, tag: Tag, get_words_to_tag: Callable[[Document], list[Word]]) -> None:
+    def add_function_rule(self, tag: Tag, get_words_to_tag: Callable[[Document], list[Union[Word, Line, Segment]]]) -> None:
         """Register a new function-based rule. The function receives the document and returns a list of words that should be tagged."""
         self._function_rules[tag] = get_words_to_tag
 
@@ -99,9 +99,9 @@ class SemanticTagger:
     def _apply_function_rules(self, document: Document) -> None:
         """Apply function-based rules to the document."""
 
-        for tag, get_words_to_tag in self._function_rules.items():
-            for word in get_words_to_tag(document):
-                word.tags.add(tag)
+        for tag, get_elements_to_tag in self._function_rules.items():
+            for element in get_elements_to_tag(document):
+                element.tags.add(tag)
 
     def _tag_matching_words(self, words: list[Word], matches_positions: list[tuple[int, int]], tag: Tag) -> None:
         """Tag words that match the found patterns."""
@@ -131,10 +131,10 @@ class SemanticTagger:
         self.add_function_rule(BuiltinTag.LAST_WORD_IN_SEGMENT, lambda document: [segment.lines[-1].words[-1] for segment in document.segments])
         self.add_function_rule(BuiltinTag.LAST_WORD_IN_LINE, lambda document: [line.words[-1] for line in document.get_lines()])
 
-        self.add_function_rule(BuiltinTag.FIRST_LINE_IN_DOCUMENT, lambda document: document.segments[0].lines[0].words)
-        self.add_function_rule(BuiltinTag.FIRST_LINE_IN_SEGMENT, lambda document: [word for segment in document.segments for word in segment.lines[0].words])
-        self.add_function_rule(BuiltinTag.LAST_LINE_IN_DOCUMENT, lambda document: document.segments[-1].lines[-1].words)
-        self.add_function_rule(BuiltinTag.LAST_LINE_IN_SEGMENT, lambda document: [word for segment in document.segments for word in segment.lines[-1].words])
+        self.add_function_rule(BuiltinTag.FIRST_LINE_IN_DOCUMENT, lambda document: [document.segments[0].lines[0]])
+        self.add_function_rule(BuiltinTag.FIRST_LINE_IN_SEGMENT, lambda document: [segment.lines[0] for segment in document.segments])
+        self.add_function_rule(BuiltinTag.LAST_LINE_IN_DOCUMENT, lambda document: [document.segments[-1].lines[-1]])
+        self.add_function_rule(BuiltinTag.LAST_LINE_IN_SEGMENT, lambda document: [segment.lines[-1] for segment in document.segments])
 
-        self.add_function_rule(BuiltinTag.FIRST_SEGMENT_IN_DOCUMENT, lambda document: document.segments[0].get_words())
-        self.add_function_rule(BuiltinTag.LAST_SEGMENT_IN_DOCUMENT, lambda document: document.segments[-1].get_words())
+        self.add_function_rule(BuiltinTag.FIRST_SEGMENT_IN_DOCUMENT, lambda document: [document.segments[0]])
+        self.add_function_rule(BuiltinTag.LAST_SEGMENT_IN_DOCUMENT, lambda document: [document.segments[-1]])

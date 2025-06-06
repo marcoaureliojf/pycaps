@@ -85,11 +85,15 @@ class Word:
     
     def get_document(self) -> 'Document':
         return self._parent.get_document()
+    
+    def get_all_tags(self) -> Set[Tag]:
+        return self.tags | self.get_line().tags | self.get_segment().tags
 
 @dataclass
 class Line:
     _parent: Optional['Segment'] = None
     _words: 'ElementContainer[Word]' = field(init=False)
+    tags: Set[Tag] = field(default_factory=set)
     max_layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment) # TODO: We could calculate it using the words (same for segment)
 
@@ -119,6 +123,7 @@ class Line:
 class Segment:
     _parent: Optional['Document'] = None
     _lines: 'ElementContainer[Line]' = field(init=False)
+    tags: Set[Tag] = field(default_factory=set)
     max_layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment)
 

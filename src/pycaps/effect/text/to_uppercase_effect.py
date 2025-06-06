@@ -9,5 +9,5 @@ class ToUppercaseEffect(TextEffect):
 
     def run(self, document: Document) -> None:
         for word in document.get_words():
-            if self.tag_condition and self.tag_condition.evaluate(word.tags):
+            if self.tag_condition and self.tag_condition.evaluate(list(word.get_all_tags())):
                 word.text = word.text.upper()

@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 from PIL.Image import Image
 from typing import Optional, List
-from pycaps.common import Word, ElementState
+from pycaps.common import Word, ElementState, Line
 import shutil
 import webbrowser
 from .rendered_image_cache import RenderedImageCache
@@ -15,6 +15,7 @@ class CssSubtitleRenderer():
     DEFAULT_VIEWPORT_HEIGHT_RATIO: float = 0.25
     DEFAULT_MIN_VIEWPORT_HEIGHT: int = 150
     DEFAULT_CSS_CLASS_FOR_EACH_WORD: str = "word"
+    DEFAULT_CSS_CLASS_FOR_EACH_LINE: str = "line"
 
     def __init__(self):
         """
@@ -27,6 +28,8 @@ class CssSubtitleRenderer():
         self.tempdir: Optional[tempfile.TemporaryDirectory] = None
         self._custom_css: str = ""
         self._cache: RenderedImageCache = RenderedImageCache(self._custom_css)
+        self._current_line: Optional[Line] = None
+        self._current_line_state: Optional[ElementState] = None
 
     def set_custom_css(self, custom_css: str):
         self._custom_css = custom_css
@@ -85,12 +88,20 @@ class CssSubtitleRenderer():
                     height: 100%;
                     align-content: center;
                 }}
+
+                .{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE} {{
+                    display: flex;
+                    width: fit-content;
+                }}
+
                 {self._custom_css}
             </style>
         </head>
         <body>
             <div id="subtitle-container">
-                <span id="subtitle-actual-text" class="{self.DEFAULT_CSS_CLASS_FOR_EACH_WORD}">{text}</span>
+                <div class="{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE}">
+                    <span class="{self.DEFAULT_CSS_CLASS_FOR_EACH_WORD}">{text}</span>
+                </div>
             </div>
         </body>
         </html>
@@ -112,48 +123,137 @@ class CssSubtitleRenderer():
         destination = Path(self.tempdir.name)
         shutil.copytree(resources_dir, destination, dirs_exist_ok=True)
 
-    def __update_text_and_style(self, text: str, css_classes: List[str]):
+    def open_line(self, line: Line, line_state: ElementState):
         if not self.page:
             raise RuntimeError("Renderer is not open. Call open() first.")
+        if self._current_line:
+            raise RuntimeError("A line is already open. Call close_line() first.")
+        
+        self._current_line = line
+        self._current_line_state = line_state
 
         script = f"""
-        ([text, targetCls]) => {{
-            const el = document.getElementById('subtitle-actual-text');
-            el.textContent = text;
-            el.className = targetCls;
+        ([text, cssClassesForWords, cssClassesForLine, lineState]) => {{
+            const line = document.querySelector('.{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE}');
+            line.innerHTML = '';
+            line.className = `{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE} ${{cssClassesForLine}} ${{lineState}}`;
+            const words = text.split(' ');
+            words.forEach((word, index) => {{
+                const wordElement = document.createElement('span');
+                const cssClasses = cssClassesForWords[index];
+                wordElement.textContent = word;
+                wordElement.className = `{self.DEFAULT_CSS_CLASS_FOR_EACH_WORD} word-${{index}}-in-line ${{cssClasses}}`;
+                line.appendChild(wordElement);
+            }});
         }}
         """
-
-        css_classes = [self.DEFAULT_CSS_CLASS_FOR_EACH_WORD] + css_classes
-        css_classes_str = ' '.join(css_classes)
-        self.page.evaluate(script, [text, css_classes_str])
-    
-    def render_text(self, text: str, css_classes: List[str] = []) -> Optional[Image]:
+        tags_to_string = lambda tags: " ".join([t.name for t in tags])
+        tags_per_word = [word.tags for word in line.words]
+        css_classes_for_words = [tags_to_string(tags) for tags in tags_per_word]
+        css_classes_for_line = tags_to_string(line.get_segment().tags) + " " + tags_to_string(line.tags)
+        self.page.evaluate(script, [line.get_text(), css_classes_for_words, css_classes_for_line, line_state.value])
+   
+    def render_word(self, index: int, word: Word, state: ElementState, first_n_letters: Optional[int] = None) -> Optional[Image]:
         if not self.page:
-            raise RuntimeError("Renderer is not open open() with video dimensions first.")
+            raise RuntimeError("Renderer is not open. Call open() first.")
+        if not self._current_line:
+            raise RuntimeError("No line is open. Call open_line() first.")
         
-        if self._cache.has(text, css_classes):
-            return self._cache.get(text, css_classes)
+        # if self._cache.has(word.text, [self._current_line_state.value, state.value]):
+        #     return self._cache.get(word.text, [self._current_line_state.value, state.value])
 
-        self.__update_text_and_style(text, css_classes)
-        
-        locator = self.page.locator("#subtitle-actual-text")
+        # Why are we doing this?
+        # When the typewriting effect is applied, we need to render the word partially (first n letters).
+        # However, if we have some line background that depends on the size (like a gradient),
+        # since the word was cropped, the background will be incorrect.
+        # It can be specially noticeable in the last word of the line.
+        # The same would happen if we use border-radius, since we crop the word,
+        # it will show the rounded corners in each word fragment of the last word
+        # To fix this, we create a new span with the remaining part of the word and make it invisible.
+        # This way, the line is rendered with the final width it will have, and the background will be correct.
+
+        script = f"""
+        ([index, state, wordText, first_n_letters]) => {{
+            const word = document.querySelector(`.word-${{index}}-in-line`);
+            word.textContent = wordText.slice(0, first_n_letters);
+            word.classList.add(state);
+
+            // the rest remains there but invisible
+            if (first_n_letters < wordText.length) {{
+                remaining_word = word.dataset.isNextNodeRemaining ? word.nextSibling : document.createElement('span');
+                remaining_word.textContent = wordText.slice(first_n_letters);
+                remaining_word.className = word.className;
+                remaining_word.style.visibility = 'hidden';
+                if (!word.dataset.isNextNodeRemaining) {{
+                    word.parentNode.insertBefore(remaining_word, word.nextSibling);
+                    word.dataset.isNextNodeRemaining = true;
+                }}
+            }} else if (word.dataset.isNextNodeRemaining) {{
+                word.parentNode.removeChild(word.nextSibling);
+                delete word.dataset.isNextNodeRemaining;
+            }}
+        }}
+        """
+        self.page.evaluate(script, [index, state.value, word.text, first_n_letters if first_n_letters else len(word.text)])
+
+        locator = self.page.locator(f".word-{index}-in-line").first
         try:
             bounding_box = locator.bounding_box()
             if not bounding_box or bounding_box['width'] <= 0 or bounding_box['height'] <= 0:
                 # HTML element is not visible (probably hidden by CSS).
-                self._cache.set(text, css_classes, None)
                 return None
 
             image = PlaywrightScreenshotCapturer.capture(locator, self.DEFAULT_DEVICE_SCALE_FACTOR)
-            self._cache.set(text, css_classes, image)
+            # TODO: two entries with same text but different indexes should be different entries
+            # self._cache.set(word.text, [self._current_line_state.value, state.value], image)
             return image
         except Exception as e:
-            raise RuntimeError(f"Error rendering '{text}': {e}")
-
-    def render(self, word: Word, states: List[ElementState] = []) -> Optional[Image]:
+            raise RuntimeError(f"Error rendering word '{word.text}': {e}")
+        finally:
+            self.page.evaluate(f"""
+            ([index, state]) => {{
+                const word = document.querySelector(`.word-${{index}}-in-line`);
+                word.classList.remove(state);
+            }}
+            """, [index, state.value])
+    
+    def close_line(self):
+        if not self.page:
+            raise RuntimeError("Renderer is not open. Call open() first.")
+        if not self._current_line:
+            raise RuntimeError("No line is open. Call open_line() first.")
+        
+        self._current_line = None
+        self._current_line_state = None
+        
+    def get_word_size(self, word: Word, states: List[ElementState] = []) -> int:
+        if not self.page:
+            raise RuntimeError("Renderer is not open. Call open() first.")
+        if self._current_line:
+            raise RuntimeError("A line process is in progress. Call close_line() first.")
+        
         css_classes = [t.name for t in word.tags] + [s.value for s in states]
-        return self.render_text(word.text, css_classes)
+        if self._cache.has(word.text, css_classes):
+            return self._cache.get(word.text, css_classes)
+
+        script = f"""
+        ([text, cssClasses]) => {{
+            const line = document.querySelector('.{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE}');
+            line.innerHTML = '';
+            const wordElement = document.createElement('span');
+            wordElement.textContent = text;
+            wordElement.className = `{self.DEFAULT_CSS_CLASS_FOR_EACH_WORD} ${{cssClasses}}`;
+            line.appendChild(wordElement);
+        }}
+        """
+        self.page.evaluate(script, [word.text, " ".join(css_classes)])
+        
+        locator = self.page.locator(f".{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE} > .{self.DEFAULT_CSS_CLASS_FOR_EACH_WORD}")
+        bounding_box = locator.bounding_box()
+        if not bounding_box or bounding_box['width'] <= 0 or bounding_box['height'] <= 0:
+            return None
+
+        return int(bounding_box['width']), int(bounding_box['height'])
 
     def close(self):
         """Closes Playwright and cleans up resources."""

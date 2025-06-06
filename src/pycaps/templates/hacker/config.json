@@ -1,0 +1,17 @@
+{
+    "css": "styles.css",
+    "layout": {
+        "max_width_ratio": 0.95,
+        "max_number_of_lines": 5,
+        "min_number_of_lines": 1,
+        "vertical_align": {
+            "align": "center" 
+        },
+        "on_text_overflow_strategy": "exceed_lines"
+    },
+    "rewriter": {
+        "type": "limit_by_chars",
+        "min_chars": 10,
+        "max_chars": 70
+    }
+}

@@ -1,0 +1,52 @@
+/* Necesitarías una fuente específica en retro_future_80s_resources/
+   Ej: Algo similar a la fuente de "Back to the Future" o "Blade Runner".
+   Un ejemplo genérico podría ser una fuente bold, condensada y ligeramente inclinada.
+   "BTTF.ttf" es un nombre ficticio para el ejemplo. */
+@font-face {
+    font-family: 'RetroFutureFont';
+    src: url('BTTF.ttf');
+}
+
+.word {
+    /* font-family: 'RetroFutureFont', 'Impact', sans-serif; */
+    font-family: 'Arial Black', sans-serif;  /* Fallback si no hay fuente custom */
+    font-size: 26px; /* Parecerá 52px */
+    color: #FFDD00; /* Amarillo anaranjado */
+    font-weight: bold;
+    /* font-style: italic; */ /* Si la fuente no es cursiva por defecto */
+    /* transform: skewX(-8deg); */ /* CSS transform no aplica a imágenes de palabras */
+                                 /* La inclinación debe venir de la fuente o un efecto de imagen */
+    padding: 5px 8px;
+    text-shadow: 
+        0 0 3px #FF8800, /* Glow naranja interno */
+        0 0 6px #FF8800,
+        0 0 9px #FF4400, /* Glow rojo más externo */
+        1px 1px 1px #000000; /* Sombra negra sutil para perfilar */
+}
+
+.word-not-narrated-yet {
+    color: #CCAA00;
+    text-shadow: 
+        0 0 2px #CC6600,
+        0 0 4px #CC3300,
+        1px 1px 1px #000000;
+}
+
+.word-being-narrated {
+    color: #FFFFFF; /* Blanco brillante para destacar */
+    text-shadow: 
+        0 0 4px #FFAA00,
+        0 0 8px #FF8800,
+        0 0 12px #FF0000, /* Glow más intenso */
+        0 0 20px #FF0000,
+        1px 1px 1px #000000;
+}
+
+.word-already-narrated {
+    color: #FFDD00; /* Vuelve al color base */
+    text-shadow: 
+        0 0 3px #FF8800,
+        0 0 6px #FF8800,
+        0 0 9px #FF4400,
+        1px 1px 1px #000000;
+}
