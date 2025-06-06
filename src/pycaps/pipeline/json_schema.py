@@ -1,7 +1,7 @@
 from pycaps.layout import SubtitleLayoutOptions
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 from pycaps.common import EventType, ElementType, VideoResolution
-from pycaps.effect import EmojiAlign
+from pycaps.effect import EmojiAlign, BuiltinSound
 from typing import Literal, Annotated, Optional
 from pycaps.animation import Direction, OvershootConfig
 
@@ -69,6 +69,24 @@ class TypewritingEffectConfig(BaseConfigModel):
     has_tags: list[str] = []
 
 ClipEffectConfig = Annotated[TypewritingEffectConfig, Field(discriminator="type")]
+
+class SoundEffectBaseConfig(BaseConfigModel):
+    when: EventType
+    what: ElementType
+    has_tags: list[str] = []
+    offset: float = 0.0
+    volume: float = 0.15
+    interpret_consecutive_words_as_one: bool = True
+
+class PresetSoundEffectConfig(SoundEffectBaseConfig):
+    type: Literal["preset"]
+    name: str
+
+class CustomSoundEffectConfig(SoundEffectBaseConfig):
+    type: Literal["custom"]
+    path: str
+
+SoundEffectConfig = Annotated[PresetSoundEffectConfig | CustomSoundEffectConfig, Field(discriminator="type")]
 
 class BaseAnimationConfig(BaseConfigModel):
     type: Literal["fade_in", "fade_out", "zoom_in", "zoom_out", "pop_in", "pop_out", "pop_in_bounce"]
@@ -142,5 +160,6 @@ class JsonSchema(BaseConfigModel):
     rewriter: Optional[RewriterConfig] = None
     text_effects: list[TextEffectConfig] = []
     clip_effects: list[ClipEffectConfig] = []
+    sound_effects: list[SoundEffectConfig] = []
     animations: list[AnimationConfig] = []
     tagger_rules: list[TaggerRule] = []

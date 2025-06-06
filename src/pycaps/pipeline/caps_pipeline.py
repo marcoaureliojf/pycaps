@@ -7,7 +7,7 @@ from pycaps.layout import WordWidthCalculator, PositionsCalculator, LineSplitter
 from pycaps.tag import SemanticTagger
 from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
-from pycaps.effect import TextEffect, ClipEffect
+from pycaps.effect import TextEffect, ClipEffect, SoundEffect
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 
@@ -23,6 +23,7 @@ class CapsPipeline:
         self._animators: List[ElementAnimator] = []
         self._text_effects: List[TextEffect] = []
         self._clip_effects: List[ClipEffect] = []
+        self._sound_effects: List[SoundEffect] = []
 
         layout_options = SubtitleLayoutOptions()
         self._positions_calculator: PositionsCalculator = PositionsCalculator(layout_options)
@@ -91,6 +92,10 @@ class CapsPipeline:
                 effect.set_renderer(self._renderer)
                 effect.run(document)
             print(f"Clip effects time: {time.time() - clip_effects_start_time} seconds")
+
+            print("Applying sound effects...")
+            for effect in self._sound_effects:
+                effect.run(document)
 
             print("Running animations...")
             animations_start_time = time.time()

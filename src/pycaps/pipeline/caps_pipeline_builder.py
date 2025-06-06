@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional
 from pycaps.animation import Animation, ElementAnimator
 from pycaps.common import ElementType, EventType, VideoResolution
 from pycaps.tag import TagCondition, SemanticTagger
-from pycaps.effect import TextEffect, ClipEffect
+from pycaps.effect import TextEffect, ClipEffect, SoundEffect
 
 class CapsPipelineBuilder:
 
@@ -58,7 +58,7 @@ class CapsPipelineBuilder:
     def with_css(self, css_file_path: str) -> "CapsPipelineBuilder":
         if not os.path.exists(css_file_path):
             raise ValueError(f"CSS file not found: {css_file_path}")
-        css_content = open(css_file_path, "r").read()
+        css_content = open(css_file_path, "r", encoding="utf-8").read()
         self._caps_pipeline._renderer.set_custom_css(css_content)
         return self
     
@@ -88,6 +88,10 @@ class CapsPipelineBuilder:
     
     def add_clip_effect(self, effect: ClipEffect) -> "CapsPipelineBuilder":
         self._caps_pipeline._clip_effects.append(effect)
+        return self
+
+    def add_sound_effect(self, effect: SoundEffect) -> "CapsPipelineBuilder":
+        self._caps_pipeline._sound_effects.append(effect)
         return self
 
     def build(self) -> CapsPipeline:

@@ -3,13 +3,8 @@ from .caps_pipeline_builder import CapsPipelineBuilder
 from .caps_pipeline import CapsPipeline
 from pycaps.transcriber import LimitByWordsRewriter, LimitByCharsRewriter
 from pycaps.tag import TagConditionFactory, TagCondition
-from pycaps.effect import EmojiInSegmentEffect, EmojiInWordEffect, ToUppercaseEffect, TypewritingEffect
-from pycaps.animation import (
-    Animation,
-    FadeIn, FadeOut, ZoomIn, ZoomOut, PopIn, PopOut, PopInBounce, SlideIn, SlideOut,
-    ZoomInPrimitive, PopInPrimitive, SlideInPrimitive, FadeInPrimitive,
-    Transformer
-)
+from pycaps.effect import *
+from pycaps.animation import *
 from .json_schema import JsonSchema, AnimationConfig
 from pydantic import ValidationError
 from pycaps.tag import SemanticTagger
@@ -49,6 +44,7 @@ class JsonConfigLoader:
             self._load_segment_rewriter()
             self._load_text_effects()
             self._load_clip_effects()
+            self._load_sound_effects()
             self._load_animations()
             self._load_tagger()
             if should_build_pipeline:
@@ -105,6 +101,37 @@ class JsonConfigLoader:
             match effect.type:
                 case "typewriting":
                     self._builder.add_clip_effect(TypewritingEffect(self._build_tag_condition(effect.has_tags)))
+
+    def _load_sound_effects(self) -> None:
+        for effect in self._config.sound_effects:
+            match effect.type:
+                case "preset":
+                    sound = BuiltinSound.get_by_name(effect.name)
+                    if sound is None:
+                        raise ValueError(f"Invalid preset sound: {effect.name}")
+                    self._builder.add_sound_effect(
+                        SoundEffect(
+                            sound,
+                            effect.what,
+                            effect.when,
+                            self._build_tag_condition(effect.has_tags),
+                            effect.offset,
+                            effect.volume,
+                            effect.interpret_consecutive_words_as_one
+                        )
+                    )
+                case "custom":
+                    self._builder.add_sound_effect(
+                        SoundEffect(
+                            Sound(effect.path, effect.path),
+                            effect.what,
+                            effect.when,
+                            self._build_tag_condition(effect.has_tags),
+                            effect.offset,
+                            effect.volume,
+                            effect.interpret_consecutive_words_as_one
+                        )
+                    )
 
     def _load_animations(self) -> None:
         for animation_config in self._config.animations:

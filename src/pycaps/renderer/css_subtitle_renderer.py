@@ -84,9 +84,6 @@ class CssSubtitleRenderer():
 
                 #subtitle-container {{
                     display: inline-block;
-                    width: 100%;
-                    height: 100%;
-                    align-content: center;
                 }}
 
                 .{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE} {{

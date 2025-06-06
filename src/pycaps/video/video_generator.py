@@ -1,6 +1,6 @@
 from typing import Optional, Dict, Any, Literal
 import os
-from moviepy.editor import VideoFileClip, CompositeVideoClip
+from moviepy.editor import VideoFileClip, CompositeVideoClip, CompositeAudioClip
 import tempfile
 from pycaps.common import Document, VideoResolution
 from pathlib import Path
@@ -101,7 +101,8 @@ class VideoGenerator:
             video_with_subtitles = self._video_clip.set_audio(None)
             self._final_video = CompositeVideoClip([video_with_subtitles] + clips, size=self._video_clip.size)
             if self._video_clip.audio:
-                self._final_video = self._final_video.set_audio(self._video_clip.audio)
+                final_audio = CompositeAudioClip([self._video_clip.audio] + document.sfxs) if len(document.sfxs) > 0 else self._video_clip.audio
+                self._final_video = self._final_video.set_audio(final_audio)
             else:
                 print("Warning: Original video had no audio. Final video will also have no audio.")
 

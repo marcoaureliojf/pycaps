@@ -2,6 +2,7 @@
 from .effect import Effect
 from .text import *
 from .clip import *
+from .sound import *
 
 __all__ = [
     "EmojiInWordEffect",
@@ -13,5 +14,8 @@ __all__ = [
     "Effect",
     "TextEffect",
     "ClipEffect",
+    "BuiltinSound",
+    "Sound",
+    "SoundEffect",
 ]
 

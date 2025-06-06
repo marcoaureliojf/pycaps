@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from moviepy.editor import VideoClip
+from moviepy.editor import VideoClip, AudioFileClip
 from typing import List, Optional, Set
 from .types import ElementState
 
@@ -152,6 +152,7 @@ class Segment:
 @dataclass
 class Document:
     _segments: 'ElementContainer[Segment]' = field(init=False)
+    sfxs: List[AudioFileClip] = field(default_factory=list)
 
     def __post_init__(self):
         self._segments = ElementContainer(self)
