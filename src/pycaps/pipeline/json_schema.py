@@ -54,7 +54,7 @@ class EmojiInSegmentEffectConfig(BaseConfigModel):
 
 class EmojiInWordEffectConfig(BaseConfigModel):
     type: Literal["emoji_in_word"]
-    emojies: list[str]
+    emojis: list[str]
     has_tags: list[str] = []
     avoid_use_same_emoji_in_a_row: bool = True
 

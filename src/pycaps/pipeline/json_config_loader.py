@@ -92,7 +92,7 @@ class JsonConfigLoader:
                 case "emoji_in_segment":
                     self._builder.add_text_effect(EmojiInSegmentEffect(effect.chance_to_apply, effect.align, effect.ignore_segments_with_duration_less_than, effect.max_uses_of_each_emoji, effect.max_consecutive_segments_with_emoji))
                 case "emoji_in_word":
-                    self._builder.add_text_effect(EmojiInWordEffect(effect.emojies, self._build_tag_condition(effect.has_tags), effect.avoid_use_same_emoji_in_a_row))
+                    self._builder.add_text_effect(EmojiInWordEffect(effect.emojis, self._build_tag_condition(effect.has_tags), effect.avoid_use_same_emoji_in_a_row))
                 case "to_uppercase":
                     self._builder.add_text_effect(ToUppercaseEffect(self._build_tag_condition(effect.has_tags)))
 

@@ -9,8 +9,8 @@ class EmojiInWordEffect(TextEffect):
     This effect will add an emoji to the end of each phrase that matches the tag condition.
     '''
 
-    def __init__(self, emojies: List[str], tag_condition: TagCondition, avoid_use_same_emoji_in_a_row: bool = True):
-        self._emojies = emojies
+    def __init__(self, emojis: List[str], tag_condition: TagCondition, avoid_use_same_emoji_in_a_row: bool = True):
+        self._emojies = emojis
         self._tag_condition = tag_condition
         self._avoid_use_same_emoji_in_a_row = avoid_use_same_emoji_in_a_row
 

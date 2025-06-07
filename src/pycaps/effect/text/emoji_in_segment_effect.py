@@ -14,7 +14,7 @@ class EmojiAlign(str, Enum):
 
 # TODO: There's room for improvement here.
 # - We could avoid the overhead of calling the LLM for each choosen segment.
-# - For that, we should instead send the full script to the LLM and get the proper emojies for each segment.
+# - For that, we should instead send the full script to the LLM and get the proper emojis for each segment.
 # - We should probably use something like structured responses for that.
 class EmojiInSegmentEffect(TextEffect):
     '''
