@@ -172,13 +172,14 @@ class CssSubtitleRenderer():
         script = f"""
         ([index, state, wordText, first_n_letters]) => {{
             const word = document.querySelector(`.word-${{index}}-in-line`);
-            word.textContent = wordText.slice(0, first_n_letters);
+            const wordCodePoints = Array.from(wordText); // to avoid issues with multibyte characters
+            word.textContent = wordCodePoints.slice(0, first_n_letters).join('');
             word.classList.add(state);
 
             // the rest remains there but invisible
-            if (first_n_letters < wordText.length) {{
+            if (first_n_letters < wordCodePoints.length) {{
                 remaining_word = word.dataset.isNextNodeRemaining ? word.nextSibling : document.createElement('span');
-                remaining_word.textContent = wordText.slice(first_n_letters);
+                remaining_word.textContent = wordCodePoints.slice(first_n_letters).join('');
                 remaining_word.className = word.className;
                 remaining_word.style.visibility = 'hidden';
                 if (!word.dataset.isNextNodeRemaining) {{

@@ -9,9 +9,6 @@
             "offset": 0.15
         }
     },
-    "whisper": {
-        "model": "base"
-    },
     "rewriter": {
         "type": "limit_by_chars",
         "min_chars": 10,
@@ -20,10 +17,15 @@
     "text_effects": [
         {
             "type": "emoji_in_segment",
-            "chance_to_apply": 0.3,
+            "chance_to_apply": 0.4,
             "align": "random",
             "ignore_segments_with_duration_less_than": 0.8,
             "max_uses_of_each_emoji": 1
+        }
+    ],
+    "clip_effects": [
+        {
+            "type": "animate_segment_emojis"
         }
     ],
     "animations": [

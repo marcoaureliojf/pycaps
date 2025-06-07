@@ -101,6 +101,8 @@ class JsonConfigLoader:
             match effect.type:
                 case "typewriting":
                     self._builder.add_clip_effect(TypewritingEffect(self._build_tag_condition(effect.has_tags)))
+                case "animate_segment_emojis":
+                    self._builder.add_clip_effect(AnimateSegmentEmojisEffect())
 
     def _load_sound_effects(self) -> None:
         for effect in self._config.sound_effects:

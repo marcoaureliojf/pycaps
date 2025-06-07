@@ -68,7 +68,10 @@ class TypewritingEffectConfig(BaseConfigModel):
     type: Literal["typewriting"]
     has_tags: list[str] = []
 
-ClipEffectConfig = Annotated[TypewritingEffectConfig, Field(discriminator="type")]
+class AnimateSegmentEmojisEffectConfig(BaseConfigModel):
+    type: Literal["animate_segment_emojis"]
+
+ClipEffectConfig = Annotated[TypewritingEffectConfig | AnimateSegmentEmojisEffectConfig, Field(discriminator="type")]
 
 class SoundEffectBaseConfig(BaseConfigModel):
     when: EventType
