@@ -18,5 +18,6 @@ __all__ = [
     "Sound",
     "SoundEffect",
     "AnimateSegmentEmojisEffect",
+    "RemovePunctuationMarksEffect",
 ]
 

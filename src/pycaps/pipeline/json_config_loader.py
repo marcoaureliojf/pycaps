@@ -97,6 +97,8 @@ class JsonConfigLoader:
                     self._builder.add_text_effect(EmojiInWordEffect(effect.emojis, self._build_tag_condition(effect.has_tags), effect.avoid_use_same_emoji_in_a_row))
                 case "to_uppercase":
                     self._builder.add_text_effect(ToUppercaseEffect(self._build_tag_condition(effect.has_tags)))
+                case "remove_punctuation_marks":
+                    self._builder.add_text_effect(RemovePunctuationMarksEffect(effect.punctuation_marks, effect.exception_marks))
 
     def _load_clip_effects(self) -> None:
         for effect in self._config.clip_effects:

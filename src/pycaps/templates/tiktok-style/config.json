@@ -21,8 +21,13 @@
     ],
     "text_effects": [
         {
+            "type": "remove_punctuation_marks",
+            "punctuation_marks": ["."],
+            "exception_marks": ["..."]
+        },
+        {
             "type": "emoji_in_segment",
-            "chance_to_apply": 0.75,
+            "chance_to_apply": 0.85,
             "align": "random",
             "ignore_segments_with_duration_less_than": 0.8,
             "max_uses_of_each_emoji": 1

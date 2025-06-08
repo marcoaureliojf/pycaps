@@ -20,10 +20,16 @@
         {
             "type": "limit_by_chars",
             "min_chars": 10,
-            "max_chars": 20
+            "max_chars": 15
         }
     ],
-    "text_effects": [],
+    "text_effects": [
+        {
+            "type": "remove_punctuation_marks",
+            "punctuation_marks": ["."],
+            "exception_marks": ["..."]
+        }
+    ],
     "animations": [
         {
             "type": "zoom_in_primitive",

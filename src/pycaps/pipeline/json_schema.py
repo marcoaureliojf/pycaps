@@ -66,7 +66,12 @@ class ToUppercaseEffectConfig(BaseConfigModel):
     type: Literal["to_uppercase"]
     has_tags: list[str] = []
 
-TextEffectConfig = Annotated[EmojiInSegmentEffectConfig | EmojiInWordEffectConfig | ToUppercaseEffectConfig, Field(discriminator="type")]
+class RemovePunctuationMarksEffectConfig(BaseConfigModel):
+    type: Literal["remove_punctuation_marks"]
+    punctuation_marks: list[str] = ['.']
+    exception_marks: list[str] = ['...']
+
+TextEffectConfig = Annotated[EmojiInSegmentEffectConfig | EmojiInWordEffectConfig | ToUppercaseEffectConfig | RemovePunctuationMarksEffectConfig, Field(discriminator="type")]
 
 class TypewritingEffectConfig(BaseConfigModel):
     type: Literal["typewriting"]
