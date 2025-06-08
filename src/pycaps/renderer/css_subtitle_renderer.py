@@ -251,7 +251,7 @@ class CssSubtitleRenderer():
         if not bounding_box or bounding_box['width'] <= 0 or bounding_box['height'] <= 0:
             return None
 
-        return int(bounding_box['width']), int(bounding_box['height'])
+        return int(bounding_box['width'] * self.DEFAULT_DEVICE_SCALE_FACTOR), int(bounding_box['height'] * self.DEFAULT_DEVICE_SCALE_FACTOR)
 
     def close(self):
         """Closes Playwright and cleans up resources."""
