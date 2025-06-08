@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from pycaps.common import Document
 
-class BaseSegmentRewriter(ABC):
+class BaseSegmentSplitter(ABC):
 
     @abstractmethod
-    def rewrite(self, document: Document) -> None:
+    def split(self, document: Document) -> None:
         '''
-        Transforms the segments of a document, reducing or increasing the amount of words per segment.
+        Splits the segments of a document, decreasing the amount of words per segment.
         It assumes that the segments have not been splitted into lines yet.
         '''
         pass

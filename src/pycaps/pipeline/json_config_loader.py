@@ -1,7 +1,7 @@
 import json
 from .caps_pipeline_builder import CapsPipelineBuilder
 from .caps_pipeline import CapsPipeline
-from pycaps.transcriber import LimitByWordsRewriter, LimitByCharsRewriter
+from pycaps.transcriber import LimitByWordsSplitter, LimitByCharsSplitter, SplitIntoSentencesSplitter
 from pycaps.tag import TagConditionFactory, TagCondition
 from pycaps.effect import *
 from pycaps.animation import *
@@ -41,7 +41,7 @@ class JsonConfigLoader:
             self._load_video_config()
             self._load_whisper_config()
             self._load_layout_options()
-            self._load_segment_rewriter()
+            self._load_segment_splitters()
             self._load_text_effects()
             self._load_clip_effects()
             self._load_sound_effects()
@@ -76,15 +76,17 @@ class JsonConfigLoader:
             return
         self._builder.with_layout_options(self._config.layout)
 
-    def _load_segment_rewriter(self) -> None:
-        if self._config.rewriter is None:
-            return
-        data = self._config.rewriter
-
-        if data.type == "limit_by_words":
-            self._builder.add_segment_rewriter(LimitByWordsRewriter(data.limit))
-        elif data.type == "limit_by_chars":
-            self._builder.add_segment_rewriter(LimitByCharsRewriter(data.max_chars, data.min_chars, data.avoid_finishing_segment_with_word_shorter_than))
+    def _load_segment_splitters(self) -> None:
+        for splitter in self._config.splitters:
+            match splitter.type:
+                case "limit_by_words":
+                    self._builder.add_segment_splitter(LimitByWordsSplitter(splitter.limit))
+                case "limit_by_chars":
+                    self._builder.add_segment_splitter(LimitByCharsSplitter(splitter.max_chars, splitter.min_chars, splitter.avoid_finishing_segment_with_word_shorter_than))
+                case "split_into_sentences":
+                    self._builder.add_segment_splitter(SplitIntoSentencesSplitter(splitter.sentences_separators))
+                case _:
+                    raise ValueError(f"Invalid segment splitter type: {splitter.type}")
 
     def _load_text_effects(self) -> None:
         for effect in self._config.text_effects:

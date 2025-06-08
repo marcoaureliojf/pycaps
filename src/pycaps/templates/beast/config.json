@@ -4,7 +4,7 @@
     "layout": {
         "max_width_ratio": 0.85,
         "max_number_of_lines": 2,
-        "min_number_of_lines": 2,
+        "min_number_of_lines": 1,
         "vertical_align": {
             "align": "bottom",
             "offset": -0.1
@@ -13,11 +13,16 @@
     "whisper": {
         "model": "base"
     },
-    "rewriter": {
-        "type": "limit_by_chars",
-        "min_chars": 15,
-        "max_chars": 30
-    },
+    "splitters": [
+        {
+            "type": "split_into_sentences"
+        },
+        {
+            "type": "limit_by_chars",
+            "min_chars": 10,
+            "max_chars": 20
+        }
+    ],
     "text_effects": [],
     "animations": [
         {

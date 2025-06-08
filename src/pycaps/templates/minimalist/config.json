@@ -12,11 +12,13 @@
     "whisper": {
         "model": "base"
     },
-    "rewriter": {
-        "type": "limit_by_chars",
-        "min_chars": 20,
-        "max_chars": 40
-    },
+    "splitters": [
+        {
+            "type": "limit_by_chars",
+            "min_chars": 20,
+            "max_chars": 40
+        }
+    ],
     "text_effects": [],
     "animations": [
         {

@@ -1,0 +1,31 @@
+.line {
+    /* ... estilos del .line con gradiente y background-clip ... */
+    font-family: 'Impact', sans-serif;
+    font-size: 30px;
+    font-weight: bold;
+    background-image: linear-gradient(
+        180deg, /* De arriba hacia abajo */
+        #FFD700 0%,  /* Amarillo dorado más claro arriba */
+        #FFA500 30%, /* Naranja en el medio */
+        #FF8C00 60%, /* Naranja más oscuro */
+        #B7410E 100% /* Rojo/Marrón oscuro en la base como extrusión */
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent; /* El .line es transparente para que sus hijos .word lo muestren */
+}
+
+.word {
+    color: transparent !important; /* Hereda el background-clip del .line */
+    padding: 3px 6px;
+    /* Aplicar la sombra/extrusión como un filtro al span de la palabra */
+    /* Esto crea una sombra basada en la forma de la palabra con gradiente */
+    filter: 
+        drop-shadow(1px 1px 0px #8B0000) /* Extrusión roja */
+        drop-shadow(-1px 1px 0px #8B0000)
+        drop-shadow(1px -1px 0px #8B0000)
+        drop-shadow(-1px -1px 0px #8B0000)
+        drop-shadow(2px 2px 0px #8B0000) /* Un poco más gruesa */
+        /* ... más drop-shadows para un borde más sólido ... */
+        drop-shadow(3px 3px 3px rgba(0,0,0,0.6)); /* Sombra negra externa */
+}

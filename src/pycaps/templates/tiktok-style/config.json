@@ -9,15 +9,20 @@
             "offset": 0.15
         }
     },
-    "rewriter": {
-        "type": "limit_by_chars",
-        "min_chars": 10,
-        "max_chars": 25
-    },
+    "splitters": [
+        {
+            "type": "split_into_sentences"
+        },
+        {
+            "type": "limit_by_chars",
+            "min_chars": 15,
+            "max_chars": 30
+        }
+    ],
     "text_effects": [
         {
             "type": "emoji_in_segment",
-            "chance_to_apply": 0.4,
+            "chance_to_apply": 0.75,
             "align": "random",
             "ignore_segments_with_duration_less_than": 0.8,
             "max_uses_of_each_emoji": 1

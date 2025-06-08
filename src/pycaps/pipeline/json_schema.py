@@ -17,15 +17,15 @@ class WhisperConfig(BaseConfigModel):
     language: Optional[str] = None
     model: Literal["tiny", "tiny.en", "base", "base.en", "small", "small.en", "medium", "medium.en", "large", "turbo"] = "base"
 
-class LimitByWordsRewriterConfig(BaseConfigModel):
+class LimitByWordsSplitterConfig(BaseConfigModel):
     type: Literal["limit_by_words"]
     limit: int
 
-class LimitByCharsRewriterConfig(BaseConfigModel):
+class LimitByCharsSplitterConfig(BaseConfigModel):
     type: Literal["limit_by_chars"]
     min_chars: int = 15
     max_chars: int = 30
-    avoid_finishing_segment_with_word_shorter_than: int = 4
+    avoid_finishing_segment_with_word_shorter_than: int = 0
 
     @field_validator("min_chars", "max_chars", "avoid_finishing_segment_with_word_shorter_than")
     @classmethod
@@ -41,8 +41,12 @@ class LimitByCharsRewriterConfig(BaseConfigModel):
         if min_chars is not None and v < min_chars:
             raise ValueError(f"{info.name} must be greater than {min_chars}")
         return v
+    
+class SplitIntoSentencesSplitterConfig(BaseConfigModel):
+    type: Literal["split_into_sentences"]
+    sentences_separators: list[str] = ['.', '?', '!', '...']
 
-RewriterConfig = Annotated[LimitByCharsRewriterConfig | LimitByWordsRewriterConfig, Field(discriminator="type")]
+SplitterConfig = Annotated[LimitByCharsSplitterConfig | LimitByWordsSplitterConfig | SplitIntoSentencesSplitterConfig, Field(discriminator="type")]
 
 class EmojiInSegmentEffectConfig(BaseConfigModel):
     type: Literal["emoji_in_segment"]
@@ -160,7 +164,7 @@ class JsonSchema(BaseConfigModel):
     video: Optional[VideoConfig] = None
     whisper: Optional[WhisperConfig] = None
     layout: Optional[SubtitleLayoutOptions] = None
-    rewriter: Optional[RewriterConfig] = None
+    splitters: list[SplitterConfig] = []
     text_effects: list[TextEffectConfig] = []
     clip_effects: list[ClipEffectConfig] = []
     sound_effects: list[SoundEffectConfig] = []

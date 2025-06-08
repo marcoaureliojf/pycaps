@@ -1,7 +1,7 @@
 # src/pycaps/__init__.py
 from .pipeline import CapsPipeline, CapsPipelineBuilder, JsonConfigLoader, TemplateLoader
 from .renderer import CssSubtitleRenderer
-from .transcriber import WhisperAudioTranscriber, AudioTranscriber, LimitByWordsRewriter, LimitByCharsRewriter
+from .transcriber import WhisperAudioTranscriber, AudioTranscriber, LimitByWordsSplitter, LimitByCharsSplitter
 from .effect import *
 from .animation import *
 from .selector import WordClipSelector

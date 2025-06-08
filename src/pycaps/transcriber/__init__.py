@@ -1,12 +1,13 @@
 # src/pycaps/transcriber/__init__.py
 from .base_transcriber import AudioTranscriber
 from .whisper_audio_transcriber import WhisperAudioTranscriber
-from .rewriter import LimitByWordsRewriter, LimitByCharsRewriter, BaseSegmentRewriter
+from .splitter import LimitByWordsSplitter, LimitByCharsSplitter, BaseSegmentSplitter, SplitIntoSentencesSplitter
 
 __all__ = [
     "AudioTranscriber",
     "WhisperAudioTranscriber",
-    "LimitByWordsRewriter",
-    "LimitByCharsRewriter",
-    "BaseSegmentRewriter",
+    "LimitByWordsSplitter",
+    "LimitByCharsSplitter",
+    "BaseSegmentSplitter",
+    "SplitIntoSentencesSplitter",
 ]

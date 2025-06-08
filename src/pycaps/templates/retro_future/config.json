@@ -1,5 +1,5 @@
 {
-    "css": "styles.css",
+    "css": "old_styles.css",
     "resources": "resources",
     "layout": {
         "max_width_ratio": 0.8,
@@ -10,11 +10,13 @@
             "offset": -0.1
         }
     },
-    "rewriter": {
-        "type": "limit_by_chars",
-        "min_chars": 10,
-        "max_chars": 25
-    },
+    "splitters": [
+        {
+            "type": "limit_by_chars",
+            "min_chars": 10,
+            "max_chars": 25
+        }
+    ],
     "animations": [
         {
             "type": "zoom_in_primitive",
@@ -44,5 +46,27 @@
             "direction": "right"
         }
     ],
-    "tagger_rules": []
+    "sound_effects": [
+        {
+            "type": "preset",
+            "name": "whoosh",
+            "when": "narration-ends",
+            "what": "segment"
+        },
+        {
+            "type": "preset",
+            "name": "ding",
+            "when": "narration-starts",
+            "what": "word",
+            "volume": 0.25,
+            "has_tags": ["highlighted"]
+        }
+    ],
+    "tagger_rules": [
+        {
+            "type": "regex",
+            "regex": "ayuno intermitente",
+            "tag": "highlighted"
+        }
+    ]
 }

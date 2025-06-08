@@ -9,9 +9,11 @@
         },
         "on_text_overflow_strategy": "exceed_lines"
     },
-    "rewriter": {
-        "type": "limit_by_chars",
-        "min_chars": 10,
-        "max_chars": 70
-    }
+    "splitters": [
+        {
+            "type": "limit_by_chars",
+            "min_chars": 10,
+            "max_chars": 70
+        }
+    ]
 }

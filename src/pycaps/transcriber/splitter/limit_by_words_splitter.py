@@ -1,9 +1,9 @@
-from .base_segment_rewriter import BaseSegmentRewriter
+from .base_segment_splitter import BaseSegmentSplitter
 from pycaps.common import Document, Segment, Line, TimeFragment
 
-class LimitByWordsRewriter(BaseSegmentRewriter):
+class LimitByWordsSplitter(BaseSegmentSplitter):
     """
-    A segmenter that limits the number of words in each segment.
+    A segment splitter that limits the number of words in each segment.
     It will divide each segment received into chunks of a maximum of `limit` words.
     If the last chunk generated has less than `limit` words, it will not use the next segment for completion.
 
@@ -12,7 +12,7 @@ class LimitByWordsRewriter(BaseSegmentRewriter):
     segment 1: "Hello world"
     segment 2: "This is a test"
 
-    The segmenter will return:
+    The splitter will return:
     segment 1: "Hello world"
     segment 2: "This is a"
     segment 3: "test"
@@ -20,7 +20,7 @@ class LimitByWordsRewriter(BaseSegmentRewriter):
     def __init__(self, limit: int):
         self.limit = limit
 
-    def rewrite(self, document: Document) -> None:
+    def split(self, document: Document) -> None:
         new_segments = []
         segment_index = 0
         word_index = 0

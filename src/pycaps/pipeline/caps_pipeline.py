@@ -1,6 +1,6 @@
 import time
 import os
-from pycaps.transcriber import AudioTranscriber, WhisperAudioTranscriber, BaseSegmentRewriter
+from pycaps.transcriber import AudioTranscriber, WhisperAudioTranscriber, BaseSegmentSplitter
 from pycaps.renderer import CssSubtitleRenderer
 from pycaps.video import SubtitleClipsGenerator, VideoGenerator
 from pycaps.layout import WordWidthCalculator, PositionsCalculator, LineSplitter, LayoutUpdater
@@ -19,7 +19,7 @@ class CapsPipeline:
         self._word_width_calculator: WordWidthCalculator = WordWidthCalculator(self._renderer)
         self._semantic_tagger: SemanticTagger = SemanticTagger()
         self._video_generator: VideoGenerator = VideoGenerator()
-        self._segment_rewriters: list[BaseSegmentRewriter] = []
+        self._segment_splitters: list[BaseSegmentSplitter] = []
         self._animators: List[ElementAnimator] = []
         self._text_effects: List[TextEffect] = []
         self._clip_effects: List[ClipEffect] = []
@@ -53,15 +53,18 @@ class CapsPipeline:
             if len(document.segments) == 0:
                 raise RuntimeError("Transcription returned no segments. Subtitles will not be added.")
             
-            print("Running segments rewriters...")
-            for rewriter in self._segment_rewriters:
-                rewriter.rewrite(document)
+            print("Running segments splitters...")
+            for splitter in self._segment_splitters:
+                splitter.split(document)
 
             print(f"Opening renderer for video dimensions: {video_clip.w}x{video_clip.h}")
             resources_dir = Path(self._resources_dir) if self._resources_dir else None
             self._renderer.open(video_width=video_clip.w, video_height=video_clip.h, resources_dir=resources_dir)
 
             print("Calculating words widths...")
+            # Keep in mind this is an approximation, since the words/lines do not have the tags yet
+            # We use this to split into lines, but after adding the tags the words witdhs can change,
+            # and therefore the max_width per line could be exceeded.
             self._word_width_calculator.calculate(document)
 
             print("Splitting segments into lines...")
