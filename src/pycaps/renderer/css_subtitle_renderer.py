@@ -201,7 +201,7 @@ class CssSubtitleRenderer():
                 # HTML element is not visible (probably hidden by CSS).
                 return None
 
-            image = PlaywrightScreenshotCapturer.capture(locator, self.DEFAULT_DEVICE_SCALE_FACTOR)
+            image = PlaywrightScreenshotCapturer.capture(locator)
             # TODO: two entries with same text but different indexes should be different entries
             # self._cache.set(word.text, [self._current_line_state.value, state.value], image)
             return image
