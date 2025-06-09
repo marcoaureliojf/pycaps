@@ -2,13 +2,21 @@
     "css": "styles.css",
     "layout": {
         "max_width_ratio": 0.9,
-        "max_number_of_lines": 2,
+        "max_number_of_lines": 3,
         "min_number_of_lines": 1,
+        "y_words_space": 5,
         "vertical_align": {
             "align": "bottom",
             "offset": 0.0
         }
     },
+    "splitters": [
+        {
+            "type": "limit_by_chars",
+            "min_chars": 20,
+            "max_chars": 50
+        }
+    ],
     "text_effects": [],
     "animations": [
         {
@@ -23,6 +31,5 @@
             "what": "segment",
             "duration": 0.2
         }
-    ],
-    "tagger_rules": []
+    ]
 }

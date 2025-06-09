@@ -27,9 +27,9 @@ class SemanticTagger:
         """Register a new regex-based rule."""
         self._regex_rules[tag] = pattern
 
-    def add_llm_rule(self, tag: Tag, topic: str) -> None:
+    def add_llm_rule(self, tag: Tag, prompt: str) -> None:
         """Register a new LLM-based rule."""
-        self._llm_rules[tag] = topic
+        self._llm_rules[tag] = prompt
 
     def add_function_rule(self, tag: Tag, get_words_to_tag: Callable[[Document], list[Union[Word, Line, Segment]]]) -> None:
         """Register a new function-based rule. The function receives the document and returns a list of words that should be tagged."""
@@ -69,11 +69,12 @@ class SemanticTagger:
         text = document.get_text().strip()
         
         tagged_text = self._llm_tagger.process(text, self._llm_rules)
+        print(f"tagged_text: {tagged_text}")
         text_positions_mapping = self._build_text_positions_mapping(tagged_text)
         for tag in self._llm_rules.keys():
             pattern = f'<{tag.name}>(.*?)</{tag.name}>'
             matches = re.finditer(pattern, tagged_text)
-            matches_positions = [(m.start(1), m.end(1)) for m in matches]
+            matches_positions = [(m.start(1), m.end(1)-1) for m in matches]
             mapped_matches_positions = [(text_positions_mapping.get(start, 0), text_positions_mapping.get(end, 0)) for start, end in matches_positions]
             self._tag_matching_words(words, mapped_matches_positions, tag)
     

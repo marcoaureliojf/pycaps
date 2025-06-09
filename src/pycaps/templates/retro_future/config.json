@@ -51,7 +51,8 @@
             "type": "preset",
             "name": "whoosh",
             "when": "narration-ends",
-            "what": "segment"
+            "what": "segment",
+            "tag_condition": "not 'last-segment-in-document'"
         },
         {
             "type": "preset",
@@ -59,7 +60,7 @@
             "when": "narration-starts",
             "what": "word",
             "volume": 0.25,
-            "has_tags": ["highlighted"]
+            "tag_condition": "highlighted"
         }
     ],
     "tagger_rules": [

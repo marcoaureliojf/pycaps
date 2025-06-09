@@ -59,12 +59,12 @@ class EmojiInSegmentEffectConfig(BaseConfigModel):
 class EmojiInWordEffectConfig(BaseConfigModel):
     type: Literal["emoji_in_word"]
     emojis: list[str]
-    has_tags: list[str] = []
+    tag_condition: str = ""
     avoid_use_same_emoji_in_a_row: bool = True
 
 class ToUppercaseEffectConfig(BaseConfigModel):
     type: Literal["to_uppercase"]
-    has_tags: list[str] = []
+    tag_condition: str = ""
 
 class RemovePunctuationMarksEffectConfig(BaseConfigModel):
     type: Literal["remove_punctuation_marks"]
@@ -75,7 +75,7 @@ TextEffectConfig = Annotated[EmojiInSegmentEffectConfig | EmojiInWordEffectConfi
 
 class TypewritingEffectConfig(BaseConfigModel):
     type: Literal["typewriting"]
-    has_tags: list[str] = []
+    tag_condition: str = ""
 
 class AnimateSegmentEmojisEffectConfig(BaseConfigModel):
     type: Literal["animate_segment_emojis"]
@@ -85,7 +85,7 @@ ClipEffectConfig = Annotated[TypewritingEffectConfig | AnimateSegmentEmojisEffec
 class SoundEffectBaseConfig(BaseConfigModel):
     when: EventType
     what: ElementType
-    has_tags: list[str] = []
+    tag_condition: str = ""
     offset: float = 0.0
     volume: float = 0.15
     interpret_consecutive_words_as_one: bool = True
@@ -106,7 +106,7 @@ class BaseAnimationConfig(BaseConfigModel):
     delay: float = 0.0
     when: EventType
     what: ElementType
-    has_tags: list[str] = []
+    tag_condition: str = ""
 
 class SlideAnimationConfig(BaseAnimationConfig):
     type: Literal["slide_in", "slide_out"]
@@ -119,7 +119,7 @@ class BaseAnimationPrimitiveConfig(BaseConfigModel):
     transformer: Literal["linear", "ease_in", "ease_out", "ease_in_out", "inverse"] = "linear"
     what: ElementType
     when: EventType
-    has_tags: list[str] = []
+    tag_condition: str = ""
 
 class PopInPrimitiveAnimationConfig(BaseAnimationPrimitiveConfig):
     type: Literal["pop_in_primitive"]
@@ -152,7 +152,7 @@ AnimationConfig = Annotated[
 class LlmTaggerRuleConfig(BaseConfigModel):
     type: Literal["llm"]
     tag: str
-    topic: str
+    prompt: str
 
 class RegexTaggerRuleConfig(BaseConfigModel):
     type: Literal["regex"]

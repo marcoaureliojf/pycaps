@@ -1,19 +1,14 @@
 .word {
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    font-size: 18px;
+    font-size: 12px;
     color: #D4D4D4;
+    padding: 4px 5px;
+    align-content: center;
+}
+
+.line {
+    border-radius: 3px;
     background-color: #1E1E1E;
-    padding: 8px 10px;
-}
-
-.first-word-in-line {
-    border-top-left-radius: 3px;
-    border-bottom-left-radius: 3px;
-}
-
-.last-word-in-line {
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
 }
 
 .word-not-narrated-yet {

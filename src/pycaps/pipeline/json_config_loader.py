@@ -94,9 +94,9 @@ class JsonConfigLoader:
                 case "emoji_in_segment":
                     self._builder.add_text_effect(EmojiInSegmentEffect(effect.chance_to_apply, effect.align, effect.ignore_segments_with_duration_less_than, effect.max_uses_of_each_emoji, effect.max_consecutive_segments_with_emoji))
                 case "emoji_in_word":
-                    self._builder.add_text_effect(EmojiInWordEffect(effect.emojis, self._build_tag_condition(effect.has_tags), effect.avoid_use_same_emoji_in_a_row))
+                    self._builder.add_text_effect(EmojiInWordEffect(effect.emojis, self._build_tag_condition(effect.tag_condition), effect.avoid_use_same_emoji_in_a_row))
                 case "to_uppercase":
-                    self._builder.add_text_effect(ToUppercaseEffect(self._build_tag_condition(effect.has_tags)))
+                    self._builder.add_text_effect(ToUppercaseEffect(self._build_tag_condition(effect.tag_condition)))
                 case "remove_punctuation_marks":
                     self._builder.add_text_effect(RemovePunctuationMarksEffect(effect.punctuation_marks, effect.exception_marks))
 
@@ -104,7 +104,7 @@ class JsonConfigLoader:
         for effect in self._config.clip_effects:
             match effect.type:
                 case "typewriting":
-                    self._builder.add_clip_effect(TypewritingEffect(self._build_tag_condition(effect.has_tags)))
+                    self._builder.add_clip_effect(TypewritingEffect(self._build_tag_condition(effect.tag_condition)))
                 case "animate_segment_emojis":
                     self._builder.add_clip_effect(AnimateSegmentEmojisEffect())
 
@@ -120,7 +120,7 @@ class JsonConfigLoader:
                             sound,
                             effect.what,
                             effect.when,
-                            self._build_tag_condition(effect.has_tags),
+                            self._build_tag_condition(effect.tag_condition),
                             effect.offset,
                             effect.volume,
                             effect.interpret_consecutive_words_as_one
@@ -132,7 +132,7 @@ class JsonConfigLoader:
                             Sound(effect.path, effect.path),
                             effect.what,
                             effect.when,
-                            self._build_tag_condition(effect.has_tags),
+                            self._build_tag_condition(effect.tag_condition),
                             effect.offset,
                             effect.volume,
                             effect.interpret_consecutive_words_as_one
@@ -141,12 +141,14 @@ class JsonConfigLoader:
 
     def _load_animations(self) -> None:
         for animation_config in self._config.animations:
-            tag_condition = self._build_tag_condition(animation_config.has_tags)
+            tag_condition = self._build_tag_condition(animation_config.tag_condition)
             animation = self._build_animation(animation_config)
             self._builder.add_animation(animation, animation_config.when, animation_config.what, tag_condition)
 
-    def _build_tag_condition(self, tag_list: list[str]) -> TagCondition:
-        return TagConditionFactory.AND(*[Tag(tag) for tag in tag_list])
+    def _build_tag_condition(self, tag_condition: str) -> TagCondition:
+        if tag_condition:
+            return TagConditionFactory.parse(tag_condition)
+        return TagConditionFactory.TRUE()
     
     def _build_animation(self, animation: AnimationConfig) -> Animation:
         match animation.type:
@@ -224,7 +226,7 @@ class JsonConfigLoader:
         tagger = SemanticTagger()
         for rule in self._config.tagger_rules:
             if rule.type == "llm":
-                tagger.add_llm_rule(Tag(rule.tag), rule.topic)
+                tagger.add_llm_rule(Tag(rule.tag), rule.prompt)
             elif rule.type == "regex":
                 tagger.add_regex_rule(Tag(rule.tag), rule.regex)
 

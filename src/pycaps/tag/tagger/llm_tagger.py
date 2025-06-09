@@ -35,8 +35,8 @@ class LlmTagger:
         """
         # Convert rules to a formatted string for the prompt
         rules_str = "\n".join([
-            f"- Tag '{topic}' related terms with <{tag.name}> tags"
-            for tag, topic in rules.items()
+            f"- Tag '{prompt}' with <{tag.name}> tag"
+            for tag, prompt in rules.items()
         ])
 
         return f"""Please analyze the following text and tag relevant terms according to these rules:
@@ -45,7 +45,7 @@ class LlmTagger:
 
 Important guidelines:
 1. Use XML-like tags with the exact class names provided
-2. Only tag specific words or short phrases (max 3-4 words), not entire sentences
+2. Only tag specific words or short phrases, not entire sentences
 3. Tags should not overlap
 4. Preserve the exact original text, only adding tags
 5. If a term matches multiple categories, use the most specific one
