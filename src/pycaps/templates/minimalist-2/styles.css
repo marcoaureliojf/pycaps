@@ -24,3 +24,17 @@
 .word-already-narrated {
     color: #D4D4D4;
 }
+
+.word-being-narrated.highlighted, .word-already-narrated.highlighted {
+    background-color: darkblue;
+}
+
+.word-being-narrated.highlighted.last-word-in-line, .word-already-narrated.highlighted.last-word-in-line {
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+.word-being-narrated.highlighted.first-word-in-line, .word-already-narrated.highlighted.first-word-in-line {
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+}

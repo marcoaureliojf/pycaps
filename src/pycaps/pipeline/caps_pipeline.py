@@ -8,8 +8,11 @@ from pycaps.tag import SemanticTagger
 from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
 from pycaps.effect import TextEffect, ClipEffect, SoundEffect
+from pycaps.common import Document
 from typing import Optional, List, Dict, Any
 from pathlib import Path
+from .subtitle_data_service import SubtitleDataService
+from moviepy.editor import VideoClip
 
 class CapsPipeline:
     def __init__(self):
@@ -24,6 +27,8 @@ class CapsPipeline:
         self._text_effects: List[TextEffect] = []
         self._clip_effects: List[ClipEffect] = []
         self._sound_effects: List[SoundEffect] = []
+        self._should_save_subtitle_data: bool = True
+        self._subtitle_data_path_for_loading: Optional[str] = None
 
         layout_options = SubtitleLayoutOptions()
         self._positions_calculator: PositionsCalculator = PositionsCalculator(layout_options)
@@ -47,35 +52,13 @@ class CapsPipeline:
             self._video_generator.set_moviepy_write_options(self._moviepy_write_options)
             self._video_generator.start(self._input_video_path, self._output_video_path)
             video_clip = self._video_generator.get_video_clip()
+            document = self._generate_subtitle_data(video_clip)
 
-            print("Transcribing audio...")
-            document = self._transcriber.transcribe(self._video_generator.get_audio_path())
-            if len(document.segments) == 0:
-                raise RuntimeError("Transcription returned no segments. Subtitles will not be added.")
-            
-            print("Running segments splitters...")
-            for splitter in self._segment_splitters:
-                splitter.split(document)
-
-            print(f"Opening renderer for video dimensions: {video_clip.w}x{video_clip.h}")
-            resources_dir = Path(self._resources_dir) if self._resources_dir else None
-            self._renderer.open(video_width=video_clip.w, video_height=video_clip.h, resources_dir=resources_dir)
-
-            print("Calculating words widths...")
-            # Keep in mind this is an approximation, since the words/lines do not have the tags yet
-            # We use this to split into lines, but after adding the tags the words witdhs can change,
-            # and therefore the max_width per line could be exceeded.
-            self._word_width_calculator.calculate(document)
-
-            print("Splitting segments into lines...")
-            self._line_splitter.split_into_lines(document, video_clip.w)
-
-            print("Tagging words with semantic information...")
-            self._semantic_tagger.tag(document)
-
-            print("Applying text effects...")
-            for effect in self._text_effects:
-                effect.run(document)
+            if self._should_save_subtitle_data and self._subtitle_data_path_for_loading is None:
+                print("Saving subtitle data...")
+                subtitle_data_path = self._output_video_path.replace(os.path.splitext(self._input_video_path)[1], ".json")
+                subtitle_data_service = SubtitleDataService(subtitle_data_path)
+                subtitle_data_service.save(document)
 
             print("Generating subtitle clips...")
             self._clips_generator.generate(document)
@@ -126,3 +109,45 @@ class CapsPipeline:
     def preview(self) -> None:
         self._renderer.preview()
         input("Press [ENTER] to finish preview...")
+
+    def _generate_subtitle_data(self, video_clip: VideoClip) -> Document:
+        if self._subtitle_data_path_for_loading:
+            print("Loading subtitle data...")
+            subtitle_data_service = SubtitleDataService(self._subtitle_data_path_for_loading)
+            document = subtitle_data_service.load()
+            
+            print(f"Opening renderer for video dimensions: {video_clip.w}x{video_clip.h}")
+            resources_dir = Path(self._resources_dir) if self._resources_dir else None
+            self._renderer.open(video_width=video_clip.w, video_height=video_clip.h, resources_dir=resources_dir)
+            return document
+        
+        print("Transcribing audio...")
+        document = self._transcriber.transcribe(self._video_generator.get_audio_path())
+        if len(document.segments) == 0:
+            raise RuntimeError("Transcription returned no segments. Subtitles will not be added.")
+        
+        print("Running segments splitters...")
+        for splitter in self._segment_splitters:
+            splitter.split(document)
+
+        print(f"Opening renderer for video dimensions: {video_clip.w}x{video_clip.h}")
+        resources_dir = Path(self._resources_dir) if self._resources_dir else None
+        self._renderer.open(video_width=video_clip.w, video_height=video_clip.h, resources_dir=resources_dir)
+
+        print("Calculating words widths...")
+        # Keep in mind this is an approximation, since the words/lines do not have the tags yet
+        # We use this to split into lines, but after adding the tags the words witdhs can change,
+        # and therefore the max_width per line could be exceeded.
+        self._word_width_calculator.calculate(document)
+
+        print("Splitting segments into lines...")
+        self._line_splitter.split_into_lines(document, video_clip.w)
+
+        print("Tagging words with semantic information...")
+        self._semantic_tagger.tag(document)
+
+        print("Applying text effects...")
+        for effect in self._text_effects:
+            effect.run(document)
+
+        return document

@@ -69,7 +69,6 @@ class SemanticTagger:
         text = document.get_text().strip()
         
         tagged_text = self._llm_tagger.process(text, self._llm_rules)
-        print(f"tagged_text: {tagged_text}")
         text_positions_mapping = self._build_text_positions_mapping(tagged_text)
         for tag in self._llm_rules.keys():
             pattern = f'<{tag.name}>(.*?)</{tag.name}>'

@@ -7,25 +7,60 @@ from .types import ElementState
 class Tag:
     name: str
 
+    def to_dict(self) -> dict:
+        return {"name": self.name}
+    
+    @staticmethod
+    def from_dict(data: dict) -> 'Tag':
+        return Tag(name=data["name"])
+
 @dataclass
 class TimeFragment:
     start: float = 0
     end: float = 0
+
+    def to_dict(self) -> dict:
+        return {"start": self.start, "end": self.end}
+
+    @staticmethod
+    def from_dict(data: dict) -> 'TimeFragment':
+        return TimeFragment(start=data["start"], end=data["end"])
 
 @dataclass
 class Size:
     width: int = 0
     height: int = 0
 
+    def to_dict(self) -> dict:
+        return {"width": self.width, "height": self.height}
+
+    @staticmethod
+    def from_dict(data: dict) -> 'Size':
+        return Size(width=data["width"], height=data["height"])
+
 @dataclass
 class Position:
     x: int = 0
     y: int = 0
 
+    def to_dict(self) -> dict:
+        return {"x": self.x, "y": self.y}
+
+    @staticmethod
+    def from_dict(data: dict) -> 'Position':
+        return Position(x=data["x"], y=data["y"])
+
 @dataclass
 class ElementLayout:
     position: Position = field(default_factory=Position)
     size: Size = field(default_factory=Size)
+
+    def to_dict(self) -> dict:
+        return {"position": self.position.to_dict(), "size": self.size.to_dict()}
+    
+    @staticmethod
+    def from_dict(data: dict) -> 'ElementLayout':
+        return ElementLayout(position=Position.from_dict(data["position"]), size=Size.from_dict(data["size"]))
 
     def get_center(self) -> Position:
         return Position(x=self.position.x + self.size.width / 2, y=self.position.y + self.size.height / 2)
@@ -40,6 +75,13 @@ class WordClip:
     states: List[ElementState] = field(default_factory=list)
     moviepy_clip: Optional[VideoClip] = None
     layout: ElementLayout = field(default_factory=ElementLayout)
+
+    def to_dict(self) -> dict:
+        return {"states": [state.value for state in self.states], "layout": self.layout.to_dict()}
+
+    @staticmethod
+    def from_dict(data: dict) -> 'WordClip':
+        return WordClip(states=[ElementState(state) for state in data["states"]], layout=ElementLayout.from_dict(data["layout"]))
 
     def has_state(self, state: ElementState) -> bool:
         return state in self.states
@@ -69,6 +111,15 @@ class Word:
 
     def __post_init__(self):
         self._clips = ElementContainer(self)
+
+    def to_dict(self) -> dict:
+        return {"clips": [clip.to_dict() for clip in self.clips], "text": self.text, "tags": [tag.to_dict() for tag in self.tags], "max_layout": self.max_layout.to_dict(), "time": self.time.to_dict()}
+
+    @staticmethod
+    def from_dict(data: dict) -> 'Word':
+        word = Word(text=data["text"], tags=set([Tag.from_dict(tag) for tag in data["tags"]]), max_layout=ElementLayout.from_dict(data["max_layout"]), time=TimeFragment.from_dict(data["time"]))
+        word._clips.set_all([WordClip.from_dict(clip) for clip in data["clips"]])
+        return word
 
     @property
     def clips(self) -> 'ElementContainer[WordClip]':
@@ -100,6 +151,15 @@ class Line:
     def __post_init__(self):
         self._words = ElementContainer(self)
 
+    def to_dict(self) -> dict:
+        return {"words": [word.to_dict() for word in self.words], "tags": [tag.to_dict() for tag in self.tags], "max_layout": self.max_layout.to_dict(), "time": self.time.to_dict()}
+
+    @staticmethod
+    def from_dict(data: dict) -> 'Line':
+        line = Line(tags=set([Tag.from_dict(tag) for tag in data["tags"]]), max_layout=ElementLayout.from_dict(data["max_layout"]), time=TimeFragment.from_dict(data["time"]))
+        line._words.set_all([Word.from_dict(word) for word in data["words"]])
+        return line
+
     @property
     def words(self) -> 'ElementContainer[Word]':
         return self._words
@@ -130,6 +190,15 @@ class Segment:
     def __post_init__(self):
         self._lines = ElementContainer(self)
 
+    def to_dict(self) -> dict:
+        return {"lines": [line.to_dict() for line in self.lines], "tags": [tag.to_dict() for tag in self.tags], "max_layout": self.max_layout.to_dict(), "time": self.time.to_dict()}
+
+    @staticmethod
+    def from_dict(data: dict) -> 'Segment':
+        segment = Segment(tags=set([Tag.from_dict(tag) for tag in data["tags"]]), max_layout=ElementLayout.from_dict(data["max_layout"]), time=TimeFragment.from_dict(data["time"]))
+        segment._lines.set_all([Line.from_dict(line) for line in data["lines"]])
+        return segment
+
     @property
     def lines(self) -> 'ElementContainer[Line]':
         return self._lines
@@ -156,6 +225,15 @@ class Document:
 
     def __post_init__(self):
         self._segments = ElementContainer(self)
+
+    def to_dict(self) -> dict:
+        return {"segments": [segment.to_dict() for segment in self.segments]}
+
+    @staticmethod
+    def from_dict(data: dict) -> 'Document':
+        document = Document()
+        document._segments.set_all([Segment.from_dict(segment) for segment in data["segments"]])
+        return document
 
     @property
     def segments(self) -> 'ElementContainer[Segment]':

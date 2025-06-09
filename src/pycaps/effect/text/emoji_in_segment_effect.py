@@ -101,7 +101,8 @@ class EmojiInSegmentEffect(TextEffect):
         if align == EmojiAlign.RANDOM:
             align = random.choice([EmojiAlign.BOTTOM, EmojiAlign.TOP])
 
-        time = TimeFragment(start=segment.time.start, end=segment.time.end)
+        moment = segment.time.start if align == EmojiAlign.TOP else segment.time.end
+        time = TimeFragment(start=moment, end=moment)
         new_line = Line(time=time)
         emoji_word = Word(text=emoji, tags={BuiltinTag.EMOJI_FOR_SEGMENT}, time=time)
         new_line.words.add(emoji_word)

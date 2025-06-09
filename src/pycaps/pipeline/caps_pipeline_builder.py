@@ -69,6 +69,14 @@ class CapsPipelineBuilder:
     def with_custom_audio_transcriber(self, audio_transcriber: AudioTranscriber) -> "CapsPipelineBuilder":
         self._caps_pipeline._transcriber = audio_transcriber
         return self
+
+    def with_subtitle_data_path(self, subtitle_data_path: str) -> "CapsPipelineBuilder":
+        self._caps_pipeline._subtitle_data_path_for_loading = subtitle_data_path
+        return self
+    
+    def should_save_subtitle_data(self, should_save: bool) -> "CapsPipelineBuilder":
+        self._caps_pipeline._should_save_subtitle_data = should_save
+        return self
     
     def add_segment_splitter(self, segment_splitter: BaseSegmentSplitter) -> "CapsPipelineBuilder":
         self._caps_pipeline._segment_splitters.append(segment_splitter)
