@@ -13,6 +13,7 @@ from typing import Optional, List, Dict, Any
 from pathlib import Path
 from .subtitle_data_service import SubtitleDataService
 from moviepy.editor import VideoClip
+from .transcription_previewer import TranscriptionPreviewer
 
 class CapsPipeline:
     def __init__(self):
@@ -29,6 +30,7 @@ class CapsPipeline:
         self._sound_effects: List[SoundEffect] = []
         self._should_save_subtitle_data: bool = True
         self._subtitle_data_path_for_loading: Optional[str] = None
+        self._should_preview_transcription: bool = False
 
         layout_options = SubtitleLayoutOptions()
         self._positions_calculator: PositionsCalculator = PositionsCalculator(layout_options)
@@ -59,6 +61,10 @@ class CapsPipeline:
                 subtitle_data_path = self._output_video_path.replace(os.path.splitext(self._input_video_path)[1], ".json")
                 subtitle_data_service = SubtitleDataService(subtitle_data_path)
                 subtitle_data_service.save(document)
+            
+            if self._should_preview_transcription:
+                document = TranscriptionPreviewer().preview(document)
+                return
 
             print("Generating subtitle clips...")
             self._clips_generator.generate(document)

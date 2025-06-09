@@ -30,7 +30,7 @@ class JsonConfigLoader:
             self._config = JsonSchema(**self._data)
             self._builder = CapsPipelineBuilder()
             if self._config.css:
-                self._builder.with_css(os.path.join(base_path, self._config.css))
+                self._builder.add_css(os.path.join(base_path, self._config.css))
             if self._config.input:
                 self._builder.with_input_video(os.path.join(base_path, self._config.input))
             if self._config.output:

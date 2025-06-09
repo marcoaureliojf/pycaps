@@ -55,11 +55,15 @@ class CapsPipelineBuilder:
         self._caps_pipeline._positions_calculator = PositionsCalculator(layout_options)
         return self
     
-    def with_css(self, css_file_path: str) -> "CapsPipelineBuilder":
+    def add_css(self, css_file_path: str) -> "CapsPipelineBuilder":
         if not os.path.exists(css_file_path):
             raise ValueError(f"CSS file not found: {css_file_path}")
         css_content = open(css_file_path, "r", encoding="utf-8").read()
-        self._caps_pipeline._renderer.set_custom_css(css_content)
+        self._caps_pipeline._renderer.append_css(css_content)
+        return self
+    
+    def add_css_content(self, css_content: str) -> "CapsPipelineBuilder":
+        self._caps_pipeline._renderer.append_css(css_content)
         return self
     
     def with_whisper_config(self, language: Optional[str] = None, model_size: str = "base") -> "CapsPipelineBuilder":
@@ -76,6 +80,10 @@ class CapsPipelineBuilder:
     
     def should_save_subtitle_data(self, should_save: bool) -> "CapsPipelineBuilder":
         self._caps_pipeline._should_save_subtitle_data = should_save
+        return self
+    
+    def should_preview_transcription(self, should_preview: bool) -> "CapsPipelineBuilder":
+        self._caps_pipeline._should_preview_transcription = should_preview
         return self
     
     def add_segment_splitter(self, segment_splitter: BaseSegmentSplitter) -> "CapsPipelineBuilder":
@@ -102,9 +110,15 @@ class CapsPipelineBuilder:
         self._caps_pipeline._sound_effects.append(effect)
         return self
 
-    def build(self) -> CapsPipeline:
+    def build(self, preview_time: Optional[tuple[float, float]] = None) -> CapsPipeline:
         if not self._caps_pipeline._input_video_path:
             raise ValueError("Input video path is required")
+        if preview_time:
+            self.with_video_resolution(VideoResolution._360P)
+            self.with_fps(20)
+            self.should_save_subtitle_data(False)
+            self._caps_pipeline._video_generator.set_fragment_time(preview_time)
+        
         pipeline = self._caps_pipeline
         self._caps_pipeline = CapsPipeline()
         return pipeline

@@ -31,8 +31,8 @@ class CssSubtitleRenderer():
         self._current_line: Optional[Line] = None
         self._current_line_state: Optional[ElementState] = None
 
-    def set_custom_css(self, custom_css: str):
-        self._custom_css = custom_css
+    def append_css(self, css: str):
+        self._custom_css += css
         self._cache = RenderedImageCache(self._custom_css)
 
     def open(self, video_width: int, video_height: int, resources_dir: Optional[Path] = None):
@@ -44,7 +44,15 @@ class CssSubtitleRenderer():
 
         self.tempdir = tempfile.TemporaryDirectory()
         self.playwright_context = sync_playwright().start()
-        self.browser = self.playwright_context.chromium.launch()
+        try:
+            self.browser = self.playwright_context.chromium.launch()
+        except Exception as e:
+            raise RuntimeError(
+                "Playwright Chromium browser is not installed or failed to launch.\n"
+                "You can install it by running:\n\n"
+                "    playwright install chromium\n\n"
+                f"Full error:\n{str(e)}"
+            ) from e
         context = self.browser.new_context(device_scale_factor=self.DEFAULT_DEVICE_SCALE_FACTOR, viewport={"width": video_width, "height": calculated_vp_height})
         self.page = context.new_page()
         self._copy_resources_to_tempdir(resources_dir)

@@ -5,3 +5,4 @@ __pycache__
 ideas.md
 *.png
 examples/*.json
+*.egg-info/

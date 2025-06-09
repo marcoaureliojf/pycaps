@@ -8,11 +8,11 @@ version = "0.1.0"
 authors = [
   { name="Franco Zanardi", email="francozanardi97@gmail.com" },
 ]
-description = "A Python tool to automatically generate and add styled subtitles and karaoke effects to videos."
+description = "A Python tool to edit videos and automatically add CSS-styled subtitles to videos."
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT License"}
-keywords = ["video", "subtitles", "karaoke", "whisper", "moviepy", "captions"]
+keywords = ["video", "subtitles", "video editing", "whisper", "moviepy", "captions"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -30,12 +30,23 @@ classifiers = [
 ]
 
 dependencies = [
+    "moviepy==1.0.3",
     "openai-whisper",
-    "moviepy",
-    "playwright"
+    "playwright",
+    "Pillow",
+    "numpy",
+    "opencv-python",
+    "pydantic",
+    "typer[all]",
 ]
+
+[project.scripts]
+pycaps = "pycaps.cli:app"
 
 [project.urls]
 "Homepage" = "https://github.com/francozanardi/pycaps"
 "Repository" = "https://github.com/francozanardi/pycaps"
 "Bug Tracker" = "https://github.com/francozanardi/pycaps/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]

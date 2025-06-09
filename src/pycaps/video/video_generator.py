@@ -18,6 +18,7 @@ class VideoGenerator:
         self._final_video: Optional[VideoFileClip] = None
         self._video_clip: Optional[VideoFileClip] = None
         self._video_resolution: Optional[VideoResolution] = None
+        self._fragment_time: Optional[tuple[float, float]] = None
 
     def set_audio_path(self, audio_path: str):
         self._audio_path = audio_path
@@ -28,6 +29,9 @@ class VideoGenerator:
     def set_video_resolution(self, resolution: VideoResolution):
         self._video_resolution = resolution
 
+    def set_fragment_time(self, fragment_time: tuple[float, float]):
+        self._fragment_time = fragment_time
+
     def start(self, input_video_path: str, output_video_path: str):
         if not os.path.exists(input_video_path):
             print(f"Error: Input video file not found: {input_video_path}")
@@ -36,6 +40,11 @@ class VideoGenerator:
         self._input_video_path = input_video_path
         self._output_video_path = output_video_path
         self._video_clip = VideoFileClip(self._input_video_path)
+        if self._fragment_time:
+            start = min(max(self._fragment_time[0], 0), self._video_clip.duration - 2)
+            end = min(max(self._fragment_time[1], 0), self._video_clip.duration)
+            self._video_clip = self._video_clip.subclip(start, end)
+
         should_extract_audio = self._audio_path is None
         self._audio_path = self._get_audio_path_to_transcribe(self._video_clip)
         self._is_temp_audio_file = should_extract_audio and self._audio_path is not None and os.path.exists(self._audio_path)
