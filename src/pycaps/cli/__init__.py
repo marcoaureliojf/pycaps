@@ -1,1 +1,1 @@
-from .render import app
+from .cli import app

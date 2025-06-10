@@ -27,4 +27,9 @@ class TemplateLoader:
         if should_build_pipeline:
             return builder.build()
         return builder
+    
+    @staticmethod
+    def list_templates() -> list[str]:
+        template_path = resources.files(TemplateLoader.TEMPLATE_FOLDER_NAME)
+        return [p.name for p in template_path.iterdir() if p.is_dir()]
 
