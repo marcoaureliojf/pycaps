@@ -313,14 +313,13 @@
     </style>
 </head>
 <body>
-    <div id="editor-container"></div>
+    <div id="editor-container">Loading...</div>
     
     <div class="footer-controls">
         <button id="cancel-btn">Cancel</button>
         <button id="save-btn">Save and Close</button>
     </div>
 
-    <!-- Modal para editar tags -->
     <div id="tag-modal" class="modal-overlay">
         <div class="modal">
             <h3>Your default tags</h3>
@@ -334,11 +333,43 @@
     </div>
 
     <script>
-        const initialDocument = JSON.parse(`{{document}}`);
-    </script>
+        function waitForPywebviewReady() {
+            function isPywebviewReady() {
+                if (!window.pywebview || !window.pywebview.api) {
+                    return false;
+                }
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
+                const apis = [
+                    "get_document_as_json",
+                    "save",
+                    "cancel"
+                ]
+                for (const api of apis) {
+                    if (typeof window.pywebview.api[api] !== "function") {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return new Promise((resolve, reject) => {
+                if (isPywebviewReady()) {
+                    resolve();
+                } else {
+                    const interval = setInterval(() => {
+                        if (isPywebviewReady()) {
+                            clearInterval(interval);
+                            resolve(window.pywebview.api);
+                        }
+                    }, 100);
+                }
+            });
+        }
+
+        async function main() {
+            const api = await waitForPywebviewReady()
+            const initialDocument = await api.get_document_as_json();
             const editorContainer = document.getElementById('editor-container');
             const tagModal = document.getElementById('tag-modal');
             let documentState = JSON.parse(JSON.stringify(initialDocument));
@@ -477,7 +508,7 @@
 
             function editWordText(segIndex, lineIndex, wordIndex) {
                 const word = documentState.segments[segIndex].lines[lineIndex].words[wordIndex];
-                const newText = prompt('Edit word:', word.text);
+                const newText = prompt('Edit word (use [SPACE] key to split words):', word.text);
                 
                 if (!newText || !newText.trim()) {
                     return;
@@ -682,15 +713,17 @@
                     }
                 });
 
-                window.pywebview.api.save(documentState);
+                api.save(documentState);
             });
 
             document.getElementById('cancel-btn').addEventListener('click', () => {
-                window.pywebview.api.cancel();
+                api.cancel();
             });
 
             render();
-        });
+        }
+
+        main();
     </script>
 </body>
 </html>
