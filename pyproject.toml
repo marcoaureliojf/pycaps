@@ -38,6 +38,7 @@ dependencies = [
     "opencv-python",
     "pydantic",
     "typer[all]",
+    "pywebview",
 ]
 
 [project.scripts]

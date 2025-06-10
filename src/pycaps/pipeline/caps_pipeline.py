@@ -13,7 +13,7 @@ from typing import Optional, List, Dict, Any
 from pathlib import Path
 from .subtitle_data_service import SubtitleDataService
 from moviepy.editor import VideoClip
-from .transcription_previewer import TranscriptionPreviewer
+from pycaps.transcriber import TranscriptionEditor
 
 class CapsPipeline:
     def __init__(self):
@@ -61,10 +61,6 @@ class CapsPipeline:
                 subtitle_data_path = self._output_video_path.replace(os.path.splitext(self._input_video_path)[1], ".json")
                 subtitle_data_service = SubtitleDataService(subtitle_data_path)
                 subtitle_data_service.save(document)
-            
-            if self._should_preview_transcription:
-                document = TranscriptionPreviewer().preview(document)
-                return
 
             print("Generating subtitle clips...")
             self._clips_generator.generate(document)
@@ -148,6 +144,10 @@ class CapsPipeline:
 
         print("Splitting segments into lines...")
         self._line_splitter.split_into_lines(document, video_clip.w)
+
+        if self._should_preview_transcription:
+            # we need to run this before tagging, because it could change the document structure
+            document = TranscriptionEditor().run(document)
 
         print("Tagging words with semantic information...")
         self._semantic_tagger.tag(document)

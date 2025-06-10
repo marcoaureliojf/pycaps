@@ -34,8 +34,7 @@ class VideoGenerator:
 
     def start(self, input_video_path: str, output_video_path: str):
         if not os.path.exists(input_video_path):
-            print(f"Error: Input video file not found: {input_video_path}")
-            return
+            raise FileNotFoundError(f"Error: Input video file not found: {input_video_path}")
 
         self._input_video_path = input_video_path
         self._output_video_path = output_video_path

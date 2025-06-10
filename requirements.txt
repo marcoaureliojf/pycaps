@@ -6,3 +6,4 @@ numpy
 opencv-python
 pydantic
 typer[all]
+pywebview

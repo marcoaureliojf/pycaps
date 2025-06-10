@@ -2,6 +2,7 @@
 from .base_transcriber import AudioTranscriber
 from .whisper_audio_transcriber import WhisperAudioTranscriber
 from .splitter import LimitByWordsSplitter, LimitByCharsSplitter, BaseSegmentSplitter, SplitIntoSentencesSplitter
+from .editor import TranscriptionEditor
 
 __all__ = [
     "AudioTranscriber",
@@ -10,4 +11,5 @@ __all__ = [
     "LimitByCharsSplitter",
     "BaseSegmentSplitter",
     "SplitIntoSentencesSplitter",
+    "TranscriptionEditor",
 ]
