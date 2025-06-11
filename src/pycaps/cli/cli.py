@@ -87,6 +87,7 @@ def list_templates():
 @app.command("preview-styles", help="Preview a CSS file or the CSS styles of a template")
 def preview_styles(
     css: Optional[str] = typer.Option(None, "--css", help="CSS file path"),
+    resources: Optional[str] = typer.Option(None, "--resources", help="Resources directory path. It is used only if --css is provided"),
     template: Optional[str] = typer.Option(None, "--template", help="Template name. If no template and no css is provided, the default template will be used"),
 ):
     if not css and not template:
@@ -98,8 +99,10 @@ def preview_styles(
     
     if css:
         css_content = open(css, "r", encoding="utf-8").read()
-        CssSubtitlePreviewer().run(css_content)
+        CssSubtitlePreviewer().run(css_content, resources)
     elif template:
-        # TODO: This breaks encapsulation to get the CSS content of the template
-        css_content = TemplateLoader(template).load(False)._caps_pipeline._renderer._custom_css
-        CssSubtitlePreviewer().run(css_content)
+        # TODO: This breaks encapsulation to get the CSS content and the resources directory of the template
+        builder = TemplateLoader(template).load(False)
+        css_content = builder._caps_pipeline._renderer._custom_css
+        resources_dir = builder._caps_pipeline._resources_dir
+        CssSubtitlePreviewer().run(css_content, resources_dir)

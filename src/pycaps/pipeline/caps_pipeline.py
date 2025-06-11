@@ -105,13 +105,6 @@ class CapsPipeline:
             print("Cleanup finished.")
             print(f"Total time: {time.time() - start_time} seconds")
 
-    # TODO: improve preview: we should register all the existing css classes (and keys),
-    # and then allow viewing a word example with any of those classes
-    # for that, we could generate a simple preview page with a dropdown and a container for the word.
-    def preview(self) -> None:
-        self._renderer.preview()
-        input("Press [ENTER] to finish preview...")
-
     def _generate_subtitle_data(self, video_clip: VideoClip) -> Document:
         if self._subtitle_data_path_for_loading:
             print("Loading subtitle data...")

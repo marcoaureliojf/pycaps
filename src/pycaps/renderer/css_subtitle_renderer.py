@@ -2,10 +2,9 @@ from playwright.sync_api import sync_playwright, Page, Browser, Playwright
 from pathlib import Path
 import tempfile
 from PIL.Image import Image
-from typing import Optional, List
+from typing import Optional
 from pycaps.common import Word, ElementState, Line
 import shutil
-import webbrowser
 from .rendered_image_cache import RenderedImageCache
 from .playwright_screenshot_capturer import PlaywrightScreenshotCapturer
 from .renderer_page import RendererPage
@@ -58,15 +57,6 @@ class CssSubtitleRenderer():
         self._copy_resources_to_tempdir(resources_dir)
         path = self._create_html_page()
         self.page.goto(path.as_uri())
-    
-    # TODO: remove this
-    def preview(self) -> None:
-        if not self.tempdir:
-            self.tempdir = tempfile.TemporaryDirectory()
-
-        self._copy_resources_to_tempdir()
-        path = self._create_html_page()
-        webbrowser.open(path.as_uri())
 
     def _create_html_page(self) -> Path:
         if not self.tempdir:

@@ -9,6 +9,7 @@ class RendererPage:
     def get_html(
             self,
             custom_css: str = "",
+            base_url: Optional[str] = None,
             segment_tags: list[Tag] = [],
             line_tags: list[Tag] = [],
             line_state: ElementState = ElementState.LINE_NOT_NARRATED_YET,
@@ -21,6 +22,7 @@ class RendererPage:
         <html>
         <head>
             <meta charset="UTF-8">
+            {f"<base href=\"{base_url}\">" if base_url else ""}
             <style>
                 html, body {{
                     margin: 0;
