@@ -1,6 +1,6 @@
 from .json_config_loader import JsonConfigLoader
 import importlib.resources as resources
-from typing import overload, Literal
+from typing import overload, Literal, Optional
 from pycaps.pipeline import CapsPipeline, CapsPipelineBuilder
 
 class TemplateLoader:
@@ -8,9 +8,13 @@ class TemplateLoader:
     TEMPLATE_FOLDER_NAME = "pycaps.templates"
     CONFIG_FILE_NAME = "config.json"
 
-    def __init__(self, input_video_path: str, template_name: str = DEFAULT_TEMPLATE_NAME):
+    def __init__(self, template_name: str = DEFAULT_TEMPLATE_NAME):
+        self._template: str = template_name
+        self._input_video_path: Optional[str] = None
+
+    def with_input_video(self, input_video_path: str) -> "TemplateLoader":
         self._input_video_path = input_video_path
-        self._template = template_name
+        return self
 
     @overload
     def load(self, should_build_pipeline: Literal[True] = True) -> CapsPipeline:
@@ -23,7 +27,8 @@ class TemplateLoader:
         config_path = template_path.joinpath(self.CONFIG_FILE_NAME)
         json_config_loader = JsonConfigLoader(config_path.as_posix())
         builder = json_config_loader.load(False)
-        builder.with_input_video(self._input_video_path)
+        if self._input_video_path:
+            builder.with_input_video(self._input_video_path)
         if should_build_pipeline:
             return builder.build()
         return builder

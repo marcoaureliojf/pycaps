@@ -8,14 +8,13 @@ import shutil
 import webbrowser
 from .rendered_image_cache import RenderedImageCache
 from .playwright_screenshot_capturer import PlaywrightScreenshotCapturer
+from .renderer_page import RendererPage
 
 class CssSubtitleRenderer():
 
     DEFAULT_DEVICE_SCALE_FACTOR: int = 2
     DEFAULT_VIEWPORT_HEIGHT_RATIO: float = 0.25
     DEFAULT_MIN_VIEWPORT_HEIGHT: int = 150
-    DEFAULT_CSS_CLASS_FOR_EACH_WORD: str = "word"
-    DEFAULT_CSS_CLASS_FOR_EACH_LINE: str = "line"
 
     def __init__(self):
         """
@@ -30,6 +29,7 @@ class CssSubtitleRenderer():
         self._cache: RenderedImageCache = RenderedImageCache(self._custom_css)
         self._current_line: Optional[Line] = None
         self._current_line_state: Optional[ElementState] = None
+        self._renderer_page: RendererPage = RendererPage()
 
     def append_css(self, css: str):
         self._custom_css += css
@@ -59,58 +59,20 @@ class CssSubtitleRenderer():
         path = self._create_html_page()
         self.page.goto(path.as_uri())
     
-    # TODO: improve preview
+    # TODO: remove this
     def preview(self) -> None:
         if not self.tempdir:
             self.tempdir = tempfile.TemporaryDirectory()
 
         self._copy_resources_to_tempdir()
-        path = self._create_html_page("Hello, world")
+        path = self._create_html_page()
         webbrowser.open(path.as_uri())
 
-    def _create_html_page(self, text: str = "") -> Path:
+    def _create_html_page(self) -> Path:
         if not self.tempdir:
             raise RuntimeError("self.tempdir is not defined. Do you call open() first?")
         
-        html_template = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                html, body {{
-                    margin: 0;
-                    padding: 0;
-                    width: 100%;
-                    height: 100%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    overflow: hidden;
-                    font-family: sans-serif;
-                }} 
-
-                #subtitle-container {{
-                    display: inline-block;
-                }}
-
-                .{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE} {{
-                    display: flex;
-                    width: fit-content;
-                }}
-
-                {self._custom_css}
-            </style>
-        </head>
-        <body>
-            <div id="subtitle-container">
-                <div class="{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE}">
-                    <span class="{self.DEFAULT_CSS_CLASS_FOR_EACH_WORD}">{text}</span>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
+        html_template = self._renderer_page.get_html(custom_css=self._custom_css)
         html_path = Path(self.tempdir.name) / "renderer_base.html"
         html_path.write_text(html_template, encoding="utf-8")
         return html_path
@@ -138,25 +100,23 @@ class CssSubtitleRenderer():
         self._current_line_state = line_state
 
         script = f"""
-        ([text, cssClassesForWords, cssClassesForLine, lineState]) => {{
-            const line = document.querySelector('.{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE}');
+        ([text, cssClassesForLine, cssClassesForWords]) => {{
+            const line = document.querySelector('.{RendererPage.DEFAULT_CSS_CLASS_FOR_EACH_LINE}');
             line.innerHTML = '';
-            line.className = `{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE} ${{cssClassesForLine}} ${{lineState}}`;
+            line.className = cssClassesForLine;
             const words = text.split(' ');
             words.forEach((word, index) => {{
                 const wordElement = document.createElement('span');
-                const cssClasses = cssClassesForWords[index];
+                const cssClassesForWord = cssClassesForWords[index];
                 wordElement.textContent = word;
-                wordElement.className = `{self.DEFAULT_CSS_CLASS_FOR_EACH_WORD} word-${{index}}-in-line ${{cssClasses}}`;
+                wordElement.className = cssClassesForWord;
                 line.appendChild(wordElement);
             }});
         }}
         """
-        tags_to_string = lambda tags: " ".join([t.name for t in tags])
-        tags_per_word = [word.tags for word in line.words]
-        css_classes_for_words = [tags_to_string(tags) for tags in tags_per_word]
-        css_classes_for_line = tags_to_string(line.get_segment().tags) + " " + tags_to_string(line.tags)
-        self.page.evaluate(script, [line.get_text(), css_classes_for_words, css_classes_for_line, line_state.value])
+        line_css_classes = self._renderer_page.get_line_css_classes(line.get_segment().tags, line.tags, line_state)
+        words_css_classes = [self._renderer_page.get_word_css_classes(word.tags, index) for index, word in enumerate(line.words)]
+        self.page.evaluate(script, [line.get_text(), line_css_classes, words_css_classes])
    
     def render_word(self, index: int, word: Word, state: ElementState, first_n_letters: Optional[int] = None) -> Optional[Image]:
         if not self.page:
@@ -232,33 +192,39 @@ class CssSubtitleRenderer():
         self._current_line = None
         self._current_line_state = None
         
-    def get_word_size(self, word: Word, states: List[ElementState] = []) -> int:
+    def get_word_size(self, word: Word, line_state: ElementState, word_state: ElementState) -> int:
         if not self.page:
             raise RuntimeError("Renderer is not open. Call open() first.")
         if self._current_line:
             raise RuntimeError("A line process is in progress. Call close_line() first.")
         
-        css_classes = [t.name for t in word.tags] + [s.value for s in states]
-        if self._cache.has(word.text, css_classes):
-            return self._cache.get(word.text, css_classes)
+        line_css_classes = self._renderer_page.get_line_css_classes(word.get_segment().tags, word.get_line().tags, line_state)
+        word_css_classes = self._renderer_page.get_word_css_classes(word.tags, word_state=word_state)
+        
+        # TODO: review this
+        cache_key = line_css_classes + " " + word_css_classes
+        if self._cache.has(word.text, cache_key):
+            return self._cache.get(word.text, cache_key)
 
         script = f"""
-        ([text, cssClasses]) => {{
-            const line = document.querySelector('.{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE}');
+        ([text, lineCssClasses, wordCssClasses]) => {{
+            const line = document.querySelector('.{RendererPage.DEFAULT_CSS_CLASS_FOR_EACH_LINE}');
             line.innerHTML = '';
+            line.className = lineCssClasses;
             const wordElement = document.createElement('span');
             wordElement.textContent = text;
-            wordElement.className = `{self.DEFAULT_CSS_CLASS_FOR_EACH_WORD} ${{cssClasses}}`;
+            wordElement.className = wordCssClasses;
             line.appendChild(wordElement);
         }}
         """
-        self.page.evaluate(script, [word.text, " ".join(css_classes)])
+        self.page.evaluate(script, [word.text, line_css_classes, word_css_classes])
         
-        locator = self.page.locator(f".{self.DEFAULT_CSS_CLASS_FOR_EACH_LINE} > .{self.DEFAULT_CSS_CLASS_FOR_EACH_WORD}")
+        locator = self.page.locator(f".{RendererPage.DEFAULT_CSS_CLASS_FOR_EACH_LINE} > .{RendererPage.DEFAULT_CSS_CLASS_FOR_EACH_WORD}")
         bounding_box = locator.bounding_box()
         if not bounding_box or bounding_box['width'] <= 0 or bounding_box['height'] <= 0:
             return None
 
+        # TODO: I think this is not precise, but it could be enough to create the structure
         return int(bounding_box['width'] * self.DEFAULT_DEVICE_SCALE_FACTOR), int(bounding_box['height'] * self.DEFAULT_DEVICE_SCALE_FACTOR)
 
     def close(self):

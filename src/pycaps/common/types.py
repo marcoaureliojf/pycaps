@@ -26,16 +26,6 @@ class ElementState(str, Enum):
     LINE_BEING_NARRATED = "line-being-narrated"
     LINE_NOT_NARRATED_YET = "line-not-narrated-yet"
     LINE_ALREADY_NARRATED = "line-already-narrated"
-
-    @staticmethod
-    def get_all_valid_states_combinations() -> List[List['ElementState']]:
-        return [
-            [ElementState.LINE_NOT_NARRATED_YET, ElementState.WORD_NOT_NARRATED_YET],
-            [ElementState.LINE_BEING_NARRATED, ElementState.WORD_NOT_NARRATED_YET],
-            [ElementState.LINE_BEING_NARRATED, ElementState.WORD_BEING_NARRATED],
-            [ElementState.LINE_BEING_NARRATED, ElementState.WORD_ALREADY_NARRATED],
-            [ElementState.LINE_ALREADY_NARRATED, ElementState.WORD_ALREADY_NARRATED],
-        ]
     
     @staticmethod
     def get_all_line_states() -> List['ElementState']:
@@ -43,4 +33,12 @@ class ElementState(str, Enum):
             ElementState.LINE_NOT_NARRATED_YET,
             ElementState.LINE_BEING_NARRATED,
             ElementState.LINE_ALREADY_NARRATED,
+        ]
+    
+    @staticmethod
+    def get_all_word_states() -> List['ElementState']:
+        return [
+            ElementState.WORD_NOT_NARRATED_YET,
+            ElementState.WORD_BEING_NARRATED,
+            ElementState.WORD_ALREADY_NARRATED,
         ]

@@ -30,9 +30,8 @@ class _Api:
 class TranscriptionEditor:
 
     def run(self, document: Document) -> Document:
-        template_path = os.path.join(os.path.dirname(__file__), 'editor.html')
-        with open(template_path, 'r', encoding='utf-8') as f:
-            html_content = f.read()
+        html_file_path = os.path.join(os.path.dirname(__file__), 'editor.html')
+        html_content = open(html_file_path, 'r', encoding='utf-8').read()
 
         window_title = "Subtitle Editor"
         api = _Api(document)
@@ -44,7 +43,7 @@ class TranscriptionEditor:
             resizable=True,
             js_api=api
         )
-        webview.start(debug=True)
+        webview.start()
         
         result_document = api.get_result_document()
         if result_document:

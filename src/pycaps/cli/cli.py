@@ -3,6 +3,7 @@ from typing import Optional
 from pycaps.logger import set_logging_level
 import logging
 from pycaps.pipeline import JsonConfigLoader, TemplateLoader
+from pycaps.renderer import CssSubtitlePreviewer
 
 app = typer.Typer(
     help="Pycaps, a tool for adding CSS-styled subtitles to videos",
@@ -49,13 +50,13 @@ def render(
             return None
         final_preview = tuple(map(float, preview_time.split(","))) if preview_time else (0, 10)
         if len(final_preview) != 2 or final_preview[0] < 0 or final_preview[1] < 0 or final_preview[0] >= final_preview[1]:
-            typer.BadParameter(f"Invalid preview time: {final_preview}, example: --preview-time=10,15", err=True)
+            typer.echo(f"Invalid preview time: {final_preview}, example: --preview-time=10,15", err=True)
             return None
         return final_preview
 
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
     if template and config_file:
-        typer.BadParameter("Only one of --template or --config can be provided", err=True)
+        typer.echo("Only one of --template or --config can be provided", err=True)
         return None
     
     if not template and not config_file:
@@ -82,3 +83,23 @@ def list_templates():
     templates = TemplateLoader.list_templates()
     for template in templates:
         typer.echo(f"- {template}")
+
+@app.command("preview-styles", help="Preview a CSS file or the CSS styles of a template")
+def preview_styles(
+    css: Optional[str] = typer.Option(None, "--css", help="CSS file path"),
+    template: Optional[str] = typer.Option(None, "--template", help="Template name. If no template and no css is provided, the default template will be used"),
+):
+    if not css and not template:
+        typer.echo("Either --css or --template must be provided. Use --help for more information", err=True)
+        return None
+    if css and template:
+        typer.echo("Only one of --css or --template can be provided. Use --help for more information", err=True)
+        return None
+    
+    if css:
+        css_content = open(css, "r", encoding="utf-8").read()
+        CssSubtitlePreviewer().run(css_content)
+    elif template:
+        # TODO: This breaks encapsulation to get the CSS content of the template
+        css_content = TemplateLoader(template).load(False)._caps_pipeline._renderer._custom_css
+        CssSubtitlePreviewer().run(css_content)
