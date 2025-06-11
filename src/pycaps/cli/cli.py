@@ -64,7 +64,7 @@ def render(
     
     if template:
         typer.echo(f"Rendering {input} with template {template}...")
-        builder = TemplateLoader(input, template).load(False)
+        builder = TemplateLoader(template).with_input_video(input).load(False)
     elif config_file:
         typer.echo(f"Rendering {input} with config file {config_file}...")
         builder = JsonConfigLoader(config_file).load(False)
