@@ -15,5 +15,5 @@ class Gpt(Llm):
         if self._client:
             return self._client
 
-        self._client = OpenAI(api_key=os.getenv("OPENAI_API_KEY")) # TODO: allow inject key
+        self._client = OpenAI(api_key=os.getenv("PYCAPS_OPENAI_API_KEY"))
         return self._client
