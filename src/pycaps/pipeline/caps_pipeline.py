@@ -35,10 +35,10 @@ class CapsPipeline:
         self._subtitle_data_path_for_loading: Optional[str] = None
         self._should_preview_transcription: bool = False
 
-        layout_options = SubtitleLayoutOptions()
-        self._positions_calculator: PositionsCalculator = PositionsCalculator(layout_options)
-        self._line_splitter: LineSplitter = LineSplitter(layout_options)
-        self._layout_updater: LayoutUpdater = LayoutUpdater(layout_options)
+        self._layout_options = SubtitleLayoutOptions()
+        self._positions_calculator: PositionsCalculator = PositionsCalculator(self._layout_options)
+        self._line_splitter: LineSplitter = LineSplitter(self._layout_options)
+        self._layout_updater: LayoutUpdater = LayoutUpdater(self._layout_options)
 
         self._input_video_path: Optional[str] = None
         self._output_video_path: Optional[str] = None

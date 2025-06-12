@@ -25,4 +25,5 @@
 .emoji-for-segment {
     text-shadow: 1px 1px 2px black;
     font-size: 32px;
+    color: #FFFFFF !important;
 }

@@ -5,6 +5,7 @@ import logging
 from pycaps.pipeline import JsonConfigLoader, TemplateLoader
 from pycaps.renderer import CssSubtitlePreviewer
 from pycaps.common import VideoQuality
+from pycaps.layout import VerticalAlignmentType, SubtitleLayoutOptions
 
 app = typer.Typer(
     help="Pycaps, a tool for adding CSS-styled subtitles to videos",
@@ -18,21 +19,28 @@ def main(ctx: typer.Context):
         typer.echo(ctx.get_help())
         raise typer.Exit()
 
-@app.command("render", help="Render a video with subtitles, using a template or a config file")
+@app.command("render", help="Render a video with subtitles using templates or custom configs. Supports Whisper transcription, styles override, layouts, and preview modes.")
 def render(
-    input: str = typer.Option(..., "--input", help="Input video file name"),
-    output: Optional[str] = typer.Option(None, "--output", help="Output video file name"),
-    template: Optional[str] = typer.Option(None, "--template", help="Template name. If no template and no config file is provided, the default template will be used"),
-    config_file: Optional[str] = typer.Option(None, "--config", help="Config JSON file path."),
-    transcription_preview: bool = typer.Option(False, "--transcription-preview", help="Stops the rendering process and shows an editable preview of the transcription"),
-    subtitle_data: Optional[str] = typer.Option(None, "--subtitle-data", help="Subtitle data file path. If provided, the rendering process will skip the transcription and tagging steps"),
-    style: list[str] = typer.Option(None, "--style", help="Override styles of the template, example: --style word.color=red"),
-    language: Optional[str] = typer.Option(None, "--lang", help="Language of the video, example: --lang=en"),
-    whisper_model: Optional[str] = typer.Option(None, "--whisper-model", help="Whisper model to use, example: --whisper-model=base"),
-    preview: bool = typer.Option(False, "--preview", help="Generate a low quality preview of the rendered video"),
-    preview_time: Optional[str] = typer.Option(None, "--preview-time", help="Generate a low quality preview of the rendered video at the given time, example: --preview-time=10,15"),
-    video_quality: Optional[str] = typer.Option(None, '--video-quality', help="Final video quality. Possible values are: 360p, 480p, 720p, 1080p, 2k, 4k"),
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose mode"),
+    input: str = typer.Option(..., "--input", help="Input video file name", rich_help_panel="Main options", show_default=False),
+    output: Optional[str] = typer.Option(None, "--output", help="Output video file name", rich_help_panel="Main options", show_default=False),
+    template: Optional[str] = typer.Option(None, "--template", help="Template name. If no template and no config file is provided, the default template will be used", rich_help_panel="Main options", show_default=False),
+    config_file: Optional[str] = typer.Option(None, "--config", help="Config JSON file path", rich_help_panel="Main options", show_default=False),
+    transcription_preview: bool = typer.Option(False, "--transcription-preview", help="Stops the rendering process and shows an editable preview of the transcription", rich_help_panel="Main options", show_default=False),
+
+    layout_align: Optional[VerticalAlignmentType] = typer.Option(None, "--layout-align", help="Vertical alignment for subtitles", rich_help_panel="Layout", show_default=False),
+    layout_align_offset: Optional[float] = typer.Option(None, "--layout-align-offset", help="Vertical alignment offset. Positive values move the subtitles down, negative values move them up", rich_help_panel="Layout", show_default=False),
+
+    style: list[str] = typer.Option(None, "--style", help="Override styles of the template, example: --style word.color=red", rich_help_panel="Style", show_default=False),
+
+    language: Optional[str] = typer.Option(None, "--lang", help="Language of the video, example: --lang=en", rich_help_panel="Whisper", show_default=False),
+    whisper_model: Optional[str] = typer.Option(None, "--whisper-model", help="Whisper model to use, example: --whisper-model=base", rich_help_panel="Whisper", show_default=False),
+
+    video_quality: Optional[VideoQuality] = typer.Option(None, "--video-quality", help="Final video quality. For default, it keeps same input video quality", rich_help_panel="Video", show_default=False),
+
+    preview: bool = typer.Option(False, "--preview", help="Generate a low quality preview of the rendered video", rich_help_panel="Utils"),
+    preview_time: Optional[str] = typer.Option(None, "--preview-time", help="Generate a low quality preview of the rendered video at the given time, example: --preview-time=10,15", rich_help_panel="Utils", show_default=False),
+    subtitle_data: Optional[str] = typer.Option(None, "--subtitle-data", help="Subtitle data file path. If provided, the rendering process will skip the transcription and tagging steps", rich_help_panel="Utils", show_default=False),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose mode", rich_help_panel="Utils"),
 ):
     def _parse_styles(styles: list[str]) -> str:
         parsed_styles = {}
@@ -55,6 +63,16 @@ def render(
             typer.echo(f"Invalid preview time: {final_preview}, example: --preview-time=10,15", err=True)
             return None
         return final_preview
+    
+    def _build_layout_options(align, offset) -> SubtitleLayoutOptions:
+        layout_align_offset = offset or 0
+        original_layout = builder._caps_pipeline._layout_options # TODO: fix this
+        original_vertical_align = original_layout.vertical_align
+        new_vertical_align = original_vertical_align.model_copy(update={
+            "align": align or original_vertical_align.align,
+            "offset": layout_align_offset or original_vertical_align.offset
+        })
+        return original_layout.model_copy(update={"vertical_align": new_vertical_align})
 
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
     if template and config_file:
@@ -73,10 +91,12 @@ def render(
         
     if output: builder.with_output_video(output)
     if style: builder.add_css_content(_parse_styles(style))
+    # TODO: this has a little issue (if you set lang via js + whisper model by cli, it will change the lang to None)
     if language or whisper_model: builder.with_whisper_config(language=language, model_size=whisper_model if whisper_model else "base")
     if subtitle_data: builder.with_subtitle_data_path(subtitle_data)
     if transcription_preview: builder.should_preview_transcription(True)
-    if video_quality: builder.with_video_quality(VideoQuality(video_quality))
+    if video_quality: builder.with_video_quality(video_quality)
+    if layout_align or layout_align_offset: builder.with_layout_options(_build_layout_options(layout_align, layout_align_offset))
 
     pipeline = builder.build(preview_time=_parse_preview(preview, preview_time))
     pipeline.run()
