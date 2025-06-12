@@ -1,8 +1,10 @@
 from ..animation import Animation
-from typing import List
+from typing import List, TYPE_CHECKING
 from pycaps.common import WordClip
-import numpy as np
 from pycaps.common import ElementType
+
+if TYPE_CHECKING:
+    import numpy as np
 
 class TypewritingAnimation(Animation):
     '''
@@ -22,6 +24,8 @@ class TypewritingAnimation(Animation):
         self._cached_letter_bounds = {}
 
     def run(self, clip: WordClip, offset: float, what: ElementType) -> None:
+        import numpy as np
+
         def fl(gf, t):
             frame = gf(t)
             t = t + offset
@@ -43,7 +47,9 @@ class TypewritingAnimation(Animation):
             clip.moviepy_clip.mask = clip.moviepy_clip.mask.fl(fl)
 
 
-    def _get_background_color(self, frame: np.ndarray) -> np.ndarray:
+    def _get_background_color(self, frame: 'np.ndarray') -> 'np.ndarray':
+        import numpy as np
+
         h, w, _ = frame.shape
         corners = np.array([
             frame[0, 0],
@@ -53,11 +59,15 @@ class TypewritingAnimation(Animation):
         ])
         return corners.mean(axis=0)
     
-    def _is_background(self, pixel: np.ndarray, bg_color: np.ndarray) -> bool:
+    def _is_background(self, pixel: 'np.ndarray', bg_color: 'np.ndarray') -> bool:
+        import numpy as np
+
         threshold = 30
         return np.linalg.norm(pixel[:3] - bg_color[:3]) < threshold 
     
-    def _get_letter_bounds(self, text: str, frame: np.ndarray) -> List[tuple]:
+    def _get_letter_bounds(self, text: str, frame: 'np.ndarray') -> List[tuple]:
+        import numpy as np
+        
         if text in self._cached_letter_bounds:
             return self._cached_letter_bounds[text]
         

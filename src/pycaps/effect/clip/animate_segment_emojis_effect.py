@@ -2,7 +2,6 @@ from .clip_effect import ClipEffect
 from pycaps.common import Document, WordClip
 from pycaps.tag import TagConditionFactory, BuiltinTag
 import os
-from moviepy.editor import VideoFileClip
 
 class AnimateSegmentEmojisEffect(ClipEffect):
 
@@ -17,6 +16,8 @@ class AnimateSegmentEmojisEffect(ClipEffect):
                 self.__animate_emoji_if_possible(clip)
 
     def __animate_emoji_if_possible(self, clip: WordClip) -> None:
+        from moviepy.editor import VideoFileClip
+
         emoji = clip.get_word().text
         unicode_hex = self._emoji_to_unicode_hex(emoji)
         animated_emoji_path = os.path.join(self.ANIMATED_EMOJIS_PATH, f"{unicode_hex}.mov")

@@ -9,11 +9,13 @@ from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
 from pycaps.effect import TextEffect, ClipEffect, SoundEffect
 from pycaps.common import Document
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, TYPE_CHECKING
 from pathlib import Path
 from .subtitle_data_service import SubtitleDataService
-from moviepy.editor import VideoClip
 from pycaps.transcriber import TranscriptionEditor
+
+if TYPE_CHECKING:
+    from moviepy.editor import VideoClip
 
 class CapsPipeline:
     def __init__(self):
@@ -105,7 +107,7 @@ class CapsPipeline:
             print("Cleanup finished.")
             print(f"Total time: {time.time() - start_time} seconds")
 
-    def _generate_subtitle_data(self, video_clip: VideoClip) -> Document:
+    def _generate_subtitle_data(self, video_clip: 'VideoClip') -> Document:
         if self._subtitle_data_path_for_loading:
             print("Loading subtitle data...")
             subtitle_data_service = SubtitleDataService(self._subtitle_data_path_for_loading)

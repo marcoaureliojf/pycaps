@@ -1,13 +1,15 @@
-from playwright.sync_api import sync_playwright, Page, Browser, Playwright
 from pathlib import Path
 import tempfile
-from PIL.Image import Image
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from pycaps.common import Word, ElementState, Line
 import shutil
 from .rendered_image_cache import RenderedImageCache
 from .playwright_screenshot_capturer import PlaywrightScreenshotCapturer
 from .renderer_page import RendererPage
+
+if TYPE_CHECKING:
+    from playwright.sync_api import Page, Browser, Playwright
+    from PIL.Image import Image
 
 class CssSubtitleRenderer():
 
@@ -36,6 +38,8 @@ class CssSubtitleRenderer():
 
     def open(self, video_width: int, video_height: int, resources_dir: Optional[Path] = None):
         """Initializes Playwright and loads the base HTML page."""
+        from playwright.sync_api import sync_playwright
+
         if self.page:
             raise RuntimeError("Renderer is already open. Call close() first.")
 
@@ -108,7 +112,7 @@ class CssSubtitleRenderer():
         words_css_classes = [self._renderer_page.get_word_css_classes(word.tags, index) for index, word in enumerate(line.words)]
         self.page.evaluate(script, [line.get_text(), line_css_classes, words_css_classes])
    
-    def render_word(self, index: int, word: Word, state: ElementState, first_n_letters: Optional[int] = None) -> Optional[Image]:
+    def render_word(self, index: int, word: Word, state: ElementState, first_n_letters: Optional[int] = None) -> Optional['Image']:
         if not self.page:
             raise RuntimeError("Renderer is not open. Call open() first.")
         if not self._current_line:

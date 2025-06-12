@@ -1,16 +1,22 @@
-from PIL import Image
 import io
-from playwright.sync_api import Locator
 import math
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from playwright.sync_api import Locator
+    from PIL import Image
+
 
 class PlaywrightScreenshotCapturer:
     @staticmethod
-    def capture(locator: Locator) -> Image.Image:
+    def capture(locator: 'Locator') -> 'Image.Image':
         '''
         Captures a screenshot of the locator.
         It doesn't use locator.screenshot() because it adds some extra transparent pixels on the edges.
         This method is a workaround to avoid that.
         '''
+        from PIL import Image
+
         bounding_box = locator.bounding_box()
 
         x = bounding_box["x"]

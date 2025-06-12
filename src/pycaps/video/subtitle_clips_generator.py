@@ -1,8 +1,6 @@
 from typing import Optional, List, Callable
 from pycaps.common import Document, Word, WordClip, ElementState, Line
 from pycaps.renderer import CssSubtitleRenderer
-from moviepy.editor import ImageClip
-import numpy as np
 
 class SubtitleClipsGenerator:
 
@@ -73,6 +71,9 @@ class SubtitleClipsGenerator:
         self._renderer.close_line()
 
     def __create_word_clip(self, word_index: int, word: Word, word_state: ElementState, start: float, end: float) -> Optional[WordClip]:
+        from moviepy.editor import ImageClip
+        import numpy as np
+        
         if end <= start:
             return None
     

@@ -1,8 +1,6 @@
 from .clip_effect import ClipEffect
 from pycaps.common import Document, WordClip, ElementState
 from pycaps.tag import TagCondition
-from moviepy.editor import ImageClip, CompositeVideoClip
-import numpy as np
 from typing import Optional
 
 class TypewritingEffect(ClipEffect):
@@ -26,6 +24,9 @@ class TypewritingEffect(ClipEffect):
             self._renderer.close_line()
 
     def _apply_typewriting(self, word_index: int, clip: WordClip) -> None:
+        from moviepy.editor import ImageClip, CompositeVideoClip
+        import numpy as np
+
         if not clip.has_state(ElementState.WORD_BEING_NARRATED):
             return
         word = clip.get_word()
@@ -34,7 +35,6 @@ class TypewritingEffect(ClipEffect):
         letter_duration = word_duration / number_of_letters
         new_clips = []
         for i in range(number_of_letters):
-            letters = word.text[:i+1]
             image = self._renderer.render_word(word_index, word, ElementState.WORD_BEING_NARRATED, i+1)
             if not image:
                 continue

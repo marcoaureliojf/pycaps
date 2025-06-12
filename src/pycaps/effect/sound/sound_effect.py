@@ -4,7 +4,6 @@ from typing import Optional
 from .sound import Sound
 from pycaps.common import Document, ElementType, EventType, TimeFragment, Word, Line, Segment
 from typing import List, Union
-from moviepy.editor import AudioFileClip
 
 class SoundEffect(Effect):
     def __init__(
@@ -26,6 +25,8 @@ class SoundEffect(Effect):
         self._interpret_consecutive_words_as_one: bool = interpret_consecutive_words_as_one
 
     def run(self, document: Document) -> None:
+        from moviepy.editor import AudioFileClip
+
         times = self._get_elements_times(document)
         for time in times:
             path = self._sound.get_file_path()

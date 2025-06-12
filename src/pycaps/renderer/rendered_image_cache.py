@@ -1,5 +1,7 @@
-from typing import Optional, List
-from PIL.Image import Image
+from typing import Optional, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from PIL.Image import Image
 
 class RenderedImageCache:
     def __init__(self, css_content: str):
@@ -10,7 +12,7 @@ class RenderedImageCache:
         key = self.__build_key(text, css_classes)
         return key in self._cache
 
-    def get(self, text: str, css_classes: List[str]) -> Optional[Image]:
+    def get(self, text: str, css_classes: List[str]) -> Optional['Image']:
         if not self.has(text, css_classes):
             raise ValueError(f"No cached image found for text: {text} and CSS classes: {css_classes}")
         
@@ -18,7 +20,7 @@ class RenderedImageCache:
         key = self.__build_key(text, css_classes)
         return self._cache.get(key)
 
-    def set(self, text: str, css_classes: List[str], image: Optional[Image]) -> None:
+    def set(self, text: str, css_classes: List[str], image: Optional['Image']) -> None:
         key = self.__build_key(text, css_classes)
         self._cache[key] = image
 

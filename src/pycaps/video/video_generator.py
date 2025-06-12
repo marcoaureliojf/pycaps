@@ -1,9 +1,11 @@
-from typing import Optional, Dict, Any, Literal
+from typing import Optional, Dict, Any, TYPE_CHECKING
 import os
-from moviepy.editor import VideoFileClip, CompositeVideoClip, CompositeAudioClip
 import tempfile
 from pycaps.common import Document, VideoResolution
 from pathlib import Path
+
+if TYPE_CHECKING:
+    from moviepy.editor import VideoFileClip
 
 class VideoGenerator:
     def __init__(self):
@@ -15,8 +17,8 @@ class VideoGenerator:
         # State of video generation
         self._has_video_generation_started: bool = False
         self._is_temp_audio_file: bool = False
-        self._final_video: Optional[VideoFileClip] = None
-        self._video_clip: Optional[VideoFileClip] = None
+        self._final_video: Optional['VideoFileClip'] = None
+        self._video_clip: Optional['VideoFileClip'] = None
         self._video_resolution: Optional[VideoResolution] = None
         self._fragment_time: Optional[tuple[float, float]] = None
 
@@ -33,6 +35,8 @@ class VideoGenerator:
         self._fragment_time = fragment_time
 
     def start(self, input_video_path: str, output_video_path: str):
+        from moviepy.editor import VideoFileClip
+
         if not os.path.exists(input_video_path):
             raise FileNotFoundError(f"Error: Input video file not found: {input_video_path}")
 
@@ -50,7 +54,7 @@ class VideoGenerator:
         
         self._has_video_generation_started = True
 
-    def _get_audio_path_to_transcribe(self, video_clip: VideoFileClip) -> str:
+    def _get_audio_path_to_transcribe(self, video_clip: 'VideoFileClip') -> str:
         if self._audio_path:
             if not os.path.exists(self._audio_path):
                 print(f"Error: External audio file not found: {self._audio_path}")
@@ -88,7 +92,7 @@ class VideoGenerator:
         
         return self._audio_path
     
-    def get_video_clip(self) -> VideoFileClip:
+    def get_video_clip(self) -> 'VideoFileClip':
         if not self._has_video_generation_started:
             raise RuntimeError("Video generation has not started. Call start() first.")
         if not self._video_clip:
@@ -97,6 +101,8 @@ class VideoGenerator:
         return self._video_clip
 
     def generate(self, document: Document):
+        from moviepy.editor import CompositeVideoClip, CompositeAudioClip
+        
         if not self._has_video_generation_started:
             raise RuntimeError("Video generation has not started. Call start() first.")
         
@@ -143,7 +149,7 @@ class VideoGenerator:
 
         return codec_map.get(ext, codec_map[".mp4"])
     
-    def _apply_video_resolution(self, video_clip: VideoFileClip) -> VideoFileClip:
+    def _apply_video_resolution(self, video_clip: 'VideoFileClip') -> 'VideoFileClip':
         if self._video_resolution is None:
             return video_clip
     

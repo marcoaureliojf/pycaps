@@ -1,7 +1,6 @@
 from .base_transcriber import AudioTranscriber
 from typing import Optional
 from pycaps.common import Document, Segment, Line, Word, TimeFragment
-import whisper
 
 class WhisperAudioTranscriber(AudioTranscriber):
     def __init__(self, model_size: str = "base", language: Optional[str] = None):
@@ -12,26 +11,20 @@ class WhisperAudioTranscriber(AudioTranscriber):
             model_size: Size of the Whisper model to use (e.g., "tiny", "base", "small", "medium", "large").
             language: Language of the audio for transcription (e.g., "en", "es").
         """
-        self.model_size = model_size
-        self.language = language
-        try:
-            self.model = whisper.load_model(self.model_size)
-        except Exception as e:
-            raise RuntimeError(
-                f"Error loading Whisper model (size: {model_size}): {e}\n" 
-                f"Ensure Whisper is installed and models are available (or can be downloaded)."
-            )
+        self._model_size = model_size
+        self._language = language
+        self._model = None
 
     def transcribe(self, audio_path: str) -> Document:
         """
         Transcribes the audio file and returns segments with timestamps.
         """
-        print(f"Transcribing audio with Whisper (model: {self.model_size}, language: {self.language}): {audio_path}")
+        print(f"Transcribing audio with Whisper (model: {self._model_size}, language: {self._language}): {audio_path}")
         try:
-            result = self.model.transcribe(
+            result = self._get_model().transcribe(
                 audio_path,
                 word_timestamps=True,
-                language=self.language
+                language=self._language
             )
         except Exception as e:
             print(f"Error during Whisper transcription: {e}")
@@ -68,3 +61,18 @@ class WhisperAudioTranscriber(AudioTranscriber):
             print("Warning: No valid segments were processed from Whisper's transcription.")
 
         return document 
+
+    def _get_model(self):
+        import whisper
+
+        if self._model:
+            return self._model
+        
+        try:
+            self._model = whisper.load_model(self._model_size)
+            return self._model
+        except Exception as e:
+            raise RuntimeError(
+                f"Error loading Whisper model (size: {self._model_size}): {e}\n" 
+                f"Ensure Whisper is installed and models are available (or can be downloaded)."
+            )

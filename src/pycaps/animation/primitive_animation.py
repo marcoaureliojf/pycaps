@@ -3,8 +3,6 @@ from pycaps.common import WordClip, ElementType
 from .definitions import Transformer
 from abc import abstractmethod
 from .animation import Animation
-import cv2
-import numpy as np
 
 class PrimitiveAnimation(Animation):
     def __init__(
@@ -47,6 +45,9 @@ class PrimitiveAnimation(Animation):
         self._position_transform = transform
 
     def _apply_size(self, clip: WordClip, offset: float, get_resize_fn: Callable[[float], float]) -> None:
+        import cv2
+        import numpy as np
+
         original_size = clip.moviepy_clip.size
         def transform() -> None:
             def resize(frame, t):
