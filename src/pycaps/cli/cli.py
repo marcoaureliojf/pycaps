@@ -50,7 +50,7 @@ def render(
     def _parse_preview(preview: bool, preview_time: Optional[str]) -> Optional[tuple[float, float]]:
         if not preview and not preview_time:
             return None
-        final_preview = tuple(map(float, preview_time.split(","))) if preview_time else (0, 10)
+        final_preview = tuple(map(float, preview_time.split(","))) if preview_time else (0, 5)
         if len(final_preview) != 2 or final_preview[0] < 0 or final_preview[1] < 0 or final_preview[0] >= final_preview[1]:
             typer.echo(f"Invalid preview time: {final_preview}, example: --preview-time=10,15", err=True)
             return None

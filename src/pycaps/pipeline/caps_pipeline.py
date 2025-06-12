@@ -94,7 +94,7 @@ class CapsPipeline:
             self._process_logger.step("Generating final video...")
             self._video_generator.generate(document)
 
-            logger().info("Video has been rendered successfully!")
+            logger().info("The video has been rendered successfully!")
         except Exception as e:
             logger().error(f"An error occurred during caps pipeline execution: {e}")
             raise e
