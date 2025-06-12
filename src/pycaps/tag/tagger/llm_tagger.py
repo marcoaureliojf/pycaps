@@ -1,6 +1,7 @@
 from typing import Dict
 from pycaps.common import Tag
 from pycaps.ai import LlmProvider
+from pycaps.logger import logger
 import re
 
 class LlmTagger:
@@ -68,8 +69,8 @@ Tagged version:"""
             tagged_text_without_tags = re.sub(pattern, r'\1', tagged_text_without_tags)
         
         if original_text != tagged_text_without_tags:
-            print(f"WARNING: The tagged text is not equal to the original text: {original_text} != {tagged_text_without_tags}")
-            print("Using the original text instead.")
+            logger().warning(f"The tagged text is not equal to the original text: {original_text} != {tagged_text_without_tags}")
+            logger().warning("Using the original text instead.")
             return original_text
         
         return tagged_text.strip()

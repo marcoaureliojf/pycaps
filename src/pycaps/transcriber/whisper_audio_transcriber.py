@@ -1,6 +1,7 @@
 from .base_transcriber import AudioTranscriber
 from typing import Optional
 from pycaps.common import Document, Segment, Line, Word, TimeFragment
+from pycaps.logger import logger
 
 class WhisperAudioTranscriber(AudioTranscriber):
     def __init__(self, model_size: str = "base", language: Optional[str] = None):
@@ -19,19 +20,14 @@ class WhisperAudioTranscriber(AudioTranscriber):
         """
         Transcribes the audio file and returns segments with timestamps.
         """
-        print(f"Transcribing audio with Whisper (model: {self._model_size}, language: {self._language}): {audio_path}")
-        try:
-            result = self._get_model().transcribe(
-                audio_path,
-                word_timestamps=True,
-                language=self._language
-            )
-        except Exception as e:
-            print(f"Error during Whisper transcription: {e}")
-            return Document()
+        result = self._get_model().transcribe(
+            audio_path,
+            word_timestamps=True,
+            language=self._language
+        )
 
         if "segments" not in result or not result["segments"]:
-            print("Warning: Whisper returned no segments in the transcription.")
+            logger().warning("Whisper returned no segments in the transcription.")
             return Document()
 
         document = Document()
@@ -42,7 +38,7 @@ class WhisperAudioTranscriber(AudioTranscriber):
             segment.lines.add(line)
 
             if not "words" in segment_info or not isinstance(segment_info["words"], list):
-                print(f"Segment '{segment_info['text']}' has no detailed word data.")
+                logger().debug(f"Segment '{segment_info['text']}' has no detailed word data.")
                 continue
 
             for word_entry in segment_info["words"]:
@@ -58,7 +54,7 @@ class WhisperAudioTranscriber(AudioTranscriber):
             document.segments.add(segment)
         
         if not document.segments:
-            print("Warning: No valid segments were processed from Whisper's transcription.")
+            logger().warning("No valid segments were processed from Whisper's transcription.")
 
         return document 
 

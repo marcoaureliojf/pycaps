@@ -2,6 +2,7 @@ from ..animation import Animation
 from typing import List, TYPE_CHECKING
 from pycaps.common import WordClip
 from pycaps.common import ElementType
+from pycaps.logger import logger
 
 if TYPE_CHECKING:
     import numpy as np
@@ -20,7 +21,7 @@ class TypewritingAnimation(Animation):
 
     def __init__(self) -> None:
         super().__init__(0)
-        print("Warning: TypewritingAnimation is deprecated and could generate unexpected results.")
+        logger().warning("TypewritingAnimation is deprecated and could generate unexpected results.")
         self._cached_letter_bounds = {}
 
     def run(self, clip: WordClip, offset: float, what: ElementType) -> None:

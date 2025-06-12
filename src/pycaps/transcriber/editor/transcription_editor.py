@@ -15,14 +15,12 @@ class _Api:
         return self._result_document
 
     def save(self, document_dict: dict):
-        print("API: save() called.")
         self._result_document = Document.from_dict(document_dict)
 
         if webview.active_window():
             webview.active_window().destroy()
 
     def cancel(self):
-        print("API: cancel() called.")
         self._result_document = None
         if webview.active_window():
             webview.active_window().destroy()

@@ -3,6 +3,8 @@ import os
 import tempfile
 from pycaps.common import Document, VideoResolution
 from pathlib import Path
+from pycaps.logger import logger
+from proglog import TqdmProgressBarLogger
 
 if TYPE_CHECKING:
     from moviepy.editor import VideoFileClip
@@ -57,28 +59,27 @@ class VideoGenerator:
     def _get_audio_path_to_transcribe(self, video_clip: 'VideoFileClip') -> str:
         if self._audio_path:
             if not os.path.exists(self._audio_path):
-                print(f"Error: External audio file not found: {self._audio_path}")
+                logger().error(f"Error: External audio file not found: {self._audio_path}")
                 video_clip.close()
                 return
-            print(f"Using external audio: {self._audio_path}")
+            logger().debug(f"Using external audio: {self._audio_path}")
             return self._audio_path
         
-        print("Extracting audio from video...")
         # Create a temporary file that is not deleted immediately for Whisper to access
         fd, temp_audio_file_path = tempfile.mkstemp(suffix=".wav")
         os.close(fd) # Close the file descriptor as MoviePy will open/write to the path
         try:
             if video_clip.audio is None:
-                print("Error: The video does not contain an audio track.")
+                logger().error("The video does not contain an audio track.")
                 video_clip.close()
                 if os.path.exists(temp_audio_file_path):
                         os.remove(temp_audio_file_path)
                 return
             video_clip.audio.write_audiofile(temp_audio_file_path, verbose=False, logger=None)
-            print(f"Audio extracted to: {temp_audio_file_path}")
+            logger().debug(f"Audio extracted to: {temp_audio_file_path}")
             return temp_audio_file_path
         except Exception as e:
-            print(f"Error extracting audio: {e}")
+            logger().error(f"Error extracting audio: {e}")
             video_clip.close()
             if os.path.exists(temp_audio_file_path):
                 os.remove(temp_audio_file_path)
@@ -108,32 +109,30 @@ class VideoGenerator:
         
         clips = document.get_moviepy_clips()
         if not clips:
-            print("No subtitle clips were generated. The original video (or with external audio if provided) will be saved.")
+            logger().warning("No subtitle clips were generated. The original video (or with external audio if provided) will be saved.")
             self._final_video = self._video_clip 
         else:
-            print("Compositing final video with subtitles...")
             video_with_subtitles = self._video_clip.set_audio(None)
             self._final_video = CompositeVideoClip([video_with_subtitles] + clips, size=self._video_clip.size)
             if self._video_clip.audio:
                 final_audio = CompositeAudioClip([self._video_clip.audio] + document.sfxs) if len(document.sfxs) > 0 else self._video_clip.audio
                 self._final_video = self._final_video.set_audio(final_audio)
             else:
-                print("Warning: Original video had no audio. Final video will also have no audio.")
+                logger().warning("Original video had no audio. Final video will also have no audio.")
 
-        print(f"Writing final video to: {self._output_video_path}")
+        logger().debug(f"Writing final video to: {self._output_video_path}")
         codecs = self._get_codecs_for_output()
         default_write_options = {
             "codec": codecs["codec"],
             "audio_codec": codecs["audio_codec"],
             "threads": os.cpu_count() or 2,
-            "logger": "bar",
             "fps": 30
         }
         if self._moviepy_write_options:
             default_write_options.update(self._moviepy_write_options)
         
         self._final_video = self._apply_video_resolution(self._final_video)
-        self._final_video.write_videofile(self._output_video_path, **default_write_options)
+        self._final_video.write_videofile(self._output_video_path, logger=self._build_moviepy_logger(), **default_write_options)
 
     def _get_codecs_for_output(self) -> list[str]:
         output_path = Path(self._output_video_path)
@@ -187,6 +186,9 @@ class VideoGenerator:
             return
         try:
             os.remove(self._audio_path)
-            print(f"Temporary audio file deleted: {self._audio_path}")
+            logger().debug(f"Temporary audio file deleted: {self._audio_path}")
         except Exception as e:
-            print(f"Error deleting temporary audio file {self._audio_path}: {e}")
+            logger().warning(f"Error deleting temporary audio file {self._audio_path}: {e}")
+
+    def _build_moviepy_logger(self):
+        return TqdmProgressBarLogger(print_messages=False)

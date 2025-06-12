@@ -2,6 +2,7 @@ from .clip_effect import ClipEffect
 from pycaps.common import Document, WordClip, ElementState
 from pycaps.tag import TagCondition
 from typing import Optional
+from pycaps.logger import logger
 
 class TypewritingEffect(ClipEffect):
     """
@@ -40,10 +41,10 @@ class TypewritingEffect(ClipEffect):
                 continue
             y_position = 0
             if clip.layout.size.height != image.height:
-                print("WARNING: The fragment height is not equal to the whole word height. This could cause the text to be misaligned.")
-                print(f"Word height: {clip.layout.size.height} | Fragment height: {image.height}")
-                print("If this is unexpected, report this issue")
-                print("As quick fix, try to use another font family or force a line-height/height for each word.")
+                logger().warning("The fragment height is not equal to the whole word height. This could cause the text to be misaligned.")
+                logger().warning(f"Word height: {clip.layout.size.height} | Fragment height: {image.height}")
+                logger().warning("If this is unexpected, report this issue")
+                logger().warning("As quick fix, try to use another font family or force a line-height/height for each word.")
                 y_position = (clip.layout.size.height - image.height) / 2
             
             image_clip: ImageClip = (
