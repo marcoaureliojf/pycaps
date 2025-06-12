@@ -1,11 +1,12 @@
 from pathlib import Path
 import tempfile
-from typing import Optional, TYPE_CHECKING
-from pycaps.common import Word, ElementState, Line
+from typing import Optional, TYPE_CHECKING, Tuple, Dict
+from pycaps.common import Word, ElementState, Line, Size
 import shutil
 from .rendered_image_cache import RenderedImageCache
 from .playwright_screenshot_capturer import PlaywrightScreenshotCapturer
 from .renderer_page import RendererPage
+from .letter_size_cache import LetterSizeCache
 
 if TYPE_CHECKING:
     from playwright.sync_api import Page, Browser, Playwright
@@ -28,6 +29,7 @@ class CssSubtitleRenderer():
         self.tempdir: Optional[tempfile.TemporaryDirectory] = None
         self._custom_css: str = ""
         self._cache: RenderedImageCache = RenderedImageCache(self._custom_css)
+        self._letter_size_cache: LetterSizeCache = LetterSizeCache(self._custom_css)
         self._current_line: Optional[Line] = None
         self._current_line_state: Optional[ElementState] = None
         self._renderer_page: RendererPage = RendererPage()
@@ -35,6 +37,7 @@ class CssSubtitleRenderer():
     def append_css(self, css: str):
         self._custom_css += css
         self._cache = RenderedImageCache(self._custom_css)
+        self._letter_size_cache = LetterSizeCache(self._custom_css)
 
     def open(self, video_width: int, video_height: int, resources_dir: Optional[Path] = None):
         """Initializes Playwright and loads the base HTML page."""
@@ -186,7 +189,7 @@ class CssSubtitleRenderer():
         self._current_line = None
         self._current_line_state = None
         
-    def get_word_size(self, word: Word, line_state: ElementState, word_state: ElementState) -> int:
+    def get_word_size(self, word: Word, line_state: ElementState, word_state: ElementState) -> Tuple[int, int]:
         if not self.page:
             raise RuntimeError("Renderer is not open. Call open() first.")
         if self._current_line:
@@ -194,32 +197,56 @@ class CssSubtitleRenderer():
         
         line_css_classes = self._renderer_page.get_line_css_classes(word.get_segment().tags, word.get_line().tags, line_state)
         word_css_classes = self._renderer_page.get_word_css_classes(word.tags, word_state=word_state)
-        
-        # TODO: review this
-        cache_key = line_css_classes + " " + word_css_classes
-        if self._cache.has(word.text, cache_key):
-            return self._cache.get(word.text, cache_key)
+        all_css_classes = line_css_classes + " " + word_css_classes
+
+        cached_letters_size = {}
+        not_cached_letters_size = []
+        # All letters are measured without padding/borders/etc, the "NON_CONTENT_WIDTH" is used to measure the paddings/borders/etc
+        # So, each word must have the "NON_CONTENT_WIDTH" to include its padding/border/etc 
+        letters = list(word.text) + ["NON_CONTENT_WIDTH"]
+        for letter in letters:
+            if self._letter_size_cache.has(letter, all_css_classes):
+                cached_letters_size[letter] = self._letter_size_cache.get(letter, all_css_classes)
+            else:
+                not_cached_letters_size.append(letter)
+
+        cached_width = sum(s.width for s in cached_letters_size.values())
+        cached_height = max(s.height for s in cached_letters_size.values()) if cached_letters_size else 0
+        if len(not_cached_letters_size) == 0:
+            return int(cached_width * self.DEFAULT_DEVICE_SCALE_FACTOR), int(cached_height * self.DEFAULT_DEVICE_SCALE_FACTOR)
 
         script = f"""
-        ([text, lineCssClasses, wordCssClasses]) => {{
+        ([letters, lineCssClasses, wordCssClasses]) => {{
             const line = document.querySelector('.{RendererPage.DEFAULT_CSS_CLASS_FOR_EACH_LINE}');
             line.innerHTML = '';
             line.className = lineCssClasses;
             const wordElement = document.createElement('span');
-            wordElement.textContent = text;
+            wordElement.textContent = '';
             wordElement.className = wordCssClasses;
             line.appendChild(wordElement);
+            const emptyWidth = wordElement.getBoundingClientRect().width;
+            letters_size = {{}}
+            for (const letter of letters) {{
+                wordElement.textContent = letter === "NON_CONTENT_WIDTH" ? "" : letter;
+                const box = wordElement.getBoundingClientRect();
+                // we exclude the extra width (paddings, borders, etc) for each letter
+                // it is only taken into account when we want to measure the "NON_CONTENT_WIDTH"
+                const width = letter === "NON_CONTENT_WIDTH" ? box.width : box.width - emptyWidth
+                letters_size[letter] = {{width: width, height: box.height}};
+            }}
+            return letters_size;
         }}
         """
-        self.page.evaluate(script, [word.text, line_css_classes, word_css_classes])
-        
-        locator = self.page.locator(f".{RendererPage.DEFAULT_CSS_CLASS_FOR_EACH_LINE} > .{RendererPage.DEFAULT_CSS_CLASS_FOR_EACH_WORD}")
-        bounding_box = locator.bounding_box()
-        if not bounding_box or bounding_box['width'] <= 0 or bounding_box['height'] <= 0:
-            return None
+        new_letters_size: Dict = self.page.evaluate(script, [not_cached_letters_size, line_css_classes, word_css_classes])
+        for letter, size in new_letters_size.items():
+            new_letters_size[letter] = Size(size['width'], size['height'])
 
-        # TODO: I think this is not precise, but it could be enough to create the structure
-        return int(bounding_box['width'] * self.DEFAULT_DEVICE_SCALE_FACTOR), int(bounding_box['height'] * self.DEFAULT_DEVICE_SCALE_FACTOR)
+        self._letter_size_cache.set_all(new_letters_size, all_css_classes)
+        width = cached_width + sum(s.width for s in new_letters_size.values())
+        height = max(cached_height, max(s.height for s in new_letters_size.values())) 
+
+        # This is not precise, but it is enough to create the basic structure
+        return int(width * self.DEFAULT_DEVICE_SCALE_FACTOR), int(height * self.DEFAULT_DEVICE_SCALE_FACTOR)
 
     def close(self):
         """Closes Playwright and cleans up resources."""

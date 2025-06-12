@@ -30,6 +30,7 @@ class WhisperAudioTranscriber(AudioTranscriber):
             logger().warning("Whisper returned no segments in the transcription.")
             return Document()
 
+        logger().debug(f"Whisper result: {result}")
         document = Document()
         for segment_info in result["segments"]:
             segment_time = TimeFragment(start=float(segment_info["start"]), end=float(segment_info["end"]))

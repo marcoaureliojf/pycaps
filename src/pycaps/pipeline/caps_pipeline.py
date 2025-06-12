@@ -129,7 +129,8 @@ class CapsPipeline:
         resources_dir = Path(self._resources_dir) if self._resources_dir else None
         self._renderer.open(video_width=video_clip.w, video_height=video_clip.h, resources_dir=resources_dir)
 
-        self._process_logger.step("Calculating words widths...")
+        self._process_logger.step("Calculating layout...")
+        logger().debug("Calculating words widths...")
         # Keep in mind this is an approximation, since the words/lines do not have the tags yet
         # We use this to split into lines, but after adding the tags the words witdhs can change,
         # and therefore the max_width per line could be exceeded.

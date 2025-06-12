@@ -117,7 +117,7 @@ class CapsPipelineBuilder:
             raise ValueError("Input video path is required")
         if preview_time:
             self.with_video_quality(VideoQuality._360P)
-            self.with_fps(20)
+            self.with_fps(15)
             self.should_save_subtitle_data(False)
             self._caps_pipeline._video_generator.set_fragment_time(preview_time)
         
