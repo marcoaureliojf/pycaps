@@ -3,6 +3,9 @@ import os
 
 class Gpt(Llm):
 
+    def __init__(self):
+        self._client = None
+
     def send_message(self, prompt: str, model: str = "gpt-4.1-mini") -> str:
         return self._get_client().responses.create(model=model, input=prompt).output_text
 
