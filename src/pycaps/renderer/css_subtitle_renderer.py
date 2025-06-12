@@ -121,8 +121,11 @@ class CssSubtitleRenderer():
         if not self._current_line:
             raise RuntimeError("No line is open. Call open_line() first.")
         
-        # if self._cache.has(word.text, [self._current_line_state.value, state.value]):
-        #     return self._cache.get(word.text, [self._current_line_state.value, state.value])
+        line_css_classes = self._renderer_page.get_line_css_classes(self._current_line.get_segment().tags, self._current_line.tags, self._current_line_state)
+        word_css_classes = self._renderer_page.get_word_css_classes(word.tags, index, state)
+        all_css_classes = line_css_classes + " " + word_css_classes
+        if self._cache.has(index, word.text, all_css_classes):
+            return self._cache.get(index, word.text, all_css_classes)
 
         # Why are we doing this?
         # When the typewriting effect is applied, we need to render the word partially (first n letters).
@@ -155,20 +158,19 @@ class CssSubtitleRenderer():
                 word.parentNode.removeChild(word.nextSibling);
                 delete word.dataset.isNextNodeRemaining;
             }}
+
+            return word.getBoundingClientRect();
         }}
         """
-        self.page.evaluate(script, [index, state.value, word.text, first_n_letters if first_n_letters else len(word.text)])
-
-        locator = self.page.locator(f".word-{index}-in-line").first
+        word_bounding_box = self.page.evaluate(script, [index, state.value, word.text, first_n_letters if first_n_letters else len(word.text)])
         try:
-            bounding_box = locator.bounding_box()
-            if not bounding_box or bounding_box['width'] <= 0 or bounding_box['height'] <= 0:
+            if word_bounding_box["width"] <= 0 or word_bounding_box["height"] <= 0:
                 # HTML element is not visible (probably hidden by CSS).
+                self._cache.set(index, word.text, all_css_classes, None)
                 return None
 
-            image = PlaywrightScreenshotCapturer.capture(locator)
-            # TODO: two entries with same text but different indexes should be different entries
-            # self._cache.set(word.text, [self._current_line_state.value, state.value], image)
+            image = PlaywrightScreenshotCapturer.capture(self.page, word_bounding_box)
+            self._cache.set(index, word.text, all_css_classes, image)
             return image
         except Exception as e:
             raise RuntimeError(f"Error rendering word '{word.text}': {e}")
