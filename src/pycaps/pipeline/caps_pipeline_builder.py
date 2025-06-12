@@ -7,6 +7,7 @@ from pycaps.animation import Animation, ElementAnimator
 from pycaps.common import ElementType, EventType, VideoQuality
 from pycaps.tag import TagCondition, SemanticTagger
 from pycaps.effect import TextEffect, ClipEffect, SoundEffect
+from pycaps.logger import logger
 
 class CapsPipelineBuilder:
 
@@ -116,9 +117,11 @@ class CapsPipelineBuilder:
         if not self._caps_pipeline._input_video_path:
             raise ValueError("Input video path is required")
         if preview_time:
+            logger().warning("Generating preview: video quality, time, FPS, and whisper model size has been reduced to save time.")
             self.with_video_quality(VideoQuality._360P)
             self.with_fps(15)
             self.should_save_subtitle_data(False)
+            self.with_whisper_config(model_size="tiny")
             self._caps_pipeline._video_generator.set_fragment_time(preview_time)
         
         pipeline = self._caps_pipeline
