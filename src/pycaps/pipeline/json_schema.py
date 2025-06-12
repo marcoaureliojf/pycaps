@@ -1,6 +1,6 @@
 from pycaps.layout import SubtitleLayoutOptions
 from pydantic import BaseModel, Field, ConfigDict, field_validator
-from pycaps.common import EventType, ElementType, VideoResolution
+from pycaps.common import EventType, ElementType, VideoQuality
 from pycaps.effect import EmojiAlign, BuiltinSound
 from typing import Literal, Annotated, Optional
 from pycaps.animation import Direction, OvershootConfig
@@ -11,7 +11,7 @@ class BaseConfigModel(BaseModel):
 
 class VideoConfig(BaseConfigModel):
     fps: int = 30
-    resolution: Optional[VideoResolution] = None
+    quality: Optional[VideoQuality] = None
 
 class WhisperConfig(BaseConfigModel):
     language: Optional[str] = None

@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Any, TYPE_CHECKING
 import os
 import tempfile
-from pycaps.common import Document, VideoResolution
+from pycaps.common import Document, VideoQuality
 from pathlib import Path
 from pycaps.logger import logger
 from proglog import TqdmProgressBarLogger
@@ -21,7 +21,7 @@ class VideoGenerator:
         self._is_temp_audio_file: bool = False
         self._final_video: Optional['VideoFileClip'] = None
         self._video_clip: Optional['VideoFileClip'] = None
-        self._video_resolution: Optional[VideoResolution] = None
+        self._video_quality: Optional[VideoQuality] = None
         self._fragment_time: Optional[tuple[float, float]] = None
 
     def set_audio_path(self, audio_path: str):
@@ -30,8 +30,8 @@ class VideoGenerator:
     def set_moviepy_write_options(self, moviepy_write_options: Dict[str, Any]):
         self._moviepy_write_options = moviepy_write_options
 
-    def set_video_resolution(self, resolution: VideoResolution):
-        self._video_resolution = resolution
+    def set_video_quality(self, quality: VideoQuality):
+        self._video_quality = quality
 
     def set_fragment_time(self, fragment_time: tuple[float, float]):
         self._fragment_time = fragment_time
@@ -149,26 +149,15 @@ class VideoGenerator:
         return codec_map.get(ext, codec_map[".mp4"])
     
     def _apply_video_resolution(self, video_clip: 'VideoFileClip') -> 'VideoFileClip':
-        if self._video_resolution is None:
+        if self._video_quality is None:
             return video_clip
-    
-        height: int
-        match self._video_resolution:
-            case VideoResolution._4K:
-                height = 4096
-            case VideoResolution._2K:
-                height = 2048
-            case VideoResolution._1080P:
-                height = 1080
-            case VideoResolution._720P:
-                height = 720
-            case VideoResolution._480P:
-                height = 480
-            case VideoResolution._360P:
-                height = 360
-        
-        return video_clip.resize(height=height)
 
+        target_px = int(self._video_quality.name[1:-1])
+        if video_clip.w >= video_clip.h:
+            return video_clip.resize(height=target_px)
+        else:
+            return video_clip.resize(width=target_px)
+        
     def close(self):
         self._remove_audio_file_if_needed()
         if self._video_clip:

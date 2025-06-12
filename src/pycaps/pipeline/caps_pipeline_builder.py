@@ -4,7 +4,7 @@ from pycaps.layout import SubtitleLayoutOptions, LineSplitter, LayoutUpdater, Po
 from pycaps.transcriber import AudioTranscriber, BaseSegmentSplitter, WhisperAudioTranscriber
 from typing import Dict, Any, Optional
 from pycaps.animation import Animation, ElementAnimator
-from pycaps.common import ElementType, EventType, VideoResolution
+from pycaps.common import ElementType, EventType, VideoQuality
 from pycaps.tag import TagCondition, SemanticTagger
 from pycaps.effect import TextEffect, ClipEffect, SoundEffect
 
@@ -14,6 +14,8 @@ class CapsPipelineBuilder:
         self._caps_pipeline: CapsPipeline = CapsPipeline()
     
     def with_input_video(self, input_video_path: str) -> "CapsPipelineBuilder":
+        if not os.path.exists(input_video_path):
+            raise ValueError(f"Input video file not found: {input_video_path}")
         self._caps_pipeline._input_video_path = input_video_path
         return self
     
@@ -45,8 +47,8 @@ class CapsPipelineBuilder:
         self._caps_pipeline._moviepy_write_options["fps"] = fps
         return self
     
-    def with_video_resolution(self, resolution: VideoResolution) -> "CapsPipelineBuilder":
-        self._caps_pipeline._video_generator.set_video_resolution(resolution)
+    def with_video_quality(self, quality: VideoQuality) -> "CapsPipelineBuilder":
+        self._caps_pipeline._video_generator.set_video_quality(quality)
         return self
     
     def with_layout_options(self, layout_options: SubtitleLayoutOptions) -> "CapsPipelineBuilder":
@@ -114,7 +116,7 @@ class CapsPipelineBuilder:
         if not self._caps_pipeline._input_video_path:
             raise ValueError("Input video path is required")
         if preview_time:
-            self.with_video_resolution(VideoResolution._360P)
+            self.with_video_quality(VideoQuality._360P)
             self.with_fps(20)
             self.should_save_subtitle_data(False)
             self._caps_pipeline._video_generator.set_fragment_time(preview_time)

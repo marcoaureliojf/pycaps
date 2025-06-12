@@ -4,6 +4,7 @@ from pycaps.logger import set_logging_level
 import logging
 from pycaps.pipeline import JsonConfigLoader, TemplateLoader
 from pycaps.renderer import CssSubtitlePreviewer
+from pycaps.common import VideoQuality
 
 app = typer.Typer(
     help="Pycaps, a tool for adding CSS-styled subtitles to videos",
@@ -30,6 +31,7 @@ def render(
     whisper_model: Optional[str] = typer.Option(None, "--whisper-model", help="Whisper model to use, example: --whisper-model=base"),
     preview: bool = typer.Option(False, "--preview", help="Generate a low quality preview of the rendered video"),
     preview_time: Optional[str] = typer.Option(None, "--preview-time", help="Generate a low quality preview of the rendered video at the given time, example: --preview-time=10,15"),
+    video_quality: Optional[str] = typer.Option(None, '--video-quality', help="Final video quality. Possible values are: 360p, 480p, 720p, 1080p, 2k, 4k"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose mode"),
 ):
     def _parse_styles(styles: list[str]) -> str:
@@ -74,6 +76,7 @@ def render(
     if language or whisper_model: builder.with_whisper_config(language=language, model_size=whisper_model if whisper_model else "base")
     if subtitle_data: builder.with_subtitle_data_path(subtitle_data)
     if transcription_preview: builder.should_preview_transcription(True)
+    if video_quality: builder.with_video_quality(VideoQuality(video_quality))
 
     pipeline = builder.build(preview_time=_parse_preview(preview, preview_time))
     pipeline.run()

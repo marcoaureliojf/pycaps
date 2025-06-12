@@ -14,7 +14,8 @@ from .types import (
     ElementType,
     EventType,
     ElementState,
-    VideoResolution,
+    VideoQuality,
+    AspectRatio
 )
 from .element_container import ElementContainer
 
@@ -33,4 +34,6 @@ __all__ = [
     "EventType",
     "ElementState",
     "ElementContainer",
+    "VideoQuality",
+    "AspectRatio"
 ]
