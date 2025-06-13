@@ -21,7 +21,7 @@ class EmojiInWordEffect(TextEffect):
         last_matching_word: Optional[Word] = None
         last_used_emoji: Optional[str] = None
         for word in document.get_words():
-            if self._tag_condition.evaluate(list(word.get_all_tags())):
+            if self._tag_condition.evaluate(list(word.get_all_tags_in_document())):
                 last_matching_word = word
 
             elif last_matching_word:

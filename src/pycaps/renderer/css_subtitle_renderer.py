@@ -111,8 +111,8 @@ class CssSubtitleRenderer():
             }});
         }}
         """
-        line_css_classes = self._renderer_page.get_line_css_classes(line.get_segment().tags, line.tags, line_state)
-        words_css_classes = [self._renderer_page.get_word_css_classes(word.tags, index) for index, word in enumerate(line.words)]
+        line_css_classes = self._renderer_page.get_line_css_classes(line.get_segment().get_tags(), line.get_tags(), line_state)
+        words_css_classes = [self._renderer_page.get_word_css_classes(word.get_tags(), index) for index, word in enumerate(line.words)]
         self.page.evaluate(script, [line.get_text(), line_css_classes, words_css_classes])
    
     def render_word(self, index: int, word: Word, state: ElementState, first_n_letters: Optional[int] = None) -> Optional['Image']:
@@ -121,8 +121,8 @@ class CssSubtitleRenderer():
         if not self._current_line:
             raise RuntimeError("No line is open. Call open_line() first.")
         
-        line_css_classes = self._renderer_page.get_line_css_classes(self._current_line.get_segment().tags, self._current_line.tags, self._current_line_state)
-        word_css_classes = self._renderer_page.get_word_css_classes(word.tags, index, state)
+        line_css_classes = self._renderer_page.get_line_css_classes(self._current_line.get_segment().get_tags(), self._current_line.get_tags(), self._current_line_state)
+        word_css_classes = self._renderer_page.get_word_css_classes(word.get_tags(), index, state)
         all_css_classes = line_css_classes + " " + word_css_classes
         if self._cache.has(index, word.text, all_css_classes):
             return self._cache.get(index, word.text, all_css_classes)
@@ -197,8 +197,8 @@ class CssSubtitleRenderer():
         if self._current_line:
             raise RuntimeError("A line process is in progress. Call close_line() first.")
         
-        line_css_classes = self._renderer_page.get_line_css_classes(word.get_segment().tags, word.get_line().tags, line_state)
-        word_css_classes = self._renderer_page.get_word_css_classes(word.tags, word_state=word_state)
+        line_css_classes = self._renderer_page.get_line_css_classes(word.get_segment().get_tags(), word.get_line().get_tags(), line_state)
+        word_css_classes = self._renderer_page.get_word_css_classes(word.get_tags(), word_state=word_state)
         all_css_classes = line_css_classes + " " + word_css_classes
 
         cached_letters_size = {}

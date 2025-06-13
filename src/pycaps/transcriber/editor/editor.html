@@ -322,7 +322,7 @@
 
     <div id="tag-modal" class="modal-overlay">
         <div class="modal">
-            <h3>Your default tags</h3>
+            <h3>Edit tags</h3>
             <label>Word: <span id="modal-word-text"></span></label>
             <textarea id="modal-tags" placeholder="Enter tags separated by commas (e.g., noun, important, technical)"></textarea>
             <div class="modal-buttons">
@@ -417,10 +417,10 @@
                             wordSpan.dataset.wordIndex = wordIndex;
                             wordSpan.textContent = word.text;
 
-                            if (word.tags && word.tags.length > 0) {
+                            if (word.semantic_tags && word.semantic_tags.length > 0) {
                                 const tagsTooltip = document.createElement('span');
                                 tagsTooltip.className = 'word-tags';
-                                tagsTooltip.textContent = word.tags.map(t => t.name).join(', ');
+                                tagsTooltip.textContent = word.semantic_tags.map(t => t.name).join(', ');
                                 wordSpan.appendChild(tagsTooltip);
                             }
 
@@ -473,7 +473,7 @@
                 
                 dropdown.innerHTML = `
                     <div class="dropdown-item" data-action="edit-text">✏️ Edit Text</div>
-                    <div class="dropdown-item" data-action="edit-tags">🏷️ Default Tags</div>
+                    <div class="dropdown-item" data-action="edit-tags">🏷️ Edit Tags</div>
                     <div class="dropdown-separator"></div>
                     <div class="dropdown-item" data-action="split-after">↓ Split Line After</div>
                     <div class="dropdown-separator"></div>
@@ -520,7 +520,8 @@
                     const newWord = {
                         text: newText,
                         time: { start: word.time.start, end: word.time.end },
-                        tags: [],
+                        semantic_tags: [],
+                        structure_tags: [],
                         clips: [],
                         max_layout: { position: {x:0, y:0}, size: {width:0, height:0} }
                     };
@@ -560,7 +561,8 @@
                             start: parseFloat(t.start), 
                             end: parseFloat(t.end) 
                         },
-                        tags: [],
+                        semantic_tags: [],
+                        structure_tags: [],
                         clips: [],
                         max_layout: { position: {x:0, y:0}, size: {width:0, height:0} }
                     }));
@@ -575,7 +577,7 @@
                 currentEditingWord = { segIndex, lineIndex, wordIndex };
                 
                 document.getElementById('modal-word-text').textContent = word.text;
-                document.getElementById('modal-tags').value = word.tags.map(t => t.name).join(', ');
+                document.getElementById('modal-tags').value = word.semantic_tags.map(t => t.name).join(', ');
                 
                 tagModal.classList.add('show');
             }
@@ -601,7 +603,7 @@
                     const wordsToMove = line.words.splice(splitAt);
                     const newLine = {
                         words: wordsToMove,
-                        tags: [],
+                        structure_tags: [],
                         time: { start: wordsToMove[0].time.start, end: wordsToMove[wordsToMove.length - 1].time.end },
                         max_layout: { position: {x:0, y:0}, size: {width:0, height:0} }
                     };
@@ -639,7 +641,7 @@
                     const linesToMove = segment.lines.splice(splitAt);
                     const newSegment = {
                         lines: linesToMove,
-                        tags: [],
+                        structure_tags: [],
                         time: { 
                             start: linesToMove[0].time.start, 
                             end: linesToMove[linesToMove.length - 1].time.end 
@@ -678,7 +680,7 @@
                     const tagsText = document.getElementById('modal-tags').value;
                     const tagNames = tagsText.split(',').map(t => t.trim()).filter(t => t);
                     
-                    documentState.segments[segIndex].lines[lineIndex].words[wordIndex].tags = 
+                    documentState.segments[segIndex].lines[lineIndex].words[wordIndex].semantic_tags = 
                         tagNames.map(name => ({ name }));
                     
                     tagModal.classList.remove('show');

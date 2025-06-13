@@ -18,7 +18,7 @@ class TypewritingEffect(ClipEffect):
         for line in document.get_lines():
             self._renderer.open_line(line, ElementState.WORD_BEING_NARRATED)
             for i, word in enumerate(line.words):
-                if self.tag_condition and not self.tag_condition.evaluate(list(word.get_all_tags())):
+                if self.tag_condition and not self.tag_condition.evaluate(list(word.get_all_tags_in_document())):
                     continue
                 for clip in word.clips:
                     self._apply_typewriting(i, clip)

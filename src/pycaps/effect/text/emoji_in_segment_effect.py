@@ -104,7 +104,7 @@ class EmojiInSegmentEffect(TextEffect):
         moment = segment.time.start if align == EmojiAlign.TOP else segment.time.end
         time = TimeFragment(start=moment, end=moment)
         new_line = Line(time=time)
-        emoji_word = Word(text=emoji, tags={BuiltinTag.EMOJI_FOR_SEGMENT}, time=time)
+        emoji_word = Word(text=emoji, semantic_tags={BuiltinTag.EMOJI_FOR_SEGMENT}, time=time)
         new_line.words.add(emoji_word)
 
         if align == EmojiAlign.BOTTOM:

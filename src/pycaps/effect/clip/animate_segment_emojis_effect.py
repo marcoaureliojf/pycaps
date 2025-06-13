@@ -10,7 +10,7 @@ class AnimateSegmentEmojisEffect(ClipEffect):
     def run(self, document: Document) -> None:
         tag_condition = TagConditionFactory.HAS(BuiltinTag.EMOJI_FOR_SEGMENT)
         for word in document.get_words():
-            if not tag_condition.evaluate(word.tags):
+            if not tag_condition.evaluate(list(word.semantic_tags)):
                 continue
             for clip in word.clips:
                 self.__animate_emoji_if_possible(clip)

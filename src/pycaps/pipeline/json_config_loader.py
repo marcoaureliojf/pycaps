@@ -46,7 +46,7 @@ class JsonConfigLoader:
             self._load_clip_effects()
             self._load_sound_effects()
             self._load_animations()
-            self._load_tagger()
+            self._load_semantic_tagger()
             if should_build_pipeline:
                 return self._builder.build()
             else:
@@ -222,7 +222,7 @@ class JsonConfigLoader:
             case _:
                 raise ValueError(f"Invalid transformer: {transformer}")
 
-    def _load_tagger(self) -> None:
+    def _load_semantic_tagger(self) -> None:
         tagger = SemanticTagger()
         for rule in self._config.tagger_rules:
             if rule.type == "llm":

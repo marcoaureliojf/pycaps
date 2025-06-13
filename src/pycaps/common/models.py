@@ -105,7 +105,8 @@ class Word:
     _parent: Optional['Line'] = None
     _clips: 'ElementContainer[WordClip]' = field(init=False)
     text: str = ""
-    tags: Set[Tag] = field(default_factory=set)
+    semantic_tags: Set[Tag] = field(default_factory=set)
+    structure_tags: Set[Tag] = field(default_factory=set)
     # IMPORTANT: it saves the maximum width/height of their clips (the word slot size)
     #            same with the position: it's the x,y of the word slot
     max_layout: ElementLayout = field(default_factory=ElementLayout)
@@ -115,17 +116,32 @@ class Word:
         self._clips = ElementContainer(self)
 
     def to_dict(self) -> dict:
-        return {"clips": [clip.to_dict() for clip in self.clips], "text": self.text, "tags": [tag.to_dict() for tag in self.tags], "max_layout": self.max_layout.to_dict(), "time": self.time.to_dict()}
+        return {
+            "clips": [clip.to_dict() for clip in self.clips],
+            "text": self.text,
+            "semantic_tags": [tag.to_dict() for tag in self.semantic_tags],
+            "structure_tags": [tag.to_dict() for tag in self.structure_tags],
+            "max_layout": self.max_layout.to_dict(), "time": self.time.to_dict()
+        }
 
     @staticmethod
     def from_dict(data: dict) -> 'Word':
-        word = Word(text=data["text"], tags=set([Tag.from_dict(tag) for tag in data["tags"]]), max_layout=ElementLayout.from_dict(data["max_layout"]), time=TimeFragment.from_dict(data["time"]))
+        word = Word(
+            text=data["text"],
+            semantic_tags=set([Tag.from_dict(tag) for tag in data["semantic_tags"]]),
+            structure_tags=set([Tag.from_dict(tag) for tag in data["structure_tags"]]),
+            max_layout=ElementLayout.from_dict(data["max_layout"]),
+            time=TimeFragment.from_dict(data["time"])
+        )
         word._clips.set_all([WordClip.from_dict(clip) for clip in data["clips"]])
         return word
 
     @property
     def clips(self) -> 'ElementContainer[WordClip]':
         return self._clips
+    
+    def get_tags(self) -> Set[Tag]:
+        return self.structure_tags | self.semantic_tags
 
     def get_moviepy_clips(self) -> List['VideoClip']:
         return [clip.moviepy_clip for clip in self.clips]
@@ -139,14 +155,14 @@ class Word:
     def get_document(self) -> 'Document':
         return self._parent.get_document()
     
-    def get_all_tags(self) -> Set[Tag]:
-        return self.tags | self.get_line().tags | self.get_segment().tags
+    def get_all_tags_in_document(self) -> Set[Tag]:
+        return self.structure_tags | self.semantic_tags | self.get_line().structure_tags | self.get_segment().structure_tags
 
 @dataclass
 class Line:
     _parent: Optional['Segment'] = None
     _words: 'ElementContainer[Word]' = field(init=False)
-    tags: Set[Tag] = field(default_factory=set)
+    structure_tags: Set[Tag] = field(default_factory=set)
     max_layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment) # TODO: We could calculate it using the words (same for segment)
 
@@ -154,11 +170,19 @@ class Line:
         self._words = ElementContainer(self)
 
     def to_dict(self) -> dict:
-        return {"words": [word.to_dict() for word in self.words], "tags": [tag.to_dict() for tag in self.tags], "max_layout": self.max_layout.to_dict(), "time": self.time.to_dict()}
+        return {
+            "words": [word.to_dict() for word in self.words],
+            "structure_tags": [tag.to_dict() for tag in self.structure_tags],
+            "max_layout": self.max_layout.to_dict(), "time": self.time.to_dict()
+        }
 
     @staticmethod
     def from_dict(data: dict) -> 'Line':
-        line = Line(tags=set([Tag.from_dict(tag) for tag in data["tags"]]), max_layout=ElementLayout.from_dict(data["max_layout"]), time=TimeFragment.from_dict(data["time"]))
+        line = Line(
+            structure_tags=set([Tag.from_dict(tag) for tag in data["structure_tags"]]),
+            max_layout=ElementLayout.from_dict(data["max_layout"]),
+            time=TimeFragment.from_dict(data["time"])
+        )
         line._words.set_all([Word.from_dict(word) for word in data["words"]])
         return line
 
@@ -169,6 +193,9 @@ class Line:
     def get_text(self) -> str:
         return ' '.join([word.text for word in self.words])
     
+    def get_tags(self) -> Set[Tag]:
+        return self.structure_tags
+
     def get_moviepy_clips(self) -> List['VideoClip']:
         return [clip for word in self.words for clip in word.get_moviepy_clips()]
     
@@ -185,7 +212,7 @@ class Line:
 class Segment:
     _parent: Optional['Document'] = None
     _lines: 'ElementContainer[Line]' = field(init=False)
-    tags: Set[Tag] = field(default_factory=set)
+    structure_tags: Set[Tag] = field(default_factory=set)
     max_layout: ElementLayout = field(default_factory=ElementLayout)
     time: TimeFragment = field(default_factory=TimeFragment)
 
@@ -193,11 +220,20 @@ class Segment:
         self._lines = ElementContainer(self)
 
     def to_dict(self) -> dict:
-        return {"lines": [line.to_dict() for line in self.lines], "tags": [tag.to_dict() for tag in self.tags], "max_layout": self.max_layout.to_dict(), "time": self.time.to_dict()}
+        return {
+            "lines": [line.to_dict() for line in self.lines],
+            "structure_tags": [tag.to_dict() for tag in self.structure_tags],
+            "max_layout": self.max_layout.to_dict(),
+            "time": self.time.to_dict()
+        }
 
     @staticmethod
     def from_dict(data: dict) -> 'Segment':
-        segment = Segment(tags=set([Tag.from_dict(tag) for tag in data["tags"]]), max_layout=ElementLayout.from_dict(data["max_layout"]), time=TimeFragment.from_dict(data["time"]))
+        segment = Segment(
+            structure_tags=set([Tag.from_dict(tag) for tag in data["structure_tags"]]),
+            max_layout=ElementLayout.from_dict(data["max_layout"]),
+            time=TimeFragment.from_dict(data["time"])
+        )
         segment._lines.set_all([Line.from_dict(line) for line in data["lines"]])
         return segment
 
@@ -207,6 +243,9 @@ class Segment:
 
     def get_text(self) -> str:
         return ' '.join([line.get_text() for line in self.lines])
+    
+    def get_tags(self) -> Set[Tag]:
+        return self.structure_tags
     
     def get_moviepy_clips(self) -> List['VideoClip']:
         return [clip for line in self.lines for clip in line.get_moviepy_clips()]

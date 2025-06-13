@@ -5,7 +5,7 @@ from pycaps.transcriber import AudioTranscriber, BaseSegmentSplitter, WhisperAud
 from typing import Dict, Any, Optional
 from pycaps.animation import Animation, ElementAnimator
 from pycaps.common import ElementType, EventType, VideoQuality
-from pycaps.tag import TagCondition, SemanticTagger
+from pycaps.tag import TagCondition, SemanticTagger, StructureTagger
 from pycaps.effect import TextEffect, ClipEffect, SoundEffect
 from pycaps.logger import logger
 
@@ -97,6 +97,10 @@ class CapsPipelineBuilder:
     def with_semantic_tagger(self, semantic_tagger: SemanticTagger) -> "CapsPipelineBuilder":
         self._caps_pipeline._semantic_tagger = semantic_tagger
         return self
+    
+    def with_structure_tagger(self, structure_tagger: StructureTagger) -> "CapsPipelineBuilder":
+        self._caps_pipeline._structure_tagger = structure_tagger
+        return self  
     
     def add_animation(self, animation: Animation, when: EventType, what: ElementType, tag_condition: Optional[TagCondition] = None) -> "CapsPipelineBuilder":
         self._caps_pipeline._animators.append(ElementAnimator(animation, when, what, tag_condition)) 

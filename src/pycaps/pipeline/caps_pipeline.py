@@ -4,7 +4,7 @@ from pycaps.transcriber import AudioTranscriber, WhisperAudioTranscriber, BaseSe
 from pycaps.renderer import CssSubtitleRenderer
 from pycaps.video import SubtitleClipsGenerator, VideoGenerator
 from pycaps.layout import WordWidthCalculator, PositionsCalculator, LineSplitter, LayoutUpdater
-from pycaps.tag import SemanticTagger
+from pycaps.tag import SemanticTagger, StructureTagger
 from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
 from pycaps.effect import TextEffect, ClipEffect, SoundEffect
@@ -25,6 +25,7 @@ class CapsPipeline:
         self._clips_generator: SubtitleClipsGenerator = SubtitleClipsGenerator(self._renderer)
         self._word_width_calculator: WordWidthCalculator = WordWidthCalculator(self._renderer)
         self._semantic_tagger: SemanticTagger = SemanticTagger()
+        self._structure_tagger: StructureTagger = StructureTagger()
         self._video_generator: VideoGenerator = VideoGenerator()
         self._segment_splitters: list[BaseSegmentSplitter] = []
         self._animators: List[ElementAnimator] = []
@@ -44,7 +45,7 @@ class CapsPipeline:
         self._output_video_path: Optional[str] = None
         self._resources_dir: Optional[str] = None
         self._moviepy_write_options: Dict[str, Any] = {}
-        self._process_logger: ProcessLogger = ProcessLogger(10)
+        self._process_logger: ProcessLogger
 
     def run(self) -> None:
         """
@@ -52,6 +53,7 @@ class CapsPipeline:
         """
         start_time = time.time()
         try:
+            self._process_logger: ProcessLogger = ProcessLogger(6 if self._subtitle_data_path_for_loading else 10)
             self._process_logger.step(f"Starting caps pipeline execution: {self._input_video_path}")
             video_extension = os.path.splitext(self._input_video_path)[1]
             self._output_video_path = f"output_{time.strftime('%Y%m%d_%H%M%S')}{video_extension}" if self._output_video_path is None else self._output_video_path
@@ -59,8 +61,15 @@ class CapsPipeline:
             self._video_generator.start(self._input_video_path, self._output_video_path)
             video_clip = self._video_generator.get_video_clip()
             document = self._generate_subtitle_data(video_clip)
+            
+            if self._should_preview_transcription:
+                document = TranscriptionEditor().run(document)
 
-            if self._should_save_subtitle_data and self._subtitle_data_path_for_loading is None:
+                # the transcription editor could have changed the structure, so we need to clear and add these tags again.
+                self._structure_tagger.clear(document)
+                self._structure_tagger.tag(document)
+
+            if self._should_save_subtitle_data:
                 logger().debug("Saving subtitle data...")
                 subtitle_data_path = self._output_video_path.replace(os.path.splitext(self._input_video_path)[1], ".json")
                 subtitle_data_service = SubtitleDataService(subtitle_data_path)
@@ -139,11 +148,8 @@ class CapsPipeline:
         logger().debug("Splitting segments into lines...")
         self._line_splitter.split_into_lines(document, video_clip.w)
 
-        if self._should_preview_transcription:
-            # we need to run this before tagging, because it could change the document structure
-            document = TranscriptionEditor().run(document)
-
-        self._process_logger.step("Tagging words with semantic information...")
+        self._process_logger.step("Running taggers...")
+        self._structure_tagger.tag(document)
         self._semantic_tagger.tag(document)
 
         self._process_logger.step("Applying text effects...")

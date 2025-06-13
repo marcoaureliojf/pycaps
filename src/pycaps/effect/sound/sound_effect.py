@@ -54,12 +54,12 @@ class SoundEffect(Effect):
         if self._tag_condition is None:
             return elements
         if self._what != ElementType.WORD or not self._interpret_consecutive_words_as_one:
-            return [element for element in elements if self._tag_condition.evaluate(element.tags)]
+            return [element for element in elements if self._tag_condition.evaluate(element.get_tags())]
         
         filtered_words = []
         consecutive_matched_words = []
         for word in elements:
-            if self._tag_condition.evaluate(word.tags):
+            if self._tag_condition.evaluate(word.get_tags()):
                 consecutive_matched_words.append(word)
             else:
                 self._append_proper_word_from_consecutive_words(filtered_words, consecutive_matched_words)
