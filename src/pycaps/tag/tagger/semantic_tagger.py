@@ -16,6 +16,7 @@ class SemanticTagger:
     def __init__(self):
         self._regex_rules: Dict[Tag, str] = {}
         self._llm_rules: Dict[Tag, str] = {}
+        self._wordlist_rules: Dict[Tag, list[str]] = {}
         self._llm_tagger = LlmTagger()
 
     def add_regex_rule(self, tag: Tag, pattern: str) -> None:
@@ -26,10 +27,20 @@ class SemanticTagger:
         """Register a new LLM-based rule."""
         self._llm_rules[tag] = prompt
 
+    def add_wordlist_rule(self, tag: Tag, wordlist: list[str]) -> None:
+        self._wordlist_rules[tag] = list(map(lambda w: self._sanitize_word_text(w), wordlist))
+
     def tag(self, document: Document) -> None:
         """Apply all registered rules to the document."""
+        self._apply_wordlist_rules(document)
         self._apply_regex_rules(document)
         self._apply_llm_rules(document)
+
+    def _apply_wordlist_rules(self, document: Document) -> None:
+        for tag, wordlist in self._wordlist_rules.items():
+            for word in document.get_words():
+                if self._sanitize_word_text(word.text) in wordlist:
+                    word.semantic_tags.add(tag)
 
     def _apply_regex_rules(self, document: Document) -> None:
         """Apply regex rules to the document."""
@@ -105,3 +116,6 @@ class SemanticTagger:
         return (word_start <= match_start < word_end) or \
                (word_start < match_end <= word_end) or \
                (match_start <= word_start and match_end >= word_end)
+    
+    def _sanitize_word_text(self, text):
+        return re.sub(r'[^\w]+', '', text).lower()

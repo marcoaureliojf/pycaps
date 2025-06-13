@@ -69,7 +69,7 @@ Tagged version:"""
             tagged_text_without_tags = re.sub(pattern, r'\1', tagged_text_without_tags)
         
         if original_text != tagged_text_without_tags:
-            logger().warning(f"The tagged text is not equal to the original text: {original_text} != {tagged_text_without_tags}")
+            logger().warning(f"The tagged text is not equal to the original text:\nOriginal text: \"{original_text}\"\nTagged text (without tags): \"{tagged_text_without_tags}\"")
             logger().warning("Using the original text instead.")
             return original_text
         

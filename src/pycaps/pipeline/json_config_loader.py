@@ -17,6 +17,7 @@ class JsonConfigLoader:
         with open(json_path, "r", encoding="utf-8") as f:
             self._data = json.load(f)
         self._json_path = json_path
+        self._base_path = os.path.dirname(self._json_path)
 
     @overload
     def load(self, should_build_pipeline: Literal[True] = True) -> CapsPipeline:
@@ -26,17 +27,16 @@ class JsonConfigLoader:
         ...
     def load(self, should_build_pipeline: bool = True) -> CapsPipeline | CapsPipelineBuilder:
         try:
-            base_path = os.path.dirname(self._json_path)
             self._config = JsonSchema(**self._data)
             self._builder = CapsPipelineBuilder()
             if self._config.css:
-                self._builder.add_css(os.path.join(base_path, self._config.css))
+                self._builder.add_css(os.path.join(self._base_path, self._config.css))
             if self._config.input:
-                self._builder.with_input_video(os.path.join(base_path, self._config.input))
+                self._builder.with_input_video(os.path.join(self._base_path, self._config.input))
             if self._config.output:
                 self._builder.with_output_video(self._config.output)
             if self._config.resources:
-                self._builder.with_resources(os.path.join(base_path, self._config.resources))
+                self._builder.with_resources(os.path.join(self._base_path, self._config.resources))
 
             self._load_video_config()
             self._load_whisper_config()
@@ -229,6 +229,9 @@ class JsonConfigLoader:
                 tagger.add_llm_rule(Tag(rule.tag), rule.prompt)
             elif rule.type == "regex":
                 tagger.add_regex_rule(Tag(rule.tag), rule.regex)
+            elif rule.type == "wordlist":
+                wordlist = open(os.path.join(self._base_path, rule.filename), "r", encoding="utf-8").read().split()
+                tagger.add_wordlist_rule(Tag(rule.tag), wordlist)
 
         self._builder.with_semantic_tagger(tagger)
 

@@ -159,7 +159,12 @@ class RegexTaggerRuleConfig(BaseConfigModel):
     tag: str
     regex: str
 
-TaggerRule = Annotated[LlmTaggerRuleConfig | RegexTaggerRuleConfig, Field(discriminator="type")]
+class WordlistTaggerRuleConfig(BaseConfigModel):
+    type: Literal["wordlist"]
+    tag: str
+    filename: str
+
+TaggerRule = Annotated[LlmTaggerRuleConfig | RegexTaggerRuleConfig | WordlistTaggerRuleConfig, Field(discriminator="type")]
 
 class JsonSchema(BaseConfigModel):
     input: Optional[str] = None
