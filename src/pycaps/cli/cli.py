@@ -2,16 +2,19 @@ import typer
 from typing import Optional
 from pycaps.logger import set_logging_level
 import logging
-from pycaps.pipeline import JsonConfigLoader, TemplateLoader
+from pycaps.pipeline import JsonConfigLoader
 from pycaps.renderer import CssSubtitlePreviewer
 from pycaps.common import VideoQuality
 from pycaps.layout import VerticalAlignmentType, SubtitleLayoutOptions
+from pycaps.template import TemplateLoader, DEFAULT_TEMPLATE_NAME, TemplateFactory
+from .template_cli import template_app
 
 app = typer.Typer(
     help="Pycaps, a tool for adding CSS-styled subtitles to videos",
     invoke_without_command=True,
     add_completion=False,
 )
+app.add_typer(template_app, name="template")
 
 @app.callback()
 def main(ctx: typer.Context):
@@ -23,7 +26,7 @@ def main(ctx: typer.Context):
 def render(
     input: str = typer.Option(..., "--input", help="Input video file name", rich_help_panel="Main options", show_default=False),
     output: Optional[str] = typer.Option(None, "--output", help="Output video file name", rich_help_panel="Main options", show_default=False),
-    template: Optional[str] = typer.Option(None, "--template", help="Template name. If no template and no config file is provided, the default template will be used", rich_help_panel="Main options", show_default=False),
+    template_name: Optional[str] = typer.Option(None, "--template", help="Template name. If no template and no config file is provided, the default template will be used", rich_help_panel="Main options", show_default=False),
     config_file: Optional[str] = typer.Option(None, "--config", help="Config JSON file path", rich_help_panel="Main options", show_default=False),
     transcription_preview: bool = typer.Option(False, "--transcription-preview", help="Stops the rendering process and shows an editable preview of the transcription", rich_help_panel="Main options", show_default=False),
 
@@ -75,15 +78,16 @@ def render(
         return original_layout.model_copy(update={"vertical_align": new_vertical_align})
 
     set_logging_level(logging.DEBUG if verbose else logging.INFO)
-    if template and config_file:
+    if template_name and config_file:
         typer.echo("Only one of --template or --config can be provided", err=True)
         return None
     
-    if not template and not config_file:
-        template = "default"
+    if not template_name and not config_file:
+        template_name = DEFAULT_TEMPLATE_NAME
     
-    if template:
-        typer.echo(f"Rendering {input} with template {template}...")
+    if template_name:
+        typer.echo(f"Rendering {input} with template {template_name}...")
+        template = TemplateFactory().create(template_name)
         builder = TemplateLoader(template).with_input_video(input).load(False)
     elif config_file:
         typer.echo(f"Rendering {input} with config file {config_file}...")
@@ -101,30 +105,25 @@ def render(
     pipeline = builder.build(preview_time=_parse_preview(preview, preview_time))
     pipeline.run()
 
-@app.command("list-templates", help="List available templates")
-def list_templates():
-    templates = TemplateLoader.list_templates()
-    for template in templates:
-        typer.echo(f"- {template}")
-
 @app.command("preview-styles", help="Preview a CSS file or the CSS styles of a template")
 def preview_styles(
     css: Optional[str] = typer.Option(None, "--css", help="CSS file path"),
     resources: Optional[str] = typer.Option(None, "--resources", help="Resources directory path. It is used only if --css is provided"),
-    template: Optional[str] = typer.Option(None, "--template", help="Template name. If no template and no css is provided, the default template will be used"),
+    template_name: Optional[str] = typer.Option(None, "--template", help="Template name"),
 ):
-    if not css and not template:
+    if not css and not template_name:
         typer.echo("Either --css or --template must be provided. Use --help for more information", err=True)
         return None
-    if css and template:
+    if css and template_name:
         typer.echo("Only one of --css or --template can be provided. Use --help for more information", err=True)
         return None
     
     if css:
         css_content = open(css, "r", encoding="utf-8").read()
         CssSubtitlePreviewer().run(css_content, resources)
-    elif template:
+    elif template_name:
         # TODO: This breaks encapsulation to get the CSS content and the resources directory of the template
+        template = TemplateFactory().create(template_name)
         builder = TemplateLoader(template).load(False)
         css_content = builder._caps_pipeline._renderer._custom_css
         resources_dir = builder._caps_pipeline._resources_dir

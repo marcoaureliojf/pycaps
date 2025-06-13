@@ -1,4 +1,4 @@
-from .pipeline import CapsPipeline, CapsPipelineBuilder, JsonConfigLoader, TemplateLoader
+from .pipeline import CapsPipeline, CapsPipelineBuilder, JsonConfigLoader
 from .renderer import CssSubtitleRenderer
 from .transcriber import WhisperAudioTranscriber, AudioTranscriber, LimitByWordsSplitter, LimitByCharsSplitter
 from .effect import *
@@ -8,5 +8,6 @@ from .tag import TagCondition, BuiltinTag, TagConditionFactory, SemanticTagger
 from .common import *
 from .layout.definitions import *
 from .ai import LlmProvider
+from .template import TemplateLoader, TemplateFactory, DEFAULT_TEMPLATE_NAME
 
 __version__ = "0.1.0" 
