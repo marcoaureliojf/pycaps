@@ -52,7 +52,7 @@ class EmojiInSegmentEffectConfig(BaseConfigModel):
     type: Literal["emoji_in_segment"]
     chance_to_apply: float = 0.5
     align: EmojiAlign = EmojiAlign.RANDOM
-    ignore_segments_with_duration_less_than: float = 1
+    ignore_segments_with_duration_less_than: float = 0
     max_uses_of_each_emoji: int = 2
     max_consecutive_segments_with_emoji: int = 3
 
@@ -149,8 +149,8 @@ AnimationConfig = Annotated[
     Field(discriminator="type")
 ]
 
-class LlmTaggerRuleConfig(BaseConfigModel):
-    type: Literal["llm"]
+class AiTaggerRuleConfig(BaseConfigModel):
+    type: Literal["ai"]
     tag: str
     prompt: str
 
@@ -164,7 +164,7 @@ class WordlistTaggerRuleConfig(BaseConfigModel):
     tag: str
     filename: str
 
-TaggerRule = Annotated[LlmTaggerRuleConfig | RegexTaggerRuleConfig | WordlistTaggerRuleConfig, Field(discriminator="type")]
+TaggerRule = Annotated[AiTaggerRuleConfig | RegexTaggerRuleConfig | WordlistTaggerRuleConfig, Field(discriminator="type")]
 
 class JsonSchema(BaseConfigModel):
     input: Optional[str] = None

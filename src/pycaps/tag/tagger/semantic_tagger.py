@@ -1,6 +1,6 @@
 import re
 from pycaps.common import Word, Document, Tag
-from .llm_tagger import LlmTagger
+from .ai_tagger import AiTagger
 from typing import Dict
 
 class SemanticTagger:
@@ -10,22 +10,22 @@ class SemanticTagger:
 
     This class implements three types of rules:
      - Regex rules: Use regular expressions to find and tag matching words
-     - LLM rules: Use a language model to identify and tag relevant words/phrases
+     - AI rules: Use a language model to identify and tag relevant words/phrases related to a received topic
     '''
 
     def __init__(self):
         self._regex_rules: Dict[Tag, str] = {}
-        self._llm_rules: Dict[Tag, str] = {}
+        self._ai_rules: Dict[Tag, str] = {}
         self._wordlist_rules: Dict[Tag, list[str]] = {}
-        self._llm_tagger = LlmTagger()
+        self._ai_tagger = AiTagger()
 
     def add_regex_rule(self, tag: Tag, pattern: str) -> None:
         """Register a new regex-based rule."""
         self._regex_rules[tag] = pattern
 
-    def add_llm_rule(self, tag: Tag, prompt: str) -> None:
-        """Register a new LLM-based rule."""
-        self._llm_rules[tag] = prompt
+    def add_ai_rule(self, tag: Tag, instructions: str) -> None:
+        """Register a new AI-based rule."""
+        self._ai_rules[tag] = instructions
 
     def add_wordlist_rule(self, tag: Tag, wordlist: list[str]) -> None:
         self._wordlist_rules[tag] = list(map(lambda w: self._sanitize_word_text(w), wordlist))
@@ -34,7 +34,7 @@ class SemanticTagger:
         """Apply all registered rules to the document."""
         self._apply_wordlist_rules(document)
         self._apply_regex_rules(document)
-        self._apply_llm_rules(document)
+        self._apply_ai_rules(document)
 
     def _apply_wordlist_rules(self, document: Document) -> None:
         for tag, wordlist in self._wordlist_rules.items():
@@ -52,26 +52,19 @@ class SemanticTagger:
             matches_positions = [(match.start(), match.end()) for match in matches]
             self._tag_matching_words(words, matches_positions, tag)
 
-    def _apply_llm_rules(self, document: Document) -> None:
+    def _apply_ai_rules(self, document: Document) -> None:
         """
-        Apply LLM rules to the document.
-        Makes a single call to the LLM with all rules to optimize performance.
-        The LLM is expected to return the text with all matching terms tagged using
-        XML-like tags for each class name.
-        
-        Example:
-        If we have rules for "emotion" and "finance", the LLM might return:
-        "I feel <emotion>happy</emotion> about my <finance>investment</finance>"
+        Apply AI rules to the document. Internally it uses a LLM with all the rules.
         """
-        if not self._llm_rules:
+        if not self._ai_rules:
             return
 
         words = document.get_words()
         text = document.get_text().strip()
         
-        tagged_text = self._llm_tagger.process(text, self._llm_rules)
+        tagged_text = self._ai_tagger.process(text, self._ai_rules)
         text_positions_mapping = self._build_text_positions_mapping(tagged_text)
-        for tag in self._llm_rules.keys():
+        for tag in self._ai_rules.keys():
             pattern = f'<{tag.name}>(.*?)</{tag.name}>'
             matches = re.finditer(pattern, tagged_text)
             matches_positions = [(m.start(1), m.end(1)-1) for m in matches]

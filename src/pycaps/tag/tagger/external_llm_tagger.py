@@ -4,7 +4,7 @@ from pycaps.ai import LlmProvider
 from pycaps.logger import logger
 import re
 
-class LlmTagger:
+class ExternalLlmTagger:
     """
     Handles the interaction with LLM for semantic tagging of text.
     This class is responsible for generating appropriate prompts and

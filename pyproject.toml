@@ -39,6 +39,7 @@ dependencies = [
     "pydantic",
     "typer[all]",
     "pywebview",
+    "requests",
 ]
 
 [project.scripts]

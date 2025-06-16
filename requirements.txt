@@ -7,3 +7,4 @@ opencv-python
 pydantic
 typer[all]
 pywebview
+requests

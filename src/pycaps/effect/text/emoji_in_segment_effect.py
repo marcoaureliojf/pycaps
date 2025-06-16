@@ -1,21 +1,16 @@
 from .text_effect import TextEffect
 from pycaps.common import Document, Segment, Line, TimeFragment, Word
-from pycaps.utils import ScriptUtils
 from typing import Optional
 import random
 from enum import Enum
 from pycaps.tag import BuiltinTag
-from pycaps.ai import LlmProvider
+from .emoji_in_segment_getter import EmojiInSegmentGetter
 
 class EmojiAlign(str, Enum):
     BOTTOM = "bottom"
     TOP = "top"
     RANDOM = "random"
 
-# TODO: There's room for improvement here.
-# - We could avoid the overhead of calling the LLM for each choosen segment.
-# - For that, we should instead send the full script to the LLM and get the proper emojis for each segment.
-# - We should probably use something like structured responses for that.
 class EmojiInSegmentEffect(TextEffect):
     '''
     This effect adds an emoji to a segment text if it can be meaningfully represented with an emoji.
@@ -24,7 +19,7 @@ class EmojiInSegmentEffect(TextEffect):
             self,
             chance_to_apply: float = 0.5,
             align: EmojiAlign = EmojiAlign.RANDOM,
-            ignore_segments_with_duration_less_than: float = 1,
+            ignore_segments_with_duration_less_than: float = 0,
             max_uses_of_each_emoji: int = 2,
             max_consecutive_segments_with_emoji: int = 3
         ):
@@ -37,10 +32,10 @@ class EmojiInSegmentEffect(TextEffect):
         self._emojies_frequencies = {}
         self._last_emoji = None
         self._consecutive_segments_with_emoji = 0
-        self._llm = LlmProvider.get()
-        self._video_script_summary: Optional[str] = None
+        self._emoji_getter = EmojiInSegmentGetter()
 
     def run(self, document: Document) -> None:
+        self._emoji_getter.start(document)
         for segment in document.segments:
             if random.random() > self._chance_to_apply:
                 self._consecutive_segments_with_emoji = 0
@@ -62,39 +57,19 @@ class EmojiInSegmentEffect(TextEffect):
             self._consecutive_segments_with_emoji >= self._max_consecutive_segments_with_emoji:
             return None
 
-        text = segment.get_text()
-        text_response = self._llm.send_message(
-            prompt=f"""
-            Given the following subtitle text, decide whether it meaningfully conveys an emotion, action, or idea that can be represented with an emoji.
-            If it does you will need to respond with a single, appropriate emoji only.
-
-            Take into account that the subtitle is part of a video script. This is a video script summary:
-            {self.__get_video_script_summary(segment.get_document())}
-
-            Basic guidelines:
-            1. The emoji should be related to subtitle text received.
-            2. Use the video script summary to get better context about the meaning of the words in the subtitle.
-            3. Respond only with the emoji, no other text.
-            4. If the text received doesn't contain any relevant information (e.g. it's too vague, neutral, or generic), respond with "None".
-
-            Subtitle to analyze: "{text}"
-            """
-        )
-        if text_response == "None":
-            return None
-        
-        emoji_frequency = self._emojies_frequencies.get(text_response, 0)
+        emoji = self._emoji_getter.get_emoji(segment)
+        emoji_frequency = self._emojies_frequencies.get(emoji, 0)
         if self._max_uses_of_each_emoji > 0 and emoji_frequency >= self._max_uses_of_each_emoji:
             return None
         
-        if self._last_emoji is not None and self._last_emoji == text_response:
+        if self._last_emoji is not None and self._last_emoji == emoji:
             return None
         
-        self._emojies_frequencies[text_response] = emoji_frequency + 1
+        self._emojies_frequencies[emoji] = emoji_frequency + 1
         self._consecutive_segments_with_emoji += 1
-        self._last_emoji = text_response
+        self._last_emoji = emoji
 
-        return text_response
+        return emoji
 
     def __add_emoji_to_segment(self, segment: Segment, emoji: str):
         align = self._align
@@ -111,8 +86,3 @@ class EmojiInSegmentEffect(TextEffect):
             segment.lines.add(new_line)
         else:
             segment.lines.add(new_line, 0)
-
-    def __get_video_script_summary(self, document: Document) -> str:
-        if self._video_script_summary is None:
-            self._video_script_summary = ScriptUtils.get_basic_summary(document.get_text())
-        return self._video_script_summary

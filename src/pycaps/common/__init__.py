@@ -18,6 +18,7 @@ from .types import (
     AspectRatio
 )
 from .element_container import ElementContainer
+from .config_service import ConfigService
 
 __all__ = [
     "Tag",
@@ -35,5 +36,6 @@ __all__ = [
     "ElementState",
     "ElementContainer",
     "VideoQuality",
-    "AspectRatio"
+    "AspectRatio",
+    "ConfigService"
 ]

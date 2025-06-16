@@ -225,8 +225,8 @@ class JsonConfigLoader:
     def _load_semantic_tagger(self) -> None:
         tagger = SemanticTagger()
         for rule in self._config.tagger_rules:
-            if rule.type == "llm":
-                tagger.add_llm_rule(Tag(rule.tag), rule.prompt)
+            if rule.type == "ai":
+                tagger.add_ai_rule(Tag(rule.tag), rule.prompt)
             elif rule.type == "regex":
                 tagger.add_regex_rule(Tag(rule.tag), rule.regex)
             elif rule.type == "wordlist":
