@@ -2,11 +2,12 @@ from ..pipeline.json_config_loader import JsonConfigLoader
 from typing import overload, Literal, Optional
 from pycaps.pipeline import CapsPipeline, CapsPipelineBuilder
 from .template import Template
+from .template_factory import TemplateFactory
 
 class TemplateLoader:
 
-    def __init__(self, template: Template):
-        self._template: Template = template
+    def __init__(self, template: Template|str):
+        self._template: Template = TemplateFactory().create(template) if type(template) == str else template
         self._input_video_path: Optional[str] = None
 
     def with_input_video(self, input_video_path: str) -> "TemplateLoader":
