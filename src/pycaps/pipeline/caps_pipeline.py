@@ -9,11 +9,12 @@ from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
 from pycaps.effect import TextEffect, ClipEffect, SoundEffect
 from pycaps.common import Document
-from typing import Optional, List, Dict, Any, TYPE_CHECKING
+from typing import Optional, List, Dict, Any, TYPE_CHECKING, Tuple
 from pathlib import Path
 from .subtitle_data_service import SubtitleDataService
 from pycaps.transcriber import TranscriptionEditor
 from pycaps.logger import logger, ProcessLogger
+from pycaps.utils import time_utils
 
 if TYPE_CHECKING:
     from moviepy.editor import VideoClip
@@ -41,6 +42,7 @@ class CapsPipeline:
         self._line_splitter: LineSplitter = LineSplitter(self._layout_options)
         self._layout_updater: LayoutUpdater = LayoutUpdater(self._layout_options)
 
+        self._preview_time: Optional[Tuple[float, float]] = None
         self._input_video_path: Optional[str] = None
         self._output_video_path: Optional[str] = None
         self._resources_dir: Optional[str] = None
@@ -57,6 +59,8 @@ class CapsPipeline:
             self._process_logger.step(f"Starting caps pipeline execution: {self._input_video_path}")
             video_extension = os.path.splitext(self._input_video_path)[1]
             self._output_video_path = f"output_{time.strftime('%Y%m%d_%H%M%S')}{video_extension}" if self._output_video_path is None else self._output_video_path
+            if self._preview_time:
+                self._video_generator.set_fragment_time(self._preview_time)
             self._video_generator.set_moviepy_write_options(self._moviepy_write_options)
             self._video_generator.start(self._input_video_path, self._output_video_path)
             video_clip = self._video_generator.get_video_clip()
@@ -123,6 +127,8 @@ class CapsPipeline:
             logger().debug(f"Opening renderer for video dimensions: {video_clip.w}x{video_clip.h}")
             resources_dir = Path(self._resources_dir) if self._resources_dir else None
             self._renderer.open(video_width=video_clip.w, video_height=video_clip.h, resources_dir=resources_dir)
+
+            self._cut_document_for_preview_time(document)
             return document
         
         self._process_logger.step("Transcribing audio...")
@@ -157,3 +163,19 @@ class CapsPipeline:
             effect.run(document)
 
         return document
+
+    def _cut_document_for_preview_time(self, document: Document):
+        if not self._preview_time:
+            return
+        is_in_preview_time = lambda e: time_utils.times_intersect(self._preview_time[0], self._preview_time[1], e.time.start, e.time.end)
+        for segment in document.segments[:]:
+            if not is_in_preview_time(segment):
+                document.segments.remove(segment)
+                continue
+            for line in segment.lines[:]:
+                if not is_in_preview_time(line):
+                    segment.lines.remove(line)
+                    continue
+                for word in line.words[:]:
+                    if not is_in_preview_time(word):
+                        line.words.remove(word)

@@ -79,6 +79,8 @@ class CapsPipelineBuilder:
         return self
 
     def with_subtitle_data_path(self, subtitle_data_path: str) -> "CapsPipelineBuilder":
+        if subtitle_data_path and not os.path.exists(subtitle_data_path):
+            raise ValueError(f"Subtitle data file not found: {subtitle_data_path}")
         self._caps_pipeline._subtitle_data_path_for_loading = subtitle_data_path
         return self
     
@@ -127,7 +129,7 @@ class CapsPipelineBuilder:
             self.with_fps(15)
             self.should_save_subtitle_data(False)
             self.with_whisper_config(model_size="tiny")
-            self._caps_pipeline._video_generator.set_fragment_time(preview_time)
+            self._caps_pipeline._preview_time = preview_time
         
         pipeline = self._caps_pipeline
         self._caps_pipeline = CapsPipeline()

@@ -26,6 +26,9 @@ class ElementContainer(Generic[E]):
 
     def get_all(self) -> Tuple[E, ...]:
         return tuple(self._elements)
+    
+    def remove(self, element: E):
+        self._elements.remove(element)
 
     @overload
     def __getitem__(self, index: int) -> E: ...
