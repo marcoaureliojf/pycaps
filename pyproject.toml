@@ -37,7 +37,7 @@ dependencies = [
     "numpy",
     "opencv-python",
     "pydantic",
-    "typer[all]",
+    "typer",
     "pywebview",
     "requests",
 ]
