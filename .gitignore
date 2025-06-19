@@ -6,3 +6,4 @@ ideas.md
 *.png
 examples/*.json
 *.egg-info/
+tools

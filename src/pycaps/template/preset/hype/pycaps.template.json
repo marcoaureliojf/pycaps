@@ -1,12 +1,13 @@
 {
     "css": "styles.css",
+    "resources": "resources",
     "layout": {
-        "max_width_ratio": 0.9,
+        "max_width_ratio": 0.85,
         "max_number_of_lines": 2,
         "min_number_of_lines": 1,
         "vertical_align": {
-            "align": "center",
-            "offset": 0.15
+            "align": "bottom",
+            "offset": -0.1
         }
     },
     "splitters": [
@@ -15,8 +16,8 @@
         },
         {
             "type": "limit_by_chars",
-            "min_chars": 15,
-            "max_chars": 30
+            "min_chars": 10,
+            "max_chars": 15
         }
     ],
     "text_effects": [
@@ -39,23 +40,27 @@
     ],
     "animations": [
         {
-            "type": "pop_in_primitive",
+            "type": "zoom_in_primitive",
             "when": "narration-starts",
             "what": "word",
-            "duration": 0.15,
-            "delay": 0,
-            "min_scale": 0.9,
-            "init_scale": 0.95,
-            "min_scale_at": 0.5,
+            "duration": 0.12,
+            "init_scale": 0.8,
             "overshoot": {
                 "amount": 0.05,
-                "peak_at": 0.8
+                "peak_at": 0.7
             }
+        },
+        {
+            "type": "fade_in",
+            "when": "narration-starts",
+            "what": "segment",
+            "duration": 0.15
         },
         {
             "type": "fade_out",
             "when": "narration-ends",
-            "what": "segment"
+            "what": "segment",
+            "duration": 0.15
         }
     ],
     "tagger_rules": []

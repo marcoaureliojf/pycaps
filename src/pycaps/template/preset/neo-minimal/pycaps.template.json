@@ -1,13 +1,13 @@
 {
     "css": "styles.css",
     "layout": {
-        "max_width_ratio": 0.9,
-        "max_number_of_lines": 3,
+        "max_width_ratio": 0.8,
+        "max_number_of_lines": 2,
         "min_number_of_lines": 1,
         "y_words_space": 5,
         "vertical_align": {
-            "align": "top",
-            "offset": 0.05
+            "align": "bottom",
+            "offset": "-0.05"
         }
     },
     "splitters": [
@@ -17,7 +17,7 @@
         {
             "type": "limit_by_chars",
             "min_chars": 20,
-            "max_chars": 50
+            "max_chars": 40
         }
     ],
     "animations": [

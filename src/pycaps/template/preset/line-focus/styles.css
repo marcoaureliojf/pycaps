@@ -1,0 +1,21 @@
+.word {
+    font-family: 'Arial black', sans-serif;
+    font-size: 20px;
+    color: white;
+    padding: 4px 4px;
+    text-shadow: 
+        -2px -2px 2px #000,  
+         2px -2px 2px #000,
+        -2px  2px 2px #000,
+         2px  2px 2px #000;
+    text-transform: uppercase;
+}
+
+.line-being-narrated {
+    background-color: blue;
+    border-radius: 5%;
+}
+
+.line-being-narrated > .word {
+    font-size: 30px;
+}
