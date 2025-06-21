@@ -2,7 +2,6 @@ from .media_element import MediaElement
 import cv2
 import numpy as np
 import os
-from typing import List
 import subprocess
 import shlex
 from pathlib import Path
@@ -18,34 +17,13 @@ class VideoElement(MediaElement):
         if ext not in ['.mp4', '.mov', '.avi', '.mkv']:
             raise ValueError(f"Unsupported video format: {ext}")
 
-        # self._load_frames(path)
         self._load_frames_with_ffmpeg(path)
 
     def get_frame(self, t_rel: float) -> np.ndarray:
         idx = int(t_rel * self._fps)
         idx = max(0, min(idx, self._num_frames - 1))
         return self._frames[idx].copy()
-    
-    def _load_frames(self, path: str):
-        video_capture = cv2.VideoCapture(path)
-        self._fps = video_capture.get(cv2.CAP_PROP_FPS)
-        if not self._fps:
-            raise RuntimeError(f"Unable to get video FPS prop for video: {path}")
-        self._frames: List[np.ndarray] = []
-        while True:
-            ret, frame = video_capture.read()
-            if not ret:
-                break
-            if frame.shape[2] == 3:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2BGRA)
-            self._frames.append(frame.astype(np.float32))
-
-        self._num_frames = len(self._frames)
-        if self._num_frames == 0:
-            raise RuntimeError(f"Invalid video '{path}': 0 frames?")
-        self._size = self._frames[0].shape[1], self._frames[0].shape[0]
-        video_capture.release()
-    
+        
     def _load_frames_with_ffmpeg(self, path: str):
         path = Path(path).resolve().as_posix()
         probe = subprocess.run(
