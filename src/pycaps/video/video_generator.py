@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, TYPE_CHECKING, Tuple
+from typing import Optional, TYPE_CHECKING, Tuple
 import os
 import tempfile
 from pycaps.common import Document, VideoQuality

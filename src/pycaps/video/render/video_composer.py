@@ -10,6 +10,10 @@ import shutil
 from typing import Tuple, List, Optional
 from .media_element import MediaElement
 from .audio_element import AudioElement
+from pycaps.logger import logger
+from imageio_ffmpeg import get_ffmpeg_exe
+
+ffmpeg_exe = get_ffmpeg_exe()
 
 # TODO: we need to create a new class VideoFile (or something like that)
 #  then, the composer should receive a VideoFile instance
@@ -75,7 +79,7 @@ class VideoComposer:
         duration = (end_frame - start_frame) / self._input_fps
 
         ffmpeg_cmd = [
-            "ffmpeg",
+            ffmpeg_exe,
             "-y",
             # Input video
             "-f", "rawvideo",
@@ -136,7 +140,7 @@ class VideoComposer:
                 f.write(f"file '{os.path.abspath(p)}'\n")
         # Merge using ffmpeg
         cmd = [
-            "ffmpeg", "-y",
+            ffmpeg_exe, "-y",
             "-f", "concat",
             "-safe", "0",
             "-i", list_path,
@@ -152,62 +156,72 @@ class VideoComposer:
         video_path: str,
         output_path: str,
         aac_bitrate: str = "192k"
-    ) -> None: 
-        ffmpeg_cmd = [
-            "ffmpeg",
-            "-y",
-            "-loglevel", "error",
-            "-hide_banner",
-            "-i", video_path
-        ]
-        if len(self._audio_elements) == 0:
-            ffmpeg_cmd += [
-                "-c:v", "copy",
-                "-c:a", "copy",
-                "-b:a", aac_bitrate,
-                output_path
+    ) -> None:
+        from pydub import AudioSegment
+        from pydub.effects import normalize
+        AudioSegment.converter = ffmpeg_exe
+        
+        try:
+            main_audio = AudioSegment.from_file(video_path)
+        except Exception as e:
+            logger().error(f"unable to extract audio from video. Ignoring sound effects. Pydub error: {e}")
+
+        if not self._audio_elements:
+            ffmpeg_cmd = [
+                ffmpeg_exe, "-y",
+                "-i", video_path,
+                "-c", "copy",
+                output_path,
+                "-loglevel", "error",
+                "-hide_banner"
             ]
-            
             subprocess.run(ffmpeg_cmd, check=True)
             return
-        
+
+        final_mix = main_audio
         for audio in self._audio_elements:
-            ffmpeg_cmd += ["-i", audio.path]
-        
-        # Build the filter_complex:
-        #   0:a is the original audio
-        #   For each SFX i, we apply adelay=ms|all=1 and name it [s{i}]
-        #   Finally, we mix all of them with amix=inputs=N
-        filter_parts = []
-        inputs = ["[0:a]"]
-        for idx, audio in enumerate(self._audio_elements, start=1):
-            delay_ms = int(audio.start * 1000)
-            part = (
-                f"[{idx}:a]adelay={delay_ms}|all=1"
-                f"[s{idx}]"
-            )
-            filter_parts.append(part)
-            inputs.append(f"[s{idx}]")
-        
-        # amix line
-        num_inputs = len(inputs)
-        amix = "".join(inputs) + f"amix=inputs={num_inputs}:dropout_transition=0[aout]"
-        filter_parts.append(amix)
-        
-        filter_complex = ";".join(filter_parts)
-        
-        # Add filter_complex, map, and codec options
-        ffmpeg_cmd += [
-            "-filter_complex", filter_complex,
-            "-map", "0:v",
-            "-map", "[aout]",
-            "-c:v", "copy",
-            "-c:a", "aac",
-            "-b:a", aac_bitrate,
-            output_path
-        ]
-        
-        subprocess.run(ffmpeg_cmd, check=True)
+            try:
+                sfx = AudioSegment.from_file(audio.path)
+                # Convertir el multiplicador de volumen a decibelios (dB), que es lo que pydub usa.
+                if audio.volume > 0:
+                    db_change = 20 * math.log10(audio.volume)
+                    sfx = sfx + db_change
+                else:
+                    sfx = sfx - 100 # Reducir por 100 dB es efectivamente silencio
+
+                start_ms = audio.start * 1000
+                final_mix = final_mix.overlay(sfx, position=start_ms)
+
+            except Exception as e:
+                logger().warning(f"Unable to process sound effect: {audio.path}. Error: {e}")
+                continue
+
+        normalized_mix = normalize(final_mix)
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio_file:
+            temp_audio_path = temp_audio_file.name
+        try:
+            normalized_mix.export(temp_audio_path, format="wav")
+            ffmpeg_cmd = [
+                ffmpeg_exe, "-y",
+                "-i", video_path,
+                "-i", temp_audio_path,
+                "-map", "0:v",
+                "-map", "1:a",
+                "-c:v", "copy",
+                "-c:a", "aac",
+                "-b:a", aac_bitrate,
+                "-shortest",
+                output_path,
+                "-loglevel", "error",
+                "-hide_banner"
+            ]
+
+            subprocess.run(ffmpeg_cmd, check=True, capture_output=True, text=True)
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Fatal error processing audio with ffmpeg: {e.stderr}")
+        finally:
+            if os.path.exists(temp_audio_path):
+                os.remove(temp_audio_path)
 
     def render(self, use_multiprocessing: bool = True, processes: Optional[int] = None) -> None:
         temp_dir = tempfile.mkdtemp()
@@ -231,16 +245,16 @@ class VideoComposer:
                 p.start()
             for p in jobs:
                 p.join()
-            merged_no_audio = os.path.join(temp_dir, "merged_no_audio.mp4")
-            self._merge_parts(part_paths, merged_no_audio)
+            merged_parts = os.path.join(temp_dir, "merged_parts.mp4")
+            self._merge_parts(part_paths, merged_parts)
             final = self._output
             start = time.time()
-            self._mux_audio(merged_no_audio, final)
+            self._mux_audio(merged_parts, final)
             print(f"self._mux_audio took {time.time()-start}")
         else:
             # Single-process
             start = time.time()
-            tmp = os.path.join(temp_dir, "noaudio.mp4")
+            tmp = os.path.join(temp_dir, "partial.mp4")
             self._render_range(self._output_from_frame, self._output_to_frame, tmp)
             middle = time.time()
             print(f"self._render_range took {middle-start}")

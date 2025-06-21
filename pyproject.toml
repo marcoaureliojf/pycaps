@@ -30,7 +30,6 @@ classifiers = [
 ]
 
 dependencies = [
-    "moviepy==1.0.3",
     "openai-whisper",
     "playwright",
     "Pillow",
@@ -40,6 +39,9 @@ dependencies = [
     "typer",
     "pywebview",
     "requests",
+    "imageio-ffmpeg",
+    "pydub>=0.25.1",
+    'audioop-lts; python_version >= "3.13"'
 ]
 
 [project.scripts]

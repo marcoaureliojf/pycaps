@@ -9,29 +9,29 @@ class SoundEffect(Effect):
     def __init__(
             self,
             sound: Sound,
-            what: EventType,
-            when: ElementType,
+            when: EventType,
+            what: ElementType,
             tag_condition: Optional[TagCondition] = None,
             offset: float = 0.0,
-            volume: float = 0.15,
+            volume: float = 0.25,
             interpret_consecutive_words_as_one: bool = True
         ):
         self._sound: Sound = sound
-        self._what: EventType = what
-        self._when: ElementType = when
+        self._when: EventType = when
+        self._what: ElementType = what
         self._tag_condition: Optional[TagCondition] = tag_condition
         self._offset: float = offset
         self._volume: float = volume
         self._interpret_consecutive_words_as_one: bool = interpret_consecutive_words_as_one
 
     def run(self, document: Document) -> None:
-        from moviepy.editor import AudioFileClip
+        from pycaps.video.render import AudioElement
 
         times = self._get_elements_times(document)
         for time in times:
             path = self._sound.get_file_path()
             time = time.start + self._offset if self._when == EventType.ON_NARRATION_STARTS else time.end + self._offset
-            audio = AudioFileClip(path).set_start(time).volumex(self._volume)
+            audio = AudioElement(path, time, self._volume)
             document.sfxs.append(audio)
 
     def _get_elements_times(self, document: Document) -> List[TimeFragment]:

@@ -6,6 +6,9 @@ from typing import List
 import subprocess
 import shlex
 from pathlib import Path
+from imageio_ffmpeg import get_ffmpeg_exe
+
+ffmpeg_exe = get_ffmpeg_exe()
 
 class VideoElement(MediaElement):
 
@@ -60,7 +63,7 @@ class VideoElement(MediaElement):
         nb_frames = int(nb_frames) if nb_frames.isdigit() else None
 
         cmd = (
-            f"ffmpeg -i {path} -f rawvideo -pix_fmt rgba "
+            f"{ffmpeg_exe} -i {path} -f rawvideo -pix_fmt rgba "
             f"-vf scale={w}:{h} -hide_banner -loglevel error pipe:1"
         )
         proc = subprocess.Popen(
