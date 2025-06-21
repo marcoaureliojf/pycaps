@@ -9,7 +9,7 @@ class SubtitleClipsGenerator:
 
     def generate(self, document: Document) -> None:
         """
-        Adds the MoviePy ImageClips for each word in the document received.
+        Adds the MediaElement for each word in the document received.
         """
 
         for segment in document.segments:
@@ -71,7 +71,7 @@ class SubtitleClipsGenerator:
         self._renderer.close_line()
 
     def __create_word_clip(self, word_index: int, word: Word, word_state: ElementState, start: float, end: float) -> Optional[WordClip]:
-        from moviepy.editor import ImageClip
+        from pycaps.video.render import ImageElement
         import numpy as np
         
         if end <= start:
@@ -81,12 +81,8 @@ class SubtitleClipsGenerator:
         if not image:
             return None
         
-        clip: ImageClip = (
-            ImageClip(np.array(image))
-            .set_start(start)
-            .set_duration(end - start)
-        )
-        word_clip = WordClip(moviepy_clip=clip, _parent=word)
+        image_element = ImageElement(np.array(image), start, end-start)
+        word_clip = WordClip(media_clip=image_element, _parent=word)
         word_clip.layout.size.width = image.width
         word_clip.layout.size.height = image.height
         return word_clip

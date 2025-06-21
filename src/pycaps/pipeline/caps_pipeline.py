@@ -9,15 +9,12 @@ from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
 from pycaps.effect import TextEffect, ClipEffect, SoundEffect
 from pycaps.common import Document
-from typing import Optional, List, Dict, Any, TYPE_CHECKING, Tuple
+from typing import Optional, List, Dict, Any, Tuple
 from pathlib import Path
 from .subtitle_data_service import SubtitleDataService
 from pycaps.transcriber import TranscriptionEditor
 from pycaps.logger import logger, ProcessLogger
 from pycaps.utils import time_utils
-
-if TYPE_CHECKING:
-    from moviepy.editor import VideoClip
 
 class CapsPipeline:
     def __init__(self):
@@ -46,7 +43,6 @@ class CapsPipeline:
         self._input_video_path: Optional[str] = None
         self._output_video_path: Optional[str] = None
         self._resources_dir: Optional[str] = None
-        self._moviepy_write_options: Dict[str, Any] = {}
         self._process_logger: ProcessLogger
 
     def run(self) -> None:
@@ -61,10 +57,9 @@ class CapsPipeline:
             self._output_video_path = f"output_{time.strftime('%Y%m%d_%H%M%S')}{video_extension}" if self._output_video_path is None else self._output_video_path
             if self._preview_time:
                 self._video_generator.set_fragment_time(self._preview_time)
-            self._video_generator.set_moviepy_write_options(self._moviepy_write_options)
             self._video_generator.start(self._input_video_path, self._output_video_path)
-            video_clip = self._video_generator.get_video_clip()
-            document = self._generate_subtitle_data(video_clip)
+            video_width, video_height = self._video_generator.get_video_size()
+            document = self._generate_subtitle_data(video_width, video_height)
             
             if self._should_preview_transcription:
                 document = TranscriptionEditor().run(document)
@@ -86,7 +81,7 @@ class CapsPipeline:
             self._layout_updater.update_max_sizes(document)
 
             logger().debug("Calculating words positions...")
-            self._positions_calculator.calculate(document, video_clip.w, video_clip.h)
+            self._positions_calculator.calculate(document, video_width, video_height)
 
             logger().debug("Updating elements max positions...")
             self._layout_updater.update_max_positions(document)
@@ -118,15 +113,15 @@ class CapsPipeline:
             logger().debug("Cleanup finished.")
             logger().debug(f"Total time: {time.time() - start_time} seconds")
 
-    def _generate_subtitle_data(self, video_clip: 'VideoClip') -> Document:
+    def _generate_subtitle_data(self, video_width: int, video_height: int) -> Document:
         if self._subtitle_data_path_for_loading:
             logger().debug("Loading subtitle data...")
             subtitle_data_service = SubtitleDataService(self._subtitle_data_path_for_loading)
             document = subtitle_data_service.load()
             
-            logger().debug(f"Opening renderer for video dimensions: {video_clip.w}x{video_clip.h}")
+            logger().debug(f"Opening renderer for video dimensions: {video_width}x{video_height}")
             resources_dir = Path(self._resources_dir) if self._resources_dir else None
-            self._renderer.open(video_width=video_clip.w, video_height=video_clip.h, resources_dir=resources_dir)
+            self._renderer.open(video_width, video_height, resources_dir)
 
             self._cut_document_for_preview_time(document)
             return document
@@ -140,9 +135,9 @@ class CapsPipeline:
         for splitter in self._segment_splitters:
             splitter.split(document)
 
-        logger().debug(f"Opening renderer for video dimensions: {video_clip.w}x{video_clip.h}")
+        logger().debug(f"Opening renderer for video dimensions: {video_width}x{video_height}")
         resources_dir = Path(self._resources_dir) if self._resources_dir else None
-        self._renderer.open(video_width=video_clip.w, video_height=video_clip.h, resources_dir=resources_dir)
+        self._renderer.open(video_width, video_height, resources_dir)
 
         self._process_logger.step("Calculating layout...")
         logger().debug("Calculating words widths...")
@@ -152,7 +147,7 @@ class CapsPipeline:
         self._word_width_calculator.calculate(document)
 
         logger().debug("Splitting segments into lines...")
-        self._line_splitter.split_into_lines(document, video_clip.w)
+        self._line_splitter.split_into_lines(document, video_width)
 
         self._process_logger.step("Running taggers...")
         self._structure_tagger.tag(document)

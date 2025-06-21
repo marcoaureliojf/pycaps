@@ -1,10 +1,8 @@
-from typing import Optional, Dict, Any, TYPE_CHECKING
+from typing import Optional, Dict, Any, TYPE_CHECKING, Tuple
 import os
 import tempfile
 from pycaps.common import Document, VideoQuality
-from pathlib import Path
 from pycaps.logger import logger
-from proglog import TqdmProgressBarLogger
 
 if TYPE_CHECKING:
     from moviepy.editor import VideoFileClip
@@ -14,21 +12,11 @@ class VideoGenerator:
         self._input_video_path: Optional[str] = None
         self._output_video_path: Optional[str] = None
         self._audio_path: Optional[str] = None
-        self._moviepy_write_options: Optional[Dict[str, Any]] = None
 
         # State of video generation
         self._has_video_generation_started: bool = False
-        self._is_temp_audio_file: bool = False
-        self._final_video: Optional['VideoFileClip'] = None
-        self._video_clip: Optional['VideoFileClip'] = None
         self._video_quality: Optional[VideoQuality] = None
         self._fragment_time: Optional[tuple[float, float]] = None
-
-    def set_audio_path(self, audio_path: str):
-        self._audio_path = audio_path
-
-    def set_moviepy_write_options(self, moviepy_write_options: Dict[str, Any]):
-        self._moviepy_write_options = moviepy_write_options
 
     def set_video_quality(self, quality: VideoQuality):
         self._video_quality = quality
@@ -37,52 +25,36 @@ class VideoGenerator:
         self._fragment_time = fragment_time
 
     def start(self, input_video_path: str, output_video_path: str):
-        from moviepy.editor import VideoFileClip
+        from .render.video_composer import VideoComposer
 
         if not os.path.exists(input_video_path):
             raise FileNotFoundError(f"Error: Input video file not found: {input_video_path}")
 
         self._input_video_path = input_video_path
         self._output_video_path = output_video_path
-        self._video_clip = VideoFileClip(self._input_video_path)
+        self._video_composer = VideoComposer(self._input_video_path, self._output_video_path)
         if self._fragment_time:
-            start = min(max(self._fragment_time[0], 0), self._video_clip.duration - 2)
-            end = min(max(self._fragment_time[1], 0), self._video_clip.duration)
-            self._video_clip = self._video_clip.subclip(start, end)
+            start = min(max(self._fragment_time[0], 0), self._video_composer.get_input_duration() - 2)
+            end = min(max(self._fragment_time[1], 0), self._video_composer.get_input_duration())
+            self._video_composer.cut_input(start, end)
 
-        should_extract_audio = self._audio_path is None
-        self._audio_path = self._get_audio_path_to_transcribe(self._video_clip)
-        self._is_temp_audio_file = should_extract_audio and self._audio_path is not None and os.path.exists(self._audio_path)
-        
+        self._audio_path = self._get_audio_path_to_transcribe()
         self._has_video_generation_started = True
 
-    def _get_audio_path_to_transcribe(self, video_clip: 'VideoFileClip') -> str:
-        if self._audio_path:
-            if not os.path.exists(self._audio_path):
-                logger().error(f"Error: External audio file not found: {self._audio_path}")
-                video_clip.close()
-                return
-            logger().debug(f"Using external audio: {self._audio_path}")
-            return self._audio_path
-        
-        # Create a temporary file that is not deleted immediately for Whisper to access
+    def _get_audio_path_to_transcribe(self) -> str:
+        from .render.audio_utils import extract_audio_for_whisper
+
         fd, temp_audio_file_path = tempfile.mkstemp(suffix=".wav")
-        os.close(fd) # Close the file descriptor as MoviePy will open/write to the path
+        os.close(fd)
         try:
-            if video_clip.audio is None:
-                logger().error("The video does not contain an audio track.")
-                video_clip.close()
-                if os.path.exists(temp_audio_file_path):
-                        os.remove(temp_audio_file_path)
-                return
-            video_clip.audio.write_audiofile(temp_audio_file_path, verbose=False, logger=None)
+            start = self._fragment_time[0] if self._fragment_time else None
+            end = self._fragment_time[1] if self._fragment_time else None
+            extract_audio_for_whisper(self._input_video_path, temp_audio_file_path, start, end)
             logger().debug(f"Audio extracted to: {temp_audio_file_path}")
             return temp_audio_file_path
         except Exception as e:
             logger().error(f"Error extracting audio: {e}")
-            video_clip.close()
-            if os.path.exists(temp_audio_file_path):
-                os.remove(temp_audio_file_path)
+            self.close()
             raise e
         
     def get_audio_path(self) -> str:
@@ -92,61 +64,31 @@ class VideoGenerator:
             raise RuntimeError("Audio path is not set. This is an unexpected error.")
         
         return self._audio_path
-    
-    def get_video_clip(self) -> 'VideoFileClip':
+
+    def get_video_size(self) -> Tuple[int, int]:
         if not self._has_video_generation_started:
             raise RuntimeError("Video generation has not started. Call start() first.")
-        if not self._video_clip:
+        if not self._video_composer:
             raise RuntimeError("Video clip is not set. This is an unexpected error.")
-        
-        return self._video_clip
+        return self._video_composer.get_input_size()
 
     def generate(self, document: Document):
-        from moviepy.editor import CompositeVideoClip, CompositeAudioClip
-        
         if not self._has_video_generation_started:
             raise RuntimeError("Video generation has not started. Call start() first.")
         
-        clips = document.get_moviepy_clips()
+        clips = document.get_media_clips()
         if not clips:
             logger().warning("No subtitle clips were generated. The original video (or with external audio if provided) will be saved.")
-            self._final_video = self._video_clip 
-        else:
-            video_with_subtitles = self._video_clip.set_audio(None)
-            self._final_video = CompositeVideoClip([video_with_subtitles] + clips, size=self._video_clip.size)
-            if self._video_clip.audio:
-                final_audio = CompositeAudioClip([self._video_clip.audio] + document.sfxs) if len(document.sfxs) > 0 else self._video_clip.audio
-                self._final_video = self._final_video.set_audio(final_audio)
-            else:
-                logger().warning("Original video had no audio. Final video will also have no audio.")
+
+        for clip in clips:
+            self._video_composer.add_element(clip)
+        for sfx in document.sfxs:
+            self._video_composer.add_audio(sfx)
 
         logger().debug(f"Writing final video to: {self._output_video_path}")
-        codecs = self._get_codecs_for_output()
-        default_write_options = {
-            "codec": codecs["codec"],
-            "audio_codec": codecs["audio_codec"],
-            "threads": os.cpu_count() or 2,
-            "fps": 30
-        }
-        if self._moviepy_write_options:
-            default_write_options.update(self._moviepy_write_options)
         
-        self._final_video = self._apply_video_resolution(self._final_video)
-        self._final_video.write_videofile(self._output_video_path, logger=self._build_moviepy_logger(), **default_write_options)
-
-    def _get_codecs_for_output(self) -> list[str]:
-        output_path = Path(self._output_video_path)
-        ext = output_path.suffix.lower()
-        codec_map = {
-            ".mp4":  {"codec": "libx264", "audio_codec": "aac"},
-            ".mov":  {"codec": "libx264", "audio_codec": "aac"},
-            ".avi":  {"codec": "mpeg4",   "audio_codec": "libmp3lame"},
-            ".mkv":  {"codec": "libx264", "audio_codec": "aac"},
-            ".webm": {"codec": "libvpx",  "audio_codec": "libvorbis"},
-            ".ogv":  {"codec": "libtheora", "audio_codec": "libvorbis"},
-        }
-
-        return codec_map.get(ext, codec_map[".mp4"])
+        # self._final_video = self._apply_video_resolution(self._final_video)
+        self._video_composer.render(False)
     
     def _apply_video_resolution(self, video_clip: 'VideoFileClip') -> 'VideoFileClip':
         if self._video_quality is None:
@@ -160,24 +102,13 @@ class VideoGenerator:
         
     def close(self):
         self._remove_audio_file_if_needed()
-        if self._video_clip:
-            self._video_clip.close()
-        if self._final_video:
-            self._final_video.close()
-        
         self._has_video_generation_started = False
-        self._is_temp_audio_file = False
-        self._video_clip = None
-        self._final_video = None
 
     def _remove_audio_file_if_needed(self):
-        if not self._is_temp_audio_file:
+        if not self._audio_path:
             return
         try:
             os.remove(self._audio_path)
             logger().debug(f"Temporary audio file deleted: {self._audio_path}")
         except Exception as e:
             logger().warning(f"Error deleting temporary audio file {self._audio_path}: {e}")
-
-    def _build_moviepy_logger(self):
-        return TqdmProgressBarLogger(print_messages=False)

@@ -54,7 +54,7 @@ class PositionsCalculator:
                     # the clip is located in the center of the slot
                     clip.layout.position.x = slot_x + (slot_width - clip.layout.size.width) // 2
                     clip.layout.position.y = y + (line.max_layout.size.height - clip.layout.size.height) // 2
-                    clip.moviepy_clip = clip.moviepy_clip.set_position((clip.layout.position.x, clip.layout.position.y))
+                    clip.media_clip.set_position((clip.layout.position.x, clip.layout.position.y))
 
             slot_x += slot_width + self._options.x_words_space
 

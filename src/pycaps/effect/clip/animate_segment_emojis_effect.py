@@ -16,7 +16,7 @@ class AnimateSegmentEmojisEffect(ClipEffect):
                 self.__animate_emoji_if_possible(clip)
 
     def __animate_emoji_if_possible(self, clip: WordClip) -> None:
-        from moviepy.editor import VideoFileClip
+        from pycaps.video.render import VideoElement
 
         emoji = clip.get_word().text
         unicode_hex = self._emoji_to_unicode_hex(emoji)
@@ -24,13 +24,9 @@ class AnimateSegmentEmojisEffect(ClipEffect):
         if not os.path.exists(animated_emoji_path):
             return
     
-        clip.moviepy_clip = (
-            VideoFileClip(animated_emoji_path, has_mask=True)
-            .resize(height=clip.layout.size.height)
-            .set_duration(clip.moviepy_clip.duration)
-            .set_start(clip.moviepy_clip.start)
-            .set_position((clip.layout.position.x, clip.layout.position.y))
-        )
+        clip.media_clip = VideoElement(animated_emoji_path, clip.media_clip.start, clip.media_clip.duration)
+        clip.media_clip.set_position((clip.layout.position.x, clip.layout.position.y))
+        clip.media_clip.set_size(height=clip.layout.size.height)
 
     def _emoji_to_unicode_hex(self, emoji: str) -> str:
         codepoints = [f"{ord(char):x}" for char in emoji]

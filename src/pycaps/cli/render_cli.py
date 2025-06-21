@@ -32,12 +32,11 @@ def _parse_preview(preview: bool, preview_time: Optional[str]) -> Optional[tuple
     return final_preview
 
 def _build_layout_options(builder, align, offset) -> SubtitleLayoutOptions:
-    layout_align_offset = offset or 0
     original_layout = builder._caps_pipeline._layout_options # TODO: fix this
     original_vertical_align = original_layout.vertical_align
     new_vertical_align = original_vertical_align.model_copy(update={
         "align": align or original_vertical_align.align,
-        "offset": layout_align_offset or original_vertical_align.offset
+        "offset": offset or 0
     })
     return original_layout.model_copy(update={"vertical_align": new_vertical_align})
 

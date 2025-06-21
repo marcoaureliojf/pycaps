@@ -3,7 +3,7 @@ from typing import List, Optional, Set, TYPE_CHECKING
 from .types import ElementState
 
 if TYPE_CHECKING:
-    from moviepy.editor import VideoClip, AudioFileClip
+    from pycaps.video.render import MediaElement, AudioElement
 
 @dataclass(frozen=True)
 class Tag:
@@ -75,7 +75,7 @@ class ElementLayout:
 class WordClip:
     _parent: Optional['Word'] = None
     states: List[ElementState] = field(default_factory=list)
-    moviepy_clip: Optional['VideoClip'] = None
+    media_clip: Optional['MediaElement'] = None
     layout: ElementLayout = field(default_factory=ElementLayout)
 
     def to_dict(self) -> dict:
@@ -143,8 +143,8 @@ class Word:
     def get_tags(self) -> Set[Tag]:
         return self.structure_tags | self.semantic_tags
 
-    def get_moviepy_clips(self) -> List['VideoClip']:
-        return [clip.moviepy_clip for clip in self.clips]
+    def get_media_clips(self) -> List['MediaElement']:
+        return [clip.media_clip for clip in self.clips]
 
     def get_line(self) -> 'Line':
         return self._parent
@@ -196,8 +196,8 @@ class Line:
     def get_tags(self) -> Set[Tag]:
         return self.structure_tags
 
-    def get_moviepy_clips(self) -> List['VideoClip']:
-        return [clip for word in self.words for clip in word.get_moviepy_clips()]
+    def get_media_clips(self) -> List['MediaElement']:
+        return [clip for word in self.words for clip in word.get_media_clips()]
     
     def get_word_clips(self) -> List[WordClip]:
         return [clip for word in self.words for clip in word.clips]
@@ -247,8 +247,8 @@ class Segment:
     def get_tags(self) -> Set[Tag]:
         return self.structure_tags
     
-    def get_moviepy_clips(self) -> List['VideoClip']:
-        return [clip for line in self.lines for clip in line.get_moviepy_clips()]
+    def get_media_clips(self) -> List['MediaElement']:
+        return [clip for line in self.lines for clip in line.get_media_clips()]
     
     def get_word_clips(self) -> List[WordClip]:
         return [clip for line in self.lines for clip in line.get_word_clips()]
@@ -262,7 +262,7 @@ class Segment:
 @dataclass
 class Document:
     _segments: 'ElementContainer[Segment]' = field(init=False)
-    sfxs: List['AudioFileClip'] = field(default_factory=list)
+    sfxs: List['AudioElement'] = field(default_factory=list)
 
     def __post_init__(self):
         self._segments = ElementContainer(self)
@@ -280,8 +280,8 @@ class Document:
     def segments(self) -> 'ElementContainer[Segment]':
         return self._segments
 
-    def get_moviepy_clips(self) -> List['VideoClip']:
-        return [clip for segment in self.segments for clip in segment.get_moviepy_clips()]
+    def get_media_clips(self) -> List['MediaElement']:
+        return [clip for segment in self.segments for clip in segment.get_media_clips()]
 
     def get_word_clips(self) -> List[WordClip]:
         return [clip for segment in self.segments for clip in segment.get_word_clips()]

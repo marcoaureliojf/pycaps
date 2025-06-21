@@ -39,7 +39,7 @@ class ElementAnimator:
         elif self._what == ElementType.SEGMENT:
             start_time = clip.get_segment().time.start
 
-        return clip.moviepy_clip.start - start_time - self._animation._delay
+        return clip.media_clip.start - start_time - self._animation._delay
 
     def __get_on_end_offset(self, clip: WordClip) -> float:
         end_time = 0
@@ -49,4 +49,4 @@ class ElementAnimator:
             end_time = clip.get_line().time.end
         elif self._what == ElementType.SEGMENT:
             end_time = clip.get_segment().time.end
-        return -(end_time - self._animation._duration - self._animation._delay - clip.moviepy_clip.start)
+        return -(end_time - self._animation._duration - self._animation._delay - clip.media_clip.start)

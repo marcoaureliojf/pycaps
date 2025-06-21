@@ -11,11 +11,17 @@
     text-transform: uppercase;
 }
 
-.line-being-narrated {
+.line-being-narrated > .word {
     background-color: blue;
-    border-radius: 5%;
+    font-size: 30px;
 }
 
-.line-being-narrated > .word {
-    font-size: 30px;
+.line-being-narrated > .first-word-in-line {
+    border-top-left-radius: 5%;
+    border-bottom-left-radius: 5%;
+}
+
+.line-being-narrated > .last-word-in-line {
+    border-top-right-radius: 5%;
+    border-bottom-right-radius: 5%;
 }

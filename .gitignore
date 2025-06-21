@@ -7,3 +7,4 @@ ideas.md
 examples/*.json
 *.egg-info/
 tools
+examples

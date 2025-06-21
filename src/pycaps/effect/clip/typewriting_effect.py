@@ -25,7 +25,7 @@ class TypewritingEffect(ClipEffect):
             self._renderer.close_line()
 
     def _apply_typewriting(self, word_index: int, clip: WordClip) -> None:
-        from moviepy.editor import ImageClip, CompositeVideoClip
+        from pycaps.video.render import CompositeElement, ImageElement
         import numpy as np
 
         if not clip.has_state(ElementState.WORD_BEING_NARRATED):
@@ -47,19 +47,10 @@ class TypewritingEffect(ClipEffect):
                 logger().warning("As quick fix, try to use another font family or force a line-height/height for each word.")
                 y_position = (clip.layout.size.height - image.height) / 2
             
-            image_clip: ImageClip = (
-                ImageClip(np.array(image))
-                .set_start(i * letter_duration)
-                .set_duration(letter_duration)
-                .set_position((0, y_position))
-            )
-            new_clips.append(image_clip)
+            image_element = ImageElement(np.array(image), i * letter_duration, letter_duration)
+            image_element.set_position((0, y_position))
+            new_clips.append(image_element)
 
         if len(new_clips) > 0:
-            clip.moviepy_clip = CompositeVideoClip(new_clips, size=(clip.layout.size.width, clip.layout.size.height))
-            clip.moviepy_clip = (
-                clip.moviepy_clip
-                .set_position((clip.layout.position.x, clip.layout.position.y))
-                .set_start(word.time.start)
-                .set_duration(word_duration)
-            )
+            clip.media_clip = CompositeElement(new_clips, word.time.start, word_duration, size=(clip.layout.size.width, clip.layout.size.height))
+            clip.media_clip.set_position((clip.layout.position.x, clip.layout.position.y))

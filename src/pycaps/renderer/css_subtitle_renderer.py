@@ -28,7 +28,7 @@ class CssSubtitleRenderer():
         self.page: Optional[Page] = None
         self.tempdir: Optional[tempfile.TemporaryDirectory] = None
         self._custom_css: str = ""
-        self._cache: RenderedImageCache = RenderedImageCache(self._custom_css)
+        self._image_cache: RenderedImageCache = RenderedImageCache(self._custom_css)
         self._letter_size_cache: LetterSizeCache = LetterSizeCache(self._custom_css)
         self._current_line: Optional[Line] = None
         self._current_line_state: Optional[ElementState] = None
@@ -36,7 +36,7 @@ class CssSubtitleRenderer():
 
     def append_css(self, css: str):
         self._custom_css += css
-        self._cache = RenderedImageCache(self._custom_css)
+        self._image_cache = RenderedImageCache(self._custom_css)
         self._letter_size_cache = LetterSizeCache(self._custom_css)
 
     def open(self, video_width: int, video_height: int, resources_dir: Optional[Path] = None):
@@ -124,8 +124,8 @@ class CssSubtitleRenderer():
         line_css_classes = self._renderer_page.get_line_css_classes(self._current_line.get_segment().get_tags(), self._current_line.get_tags(), self._current_line_state)
         word_css_classes = self._renderer_page.get_word_css_classes(word.get_tags(), index, state)
         all_css_classes = line_css_classes + " " + word_css_classes
-        if self._cache.has(index, word.text, all_css_classes):
-            return self._cache.get(index, word.text, all_css_classes)
+        if self._image_cache.has(index, word.text, all_css_classes, first_n_letters):
+            return self._image_cache.get(index, word.text, all_css_classes, first_n_letters)
 
         # Why are we doing this?
         # When the typewriting effect is applied, we need to render the word partially (first n letters).
@@ -166,11 +166,11 @@ class CssSubtitleRenderer():
         try:
             if word_bounding_box["width"] <= 0 or word_bounding_box["height"] <= 0:
                 # HTML element is not visible (probably hidden by CSS).
-                self._cache.set(index, word.text, all_css_classes, None)
+                self._image_cache.set(index, word.text, all_css_classes, first_n_letters, None)
                 return None
 
             image = PlaywrightScreenshotCapturer.capture(self.page, word_bounding_box)
-            self._cache.set(index, word.text, all_css_classes, image)
+            self._image_cache.set(index, word.text, all_css_classes, first_n_letters, image)
             return image
         except Exception as e:
             raise RuntimeError(f"Error rendering word '{word.text}': {e}")

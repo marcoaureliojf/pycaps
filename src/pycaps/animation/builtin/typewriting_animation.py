@@ -7,6 +7,7 @@ from pycaps.logger import logger
 if TYPE_CHECKING:
     import numpy as np
 
+# TODO: remove
 class TypewritingAnimation(Animation):
     '''
         A typewriting animation that animates the text in a word clip.
@@ -30,22 +31,22 @@ class TypewritingAnimation(Animation):
         def fl(gf, t):
             frame = gf(t)
             t = t + offset
-            if t < 0 or t > clip.moviepy_clip.duration:
+            if t < 0 or t > clip.media_clip.duration:
                 return frame
             bounds = self._get_letter_bounds(clip.get_word().text, frame)
             number_of_letters = len(bounds)
             if number_of_letters == 0:
                 return frame
-            letter_duration = clip.moviepy_clip.duration / number_of_letters
+            letter_duration = clip.media_clip.duration / number_of_letters
             last_letter_index = int(t / letter_duration)
             end_x = bounds[last_letter_index][1]
             new_frame = np.zeros_like(frame)
             new_frame[:, :end_x] = frame[:, :end_x]
             return new_frame
 
-        clip.moviepy_clip = clip.moviepy_clip.fl(fl)
-        if clip.moviepy_clip.mask is not None:
-            clip.moviepy_clip.mask = clip.moviepy_clip.mask.fl(fl)
+        clip.media_clip = clip.media_clip.fl(fl)
+        if clip.media_clip.mask is not None:
+            clip.media_clip.mask = clip.media_clip.mask.fl(fl)
 
 
     def _get_background_color(self, frame: 'np.ndarray') -> 'np.ndarray':

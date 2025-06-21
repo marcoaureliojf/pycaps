@@ -34,18 +34,10 @@ class CapsPipelineBuilder:
         self._caps_pipeline._resources_dir = resources_path
         return self
     
-    def with_custom_audio_file(self, audio_path: str) -> "CapsPipelineBuilder":
-        self._caps_pipeline._video_generator.set_audio_path(audio_path)
-        return self
-    
-    def with_moviepy_write_options(self, moviepy_write_options: Dict[str, Any]) -> "CapsPipelineBuilder":
-        self._caps_pipeline._moviepy_write_options = moviepy_write_options
-        return self
-    
     def with_fps(self, fps: int) -> "CapsPipelineBuilder":
         if fps < 12 or fps > 60:
             raise ValueError("FPS must be between 12 and 60")
-        self._caps_pipeline._moviepy_write_options["fps"] = fps
+        # self._caps_pipeline._moviepy_write_options["fps"] = fps
         return self
     
     def with_video_quality(self, quality: VideoQuality) -> "CapsPipelineBuilder":
@@ -128,7 +120,6 @@ class CapsPipelineBuilder:
             self.with_video_quality(VideoQuality._360P)
             self.with_fps(15)
             self.should_save_subtitle_data(False)
-            self.with_whisper_config(model_size="tiny")
             self._caps_pipeline._preview_time = preview_time
         
         pipeline = self._caps_pipeline
