@@ -12,7 +12,7 @@ description = "A Python tool to edit videos and automatically add CSS-styled sub
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT License"}
-keywords = ["video", "subtitles", "video editing", "whisper", "moviepy", "captions"]
+keywords = ["video", "subtitles", "video editing", "whisper", "captions"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

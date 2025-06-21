@@ -60,7 +60,6 @@ class JsonConfigLoader:
         video_data = self._config.video
         if video_data.quality is not None:
             self._builder.with_video_quality(video_data.quality)
-        self._builder.with_fps(video_data.fps)
 
     def _load_whisper_config(self) -> None:
         if self._config.whisper is None:

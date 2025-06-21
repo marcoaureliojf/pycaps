@@ -56,7 +56,7 @@ def render(
     language: Optional[str] = typer.Option(None, "--lang", help="Language of the video, example: --lang=en", rich_help_panel="Whisper", show_default=False),
     whisper_model: Optional[str] = typer.Option(None, "--whisper-model", help="Whisper model to use, example: --whisper-model=base", rich_help_panel="Whisper", show_default=False),
 
-    video_quality: Optional[VideoQuality] = typer.Option(None, "--video-quality", help="Final video quality. For default, it keeps same input video quality", rich_help_panel="Video", show_default=False),
+    video_quality: Optional[VideoQuality] = typer.Option(None, "--video-quality", help="Final video quality", rich_help_panel="Video", show_default=False),
 
     preview: bool = typer.Option(False, "--preview", help="Generate a low quality preview of the rendered video", rich_help_panel="Utils"),
     preview_time: Optional[str] = typer.Option(None, "--preview-time", help="Generate a low quality preview of the rendered video at the given time, example: --preview-time=10,15", rich_help_panel="Utils", show_default=False),

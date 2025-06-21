@@ -11,6 +11,7 @@ from typing import Tuple, List, Optional
 from .media_element import MediaElement
 from .audio_element import AudioElement
 from pycaps.logger import logger
+from pycaps.common import VideoQuality
 from imageio_ffmpeg import get_ffmpeg_exe
 
 ffmpeg_exe = get_ffmpeg_exe()
@@ -71,7 +72,7 @@ class VideoComposer:
         """Schedule an audio file to start at start_time (seconds)."""
         self._audio_elements.append(audio_element)
 
-    def _render_range(self, start_frame: int, end_frame: int, part_path: str) -> None:
+    def _render_range(self, start_frame: int, end_frame: int, part_path: str, video_quality: VideoQuality) -> None:
         cap = cv2.VideoCapture(self._input)
         cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
 
@@ -97,8 +98,8 @@ class VideoComposer:
             "-map", "1:a",
             # output codecs
             "-c:v", "libx264",
-            "-preset", "ultrafast",
-            "-crf", "23",
+            "-preset", get_ffmpeg_libx264_preset_for_quality(video_quality),
+            "-crf", get_ffmpeg_libx264_crf_for_quality(video_quality),
             "-c:a", "aac",
             # output config
             "-movflags", "+faststart",
@@ -223,7 +224,7 @@ class VideoComposer:
             if os.path.exists(temp_audio_path):
                 os.remove(temp_audio_path)
 
-    def render(self, use_multiprocessing: bool = True, processes: Optional[int] = None) -> None:
+    def render(self, use_multiprocessing: bool = True, processes: Optional[int] = None, video_quality: VideoQuality = VideoQuality.MIDDLE) -> None:
         temp_dir = tempfile.mkdtemp()
 
         if use_multiprocessing:
@@ -239,7 +240,7 @@ class VideoComposer:
                 part_paths.append(part_path)
                 p = mp.Process(
                     target=self._render_range, 
-                    args=(start, end, part_path)
+                    args=(start, end, part_path, video_quality)
                 )
                 jobs.append(p)
                 p.start()
@@ -255,10 +256,31 @@ class VideoComposer:
             # Single-process
             start = time.time()
             tmp = os.path.join(temp_dir, "partial.mp4")
-            self._render_range(self._output_from_frame, self._output_to_frame, tmp)
+            self._render_range(self._output_from_frame, self._output_to_frame, tmp, video_quality)
             middle = time.time()
             print(f"self._render_range took {middle-start}")
             self._mux_audio(tmp, self._output)
             print(f"self._mux_audio took {time.time()-middle}")
         
         shutil.rmtree(temp_dir)
+
+
+def get_ffmpeg_libx264_preset_for_quality(quality: 'VideoQuality') -> str:
+    if quality == VideoQuality.LOW:
+        return 'ultrafast'
+    elif quality == VideoQuality.MIDDLE:
+        return 'veryfast'
+    elif quality == VideoQuality.HIGH:
+        return 'fast'
+    elif quality == VideoQuality.VERY_HIGH:
+        return 'slow'
+
+def get_ffmpeg_libx264_crf_for_quality(quality: 'VideoQuality') -> str:
+    if quality == VideoQuality.LOW:
+        return '23'
+    elif quality == VideoQuality.MIDDLE:
+        return '21'
+    elif quality == VideoQuality.HIGH:
+        return '19'
+    elif quality == VideoQuality.VERY_HIGH:
+        return '17'

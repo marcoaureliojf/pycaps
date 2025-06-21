@@ -1,11 +1,8 @@
-from typing import Optional, TYPE_CHECKING, Tuple
+from typing import Optional, Tuple
 import os
 import tempfile
 from pycaps.common import Document, VideoQuality
 from pycaps.logger import logger
-
-if TYPE_CHECKING:
-    from moviepy.editor import VideoFileClip
 
 class VideoGenerator:
     def __init__(self):
@@ -15,7 +12,7 @@ class VideoGenerator:
 
         # State of video generation
         self._has_video_generation_started: bool = False
-        self._video_quality: Optional[VideoQuality] = None
+        self._video_quality: VideoQuality = VideoQuality.MIDDLE
         self._fragment_time: Optional[tuple[float, float]] = None
 
     def set_video_quality(self, quality: VideoQuality):
@@ -86,19 +83,7 @@ class VideoGenerator:
             self._video_composer.add_audio(sfx)
 
         logger().debug(f"Writing final video to: {self._output_video_path}")
-        
-        # self._final_video = self._apply_video_resolution(self._final_video)
-        self._video_composer.render(False)
-    
-    def _apply_video_resolution(self, video_clip: 'VideoFileClip') -> 'VideoFileClip':
-        if self._video_quality is None:
-            return video_clip
-
-        target_px = int(self._video_quality.name[1:-1])
-        if video_clip.w >= video_clip.h:
-            return video_clip.resize(height=target_px)
-        else:
-            return video_clip.resize(width=target_px)
+        self._video_composer.render(use_multiprocessing=False, video_quality=self._video_quality)
         
     def close(self):
         self._remove_audio_file_if_needed()

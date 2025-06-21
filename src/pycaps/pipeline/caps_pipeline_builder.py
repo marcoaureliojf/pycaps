@@ -34,12 +34,6 @@ class CapsPipelineBuilder:
         self._caps_pipeline._resources_dir = resources_path
         return self
     
-    def with_fps(self, fps: int) -> "CapsPipelineBuilder":
-        if fps < 12 or fps > 60:
-            raise ValueError("FPS must be between 12 and 60")
-        # self._caps_pipeline._moviepy_write_options["fps"] = fps
-        return self
-    
     def with_video_quality(self, quality: VideoQuality) -> "CapsPipelineBuilder":
         self._caps_pipeline._video_generator.set_video_quality(quality)
         return self
@@ -116,9 +110,8 @@ class CapsPipelineBuilder:
         if not self._caps_pipeline._input_video_path:
             raise ValueError("Input video path is required")
         if preview_time:
-            logger().warning("Generating preview: video quality, time, FPS, and whisper model size has been reduced to save time.")
-            self.with_video_quality(VideoQuality._360P)
-            self.with_fps(15)
+            logger().warning("Generating preview: quality reduced to save time.")
+            self.with_video_quality(VideoQuality.LOW)
             self.should_save_subtitle_data(False)
             self._caps_pipeline._preview_time = preview_time
         

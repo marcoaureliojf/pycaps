@@ -2,12 +2,10 @@ from enum import Enum
 from typing import List
 
 class VideoQuality(str, Enum):
-    _2160p = "4k"
-    _1440p = "2k"
-    _1080P = "1080p"
-    _720P = "720p"
-    _480P = "480p"
-    _360P = "360p"
+    LOW = "low"
+    MIDDLE = "middle"
+    HIGH = "high"
+    VERY_HIGH = "veryhigh"
 
 class AspectRatio(str, Enum):
     VERTICAL = "9:16"
