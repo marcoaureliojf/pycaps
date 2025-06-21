@@ -61,16 +61,12 @@ class EmojiInWordEffectConfig(BaseConfigModel):
     tag_condition: str = ""
     avoid_use_same_emoji_in_a_row: bool = True
 
-class ToUppercaseEffectConfig(BaseConfigModel):
-    type: Literal["to_uppercase"]
-    tag_condition: str = ""
-
 class RemovePunctuationMarksEffectConfig(BaseConfigModel):
     type: Literal["remove_punctuation_marks"]
     punctuation_marks: list[str] = ['.']
     exception_marks: list[str] = ['...']
 
-TextEffectConfig = Annotated[EmojiInSegmentEffectConfig | EmojiInWordEffectConfig | ToUppercaseEffectConfig | RemovePunctuationMarksEffectConfig, Field(discriminator="type")]
+TextEffectConfig = Annotated[EmojiInSegmentEffectConfig | EmojiInWordEffectConfig | RemovePunctuationMarksEffectConfig, Field(discriminator="type")]
 
 class TypewritingEffectConfig(BaseConfigModel):
     type: Literal["typewriting"]

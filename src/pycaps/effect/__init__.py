@@ -8,7 +8,7 @@ __all__ = [
     "EmojiInWordEffect",
     "EmojiInSegmentEffect",
     "ModifyWordsEffect",
-    "ToUppercaseEffect",
+    "ToEffect",
     "TypewritingEffect",
     "EmojiAlign",
     "Effect",
