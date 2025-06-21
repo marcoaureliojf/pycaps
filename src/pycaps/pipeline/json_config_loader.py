@@ -42,8 +42,7 @@ class JsonConfigLoader:
             self._load_whisper_config()
             self._load_layout_options()
             self._load_segment_splitters()
-            self._load_text_effects()
-            self._load_clip_effects()
+            self._load_effects()
             self._load_sound_effects()
             self._load_animations()
             self._load_semantic_tagger()
@@ -87,25 +86,19 @@ class JsonConfigLoader:
                 case _:
                     raise ValueError(f"Invalid segment splitter type: {splitter.type}")
 
-    def _load_text_effects(self) -> None:
-        for effect in self._config.text_effects:
+    def _load_effects(self) -> None:
+        for effect in self._config.effects:
             match effect.type:
                 case "emoji_in_segment":
-                    self._builder.add_text_effect(EmojiInSegmentEffect(effect.chance_to_apply, effect.align, effect.ignore_segments_with_duration_less_than, effect.max_uses_of_each_emoji, effect.max_consecutive_segments_with_emoji))
+                    self._builder.add_effect(EmojiInSegmentEffect(effect.chance_to_apply, effect.align, effect.ignore_segments_with_duration_less_than, effect.max_uses_of_each_emoji, effect.max_consecutive_segments_with_emoji))
                 case "emoji_in_word":
-                    self._builder.add_text_effect(EmojiInWordEffect(effect.emojis, self._build_tag_condition(effect.tag_condition), effect.avoid_use_same_emoji_in_a_row))
-                case "to_uppercase":
-                    self._builder.add_text_effect(ToUppercaseEffect(self._build_tag_condition(effect.tag_condition)))
+                    self._builder.add_effect(EmojiInWordEffect(effect.emojis, self._build_tag_condition(effect.tag_condition), effect.avoid_use_same_emoji_in_a_row))
                 case "remove_punctuation_marks":
-                    self._builder.add_text_effect(RemovePunctuationMarksEffect(effect.punctuation_marks, effect.exception_marks))
-
-    def _load_clip_effects(self) -> None:
-        for effect in self._config.clip_effects:
-            match effect.type:
+                    self._builder.add_effect(RemovePunctuationMarksEffect(effect.punctuation_marks, effect.exception_marks))
                 case "typewriting":
-                    self._builder.add_clip_effect(TypewritingEffect(self._build_tag_condition(effect.tag_condition)))
+                    self._builder.add_effect(TypewritingEffect(self._build_tag_condition(effect.tag_condition)))
                 case "animate_segment_emojis":
-                    self._builder.add_clip_effect(AnimateSegmentEmojisEffect())
+                    self._builder.add_effect(AnimateSegmentEmojisEffect())
 
     def _load_sound_effects(self) -> None:
         for effect in self._config.sound_effects:
@@ -114,7 +107,7 @@ class JsonConfigLoader:
                     sound = BuiltinSound.get_by_name(effect.name)
                     if sound is None:
                         raise ValueError(f"Invalid preset sound: {effect.name}")
-                    self._builder.add_sound_effect(
+                    self._builder.add_effect(
                         SoundEffect(
                             sound,
                             effect.what,
@@ -126,7 +119,7 @@ class JsonConfigLoader:
                         )
                     )
                 case "custom":
-                    self._builder.add_sound_effect(
+                    self._builder.add_effect(
                         SoundEffect(
                             Sound(effect.path, effect.path),
                             effect.what,

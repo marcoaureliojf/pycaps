@@ -21,8 +21,7 @@
             "max_chars": 40
         }
     ],
-    "text_effects": [],
-    "clip_effects": [
+    "effects": [
         {
             "type": "typewriting"
         }

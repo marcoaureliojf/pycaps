@@ -18,7 +18,7 @@
             "max_chars": 18
         }
     ],
-    "text_effects": [
+    "effects": [
         {
             "type": "remove_punctuation_marks",
             "punctuation_marks": ["."],

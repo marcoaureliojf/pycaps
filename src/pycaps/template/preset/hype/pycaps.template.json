@@ -20,7 +20,7 @@
             "max_chars": 15
         }
     ],
-    "text_effects": [
+    "effects": [
         {
             "type": "remove_punctuation_marks",
             "punctuation_marks": ["."],
@@ -31,9 +31,7 @@
             "chance_to_apply": 0.85,
             "align": "random",
             "max_uses_of_each_emoji": 1
-        }
-    ],
-    "clip_effects": [
+        },
         {
             "type": "animate_segment_emojis"
         }

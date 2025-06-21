@@ -66,8 +66,6 @@ class RemovePunctuationMarksEffectConfig(BaseConfigModel):
     punctuation_marks: list[str] = ['.']
     exception_marks: list[str] = ['...']
 
-TextEffectConfig = Annotated[EmojiInSegmentEffectConfig | EmojiInWordEffectConfig | RemovePunctuationMarksEffectConfig, Field(discriminator="type")]
-
 class TypewritingEffectConfig(BaseConfigModel):
     type: Literal["typewriting"]
     tag_condition: str = ""
@@ -75,14 +73,20 @@ class TypewritingEffectConfig(BaseConfigModel):
 class AnimateSegmentEmojisEffectConfig(BaseConfigModel):
     type: Literal["animate_segment_emojis"]
 
-ClipEffectConfig = Annotated[TypewritingEffectConfig | AnimateSegmentEmojisEffectConfig, Field(discriminator="type")]
+EffectConfig = Annotated[
+    EmojiInSegmentEffectConfig |
+    EmojiInWordEffectConfig |
+    RemovePunctuationMarksEffectConfig |
+    TypewritingEffectConfig |
+    AnimateSegmentEmojisEffectConfig,
+    Field(discriminator="type")]
 
 class SoundEffectBaseConfig(BaseConfigModel):
     when: EventType
     what: ElementType
     tag_condition: str = ""
     offset: float = 0.0
-    volume: float = 0.15
+    volume: float = 0.25
     interpret_consecutive_words_as_one: bool = True
 
 class PresetSoundEffectConfig(SoundEffectBaseConfig):
@@ -170,8 +174,7 @@ class JsonSchema(BaseConfigModel):
     whisper: Optional[WhisperConfig] = None
     layout: Optional[SubtitleLayoutOptions] = None
     splitters: list[SplitterConfig] = []
-    text_effects: list[TextEffectConfig] = []
-    clip_effects: list[ClipEffectConfig] = []
+    effects: list[EffectConfig] = []
     sound_effects: list[SoundEffectConfig] = []
     animations: list[AnimationConfig] = []
     tagger_rules: list[TaggerRule] = []
