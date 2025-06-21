@@ -7,9 +7,7 @@ from pycaps.logger import logger
 class TypewritingEffect(ClipEffect):
     """
     Affect that applies a typewriting effect to the words that match the tag condition.
-    This effect creates a new image clip for each letter of the word, so it's very slow.
-
-    If you need a faster alternative for this effect, check the TypewritingAnimation class.
+    This effect creates a new image clip for each letter of the word, so it's slow.
     """
     def __init__(self, tag_condition: Optional[TagCondition] = None):
         self.tag_condition: Optional[TagCondition] = tag_condition

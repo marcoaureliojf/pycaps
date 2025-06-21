@@ -1,6 +1,5 @@
 from .primitive import *
 from .preset import *
-from .typewriting_animation import TypewritingAnimation
 
 __all__ = [
     "FadeIn",
@@ -16,5 +15,4 @@ __all__ = [
     "PopInPrimitive",
     "ZoomInPrimitive",
     "SlideInPrimitive",
-    "TypewritingAnimation",
 ]
