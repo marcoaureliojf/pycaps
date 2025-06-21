@@ -83,7 +83,7 @@ class MediaElement(ABC):
 
     def render(self, bg: np.ndarray, t_global: float) -> np.ndarray:
         t_rel = (t_global - self._start)
-        if not (0 <= t_rel <= self._duration):
+        if not (0 <= t_rel < self._duration):
             return bg
 
         frame = self.get_frame(t_rel)
@@ -128,22 +128,22 @@ class MediaElement(ABC):
 
         roi = bg[y1_bg:y2_bg, x1_bg:x2_bg]
         sub_fr = frame[y1_fr:y2_fr, x1_fr:x2_fr]
+        frame_alpha = sub_fr[..., 3:4] / 255.0
+        roi_float = roi.astype(np.float32) if roi.dtype != np.float32 else roi
 
-        frame_alpha = sub_fr[..., 3] / 255.0
         if bg.shape[2] == 3:
-            # we're blending a BGR image (the background) with a BGRA image (the frame)
-            inv = 1.0 - frame_alpha
-            for c in range(3):
-                roi[..., c] = sub_fr[..., c] * frame_alpha + roi[..., c] * inv
+            # background is BGR format
+            blended_roi = sub_fr[..., :3] * frame_alpha + roi_float * (1.0 - frame_alpha)
         else:
-            # we're blending two BGRA images (we apply Porter–Duff "source over")
-            bg_alpha = roi[..., 3] / 255.0
+            # background is BGRA format (it can happen for composite elements)
+            bg_alpha = roi[..., 3:4] / 255.0
             final_alpha = frame_alpha + bg_alpha * (1.0 - frame_alpha)
 
-            for c in range(3):
-                roi[..., c] = (sub_fr[..., c] * frame_alpha + roi[..., c] * bg_alpha * (1.0 - frame_alpha)) / np.clip(final_alpha, 1e-6, 1.0)
+            blended_rgb = (sub_fr[..., :3] * frame_alpha + roi_float[..., :3] * bg_alpha * (1.0 - frame_alpha)) / np.clip(final_alpha, 1e-6, 1.0)
+            blended_alpha = final_alpha * 255.0
+            blended_roi = np.concatenate([blended_rgb, blended_alpha], axis=-1)
 
-            roi[..., 3] = final_alpha * 255.0
-            bg[y1_bg:y2_bg, x1_bg:x2_bg] = roi
+        final_roi = np.clip(blended_roi, 0, 255)
+        bg[y1_bg:y2_bg, x1_bg:x2_bg] = final_roi.astype(bg.dtype)
 
         return bg
