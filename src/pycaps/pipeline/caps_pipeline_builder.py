@@ -1,7 +1,7 @@
 import os
 from .caps_pipeline import CapsPipeline
 from pycaps.layout import SubtitleLayoutOptions, LineSplitter, LayoutUpdater, PositionsCalculator
-from pycaps.transcriber import AudioTranscriber, BaseSegmentSplitter, WhisperAudioTranscriber
+from pycaps.transcriber import AudioTranscriber, BaseSegmentSplitter, WhisperAudioTranscriber, PreviewTranscriber
 from typing import Optional
 from pycaps.animation import Animation, ElementAnimator
 from pycaps.common import ElementType, EventType, VideoQuality, CacheStrategy
@@ -111,9 +111,10 @@ class CapsPipelineBuilder:
         if not self._caps_pipeline._input_video_path:
             raise ValueError("Input video path is required")
         if preview_time:
-            logger().warning("Generating preview: quality reduced to save time.")
+            logger().warning("Generating preview: using dummy text and reducing quality to save time.")
             self.with_video_quality(VideoQuality.LOW)
             self.should_save_subtitle_data(False)
+            self.with_custom_audio_transcriber(PreviewTranscriber())
             self._caps_pipeline._preview_time = preview_time
         
         pipeline = self._caps_pipeline

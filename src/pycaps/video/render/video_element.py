@@ -3,8 +3,7 @@ import cv2
 import numpy as np
 import os
 import subprocess
-import shlex
-from pathlib import Path
+import re
 from imageio_ffmpeg import get_ffmpeg_exe
 
 ffmpeg_exe = get_ffmpeg_exe()
@@ -17,35 +16,39 @@ class VideoElement(MediaElement):
         if ext not in ['.mp4', '.mov', '.avi', '.mkv']:
             raise ValueError(f"Unsupported video format: {ext}")
 
+        self._load_metadata(path)
         self._load_frames_with_ffmpeg(path)
 
     def get_frame(self, t_rel: float) -> np.ndarray:
         idx = int(t_rel * self._fps)
         idx = max(0, min(idx, self._num_frames - 1))
         return self._frames[idx].copy()
-        
-    def _load_frames_with_ffmpeg(self, path: str):
-        path = Path(path).resolve().as_posix()
-        probe = subprocess.run(
-            shlex.split(f"ffprobe -v error -select_streams v:0 "
-                        f"-show_entries stream=width,height,r_frame_rate,nb_frames "
-                        f"-of default=noprint_wrappers=1:nokey=1 {path}"),
-            capture_output=True, text=True, check=True
-        )
-        w, h, fps_str, nb_frames = probe.stdout.strip().splitlines()
-        w, h = int(w), int(h)
-        self._size = (w, h)
-        # fps_str puede ser fracción como "30/1"
-        num, den = fps_str.split('/')
-        self._fps = int(float(num) / float(den))
-        nb_frames = int(nb_frames) if nb_frames.isdigit() else None
 
-        cmd = (
-            f"{ffmpeg_exe} -i {path} -f rawvideo -pix_fmt rgba "
-            f"-vf scale={w}:{h} -hide_banner -loglevel error pipe:1"
-        )
+    def _load_metadata(self, path: str) -> None:
+        cmd = [ffmpeg_exe, "-hide_banner", "-i", path]
+        proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stderr = proc.stderr
+
+        res_match = re.search(r",\s*(\d{1,5})x(\d{1,5})[,\s]", stderr)
+        if not res_match:
+            raise RuntimeError(f"Unable to get width/height from ffmpeg stderr:\n{stderr}")
+        width, height = map(int, res_match.groups())
+        self._size = (width, height)
+
+        fps_match = re.search(r"(\d+(?:\.\d+)?)\s+fps", stderr)
+        if not fps_match:
+            raise RuntimeError(f"Unable to get fps from ffmpeg stderr:\n{stderr}")
+        self._fps = float(fps_match.group(1))
+
+            
+    def _load_frames_with_ffmpeg(self, path: str):
+        w, h = self._size
+        cmd = [
+            ffmpeg_exe, "-i", path, "-f", "rawvideo", "-pix_fmt", "rgba",
+            "-vf", f"scale={w}:{h}", "-hide_banner", "-loglevel", "error", "pipe:1"
+        ]
         proc = subprocess.Popen(
-            shlex.split(cmd),
+            cmd,
             stdout=subprocess.PIPE,
             bufsize=10**8
         )
