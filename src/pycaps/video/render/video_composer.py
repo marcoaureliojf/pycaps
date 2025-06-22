@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import multiprocessing as mp
+import multiprocess as mp
 import subprocess
 import os
 import tempfile
@@ -246,8 +246,10 @@ class VideoComposer:
                 p.start()
             for p in jobs:
                 p.join()
+            start = time.time()
             merged_parts = os.path.join(temp_dir, "merged_parts.mp4")
             self._merge_parts(part_paths, merged_parts)
+            print(f"self._merge_parts took {time.time()-start}")
             final = self._output
             start = time.time()
             self._mux_audio(merged_parts, final)

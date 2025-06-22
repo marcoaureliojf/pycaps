@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from abc import ABC, abstractmethod
-from .function_container import get_function, register_function
 from typing import Callable, Union, Tuple, Optional
 import inspect
 
@@ -10,9 +9,9 @@ class MediaElement(ABC):
         self._start = start
         self._duration = duration
         self._size: Tuple[int, int] = (0, 0)
-        self._position: str = register_function(lambda t: (0, 0))
-        self._opacity: str = register_function(lambda t: 1)
-        self._scale: str = register_function(lambda t: 1)
+        self._position: Callable[[float], Tuple[int, int]] = lambda t: (0, 0)
+        self._opacity: Callable[[float], float] = lambda t: 1
+        self._scale: Callable[[float], float] = lambda t: 1
 
     def set_position(self, value: Union[Callable[[float], Tuple[int, int]], Tuple[int, int]]):
         self._position = self._save_as_function(value)
@@ -43,23 +42,22 @@ class MediaElement(ABC):
         
         self._size = (new_w, new_h)
 
-    def _save_as_function(self, value: Union[Callable, float, Tuple[int, int]]) -> str:
+    def _save_as_function(self, value: Union[Callable, float, Tuple[int, int]]) -> Callable:
         if inspect.isfunction(value):
-            return register_function(value)
-        fn = lambda t, v=value: v
-        return register_function(fn)
+            return value
+        return lambda t, v=value: v
 
     @property
     def position(self):
-        return get_function(self._position)
+        return self._position
     
     @property
     def opacity(self):
-        return get_function(self._opacity)
+        return self._opacity
     
     @property
     def scale(self):
-        return get_function(self._scale)
+        return self._scale
     
     @property
     def size(self):

@@ -41,7 +41,8 @@ dependencies = [
     "requests",
     "imageio-ffmpeg",
     "pydub>=0.25.1",
-    'audioop-lts; python_version >= "3.13"'
+    'audioop-lts; python_version >= "3.13"',
+    "multiprocess"
 ]
 
 [project.scripts]
