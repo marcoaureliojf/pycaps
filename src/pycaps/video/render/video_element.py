@@ -13,7 +13,7 @@ class VideoElement(MediaElement):
     def __init__(self, path: str, start: float, duration: float):
         super().__init__(start, duration)
         ext = os.path.splitext(path)[1].lower()
-        if ext not in ['.mp4', '.mov', '.avi', '.mkv']:
+        if ext not in ['.mp4', '.mov', '.avi', '.mkv', '.webm']:
             raise ValueError(f"Unsupported video format: {ext}")
 
         self._load_metadata(path)
