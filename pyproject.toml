@@ -53,5 +53,8 @@ pycaps = "pycaps.cli:app"
 "Repository" = "https://github.com/francozanardi/pycaps"
 "Bug Tracker" = "https://github.com/francozanardi/pycaps/issues"
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.packages.find]
 where = ["src"]
