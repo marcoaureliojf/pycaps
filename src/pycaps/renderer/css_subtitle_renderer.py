@@ -1,7 +1,7 @@
 from pathlib import Path
 import tempfile
 from typing import Optional, TYPE_CHECKING, Tuple, Dict
-from pycaps.common import Word, ElementState, Line, Size
+from pycaps.common import Word, ElementState, Line, Size, CacheStrategy
 import shutil
 from .rendered_image_cache import RenderedImageCache
 from .playwright_screenshot_capturer import PlaywrightScreenshotCapturer
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from playwright.sync_api import Page, Browser, Playwright
     from PIL.Image import Image
 
-class CssSubtitleRenderer():
+class CssSubtitleRenderer:
 
     DEFAULT_DEVICE_SCALE_FACTOR: int = 2
     DEFAULT_VIEWPORT_HEIGHT_RATIO: float = 0.25
@@ -28,18 +28,17 @@ class CssSubtitleRenderer():
         self.page: Optional[Page] = None
         self.tempdir: Optional[tempfile.TemporaryDirectory] = None
         self._custom_css: str = ""
-        self._image_cache: RenderedImageCache = RenderedImageCache(self._custom_css)
-        self._letter_size_cache: LetterSizeCache = LetterSizeCache(self._custom_css)
+        self._cache_strategy = CacheStrategy.CSS_CLASSES_AWARE
+        self._image_cache: RenderedImageCache = None
+        self._letter_size_cache: LetterSizeCache = None
         self._current_line: Optional[Line] = None
         self._current_line_state: Optional[ElementState] = None
         self._renderer_page: RendererPage = RendererPage()
 
     def append_css(self, css: str):
         self._custom_css += css
-        self._image_cache = RenderedImageCache(self._custom_css)
-        self._letter_size_cache = LetterSizeCache(self._custom_css)
 
-    def open(self, video_width: int, video_height: int, resources_dir: Optional[Path] = None):
+    def open(self, video_width: int, video_height: int, resources_dir: Optional[Path] = None, cache_strategy: CacheStrategy = CacheStrategy.CSS_CLASSES_AWARE):
         """Initializes Playwright and loads the base HTML page."""
         from playwright.sync_api import sync_playwright
 
@@ -48,6 +47,9 @@ class CssSubtitleRenderer():
 
         calculated_vp_height = max(self.DEFAULT_MIN_VIEWPORT_HEIGHT, int(video_height * self.DEFAULT_VIEWPORT_HEIGHT_RATIO))
 
+        self._cache_strategy = cache_strategy
+        self._image_cache = RenderedImageCache(self._custom_css, self._cache_strategy)
+        self._letter_size_cache = LetterSizeCache(self._custom_css)
         self.tempdir = tempfile.TemporaryDirectory()
         self.playwright_context = sync_playwright().start()
         try:

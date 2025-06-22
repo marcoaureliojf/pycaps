@@ -15,7 +15,8 @@ from .types import (
     EventType,
     ElementState,
     VideoQuality,
-    AspectRatio
+    AspectRatio,
+    CacheStrategy
 )
 from .element_container import ElementContainer
 from .config_service import ConfigService
@@ -37,5 +38,6 @@ __all__ = [
     "ElementContainer",
     "VideoQuality",
     "AspectRatio",
-    "ConfigService"
+    "ConfigService",
+    "CacheStrategy"
 ]

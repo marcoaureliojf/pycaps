@@ -8,7 +8,7 @@ from pycaps.tag import SemanticTagger, StructureTagger
 from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
 from pycaps.effect import TextEffect, ClipEffect, SoundEffect
-from pycaps.common import Document
+from pycaps.common import Document, CacheStrategy
 from typing import Optional, List, Dict, Any, Tuple
 from pathlib import Path
 from .subtitle_data_service import SubtitleDataService
@@ -43,6 +43,7 @@ class CapsPipeline:
         self._input_video_path: Optional[str] = None
         self._output_video_path: Optional[str] = None
         self._resources_dir: Optional[str] = None
+        self._cache_strategy: CacheStrategy = CacheStrategy.CSS_CLASSES_AWARE
         self._process_logger: ProcessLogger
 
     def run(self) -> None:
@@ -121,7 +122,7 @@ class CapsPipeline:
             
             logger().debug(f"Opening renderer for video dimensions: {video_width}x{video_height}")
             resources_dir = Path(self._resources_dir) if self._resources_dir else None
-            self._renderer.open(video_width, video_height, resources_dir)
+            self._renderer.open(video_width, video_height, resources_dir, self._cache_strategy)
 
             self._cut_document_for_preview_time(document)
             return document
@@ -137,7 +138,7 @@ class CapsPipeline:
 
         logger().debug(f"Opening renderer for video dimensions: {video_width}x{video_height}")
         resources_dir = Path(self._resources_dir) if self._resources_dir else None
-        self._renderer.open(video_width, video_height, resources_dir)
+        self._renderer.open(video_width, video_height, resources_dir, self._cache_strategy)
 
         self._process_logger.step("Calculating layout...")
         logger().debug("Calculating words widths...")

@@ -7,6 +7,11 @@ class VideoQuality(str, Enum):
     HIGH = "high"
     VERY_HIGH = "veryhigh"
 
+class CacheStrategy(str, Enum):
+    CSS_CLASSES_AWARE = "css-classes-aware" # two words with same CSS classes, same text are considered equal (word position on line is ignored)
+    POSITION_AWARE = "position-aware" # two words with same CSS classes + same texts, need to have same position on line to be considered equals (useful when line has things like gradient)
+    NONE = "none" # do not use cache -> if two words with same position, CSS classes, and text can be different, so you have to choose this
+
 class AspectRatio(str, Enum):
     VERTICAL = "9:16"
     HORIZONTAL = "16:9"

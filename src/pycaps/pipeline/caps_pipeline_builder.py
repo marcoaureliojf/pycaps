@@ -2,9 +2,9 @@ import os
 from .caps_pipeline import CapsPipeline
 from pycaps.layout import SubtitleLayoutOptions, LineSplitter, LayoutUpdater, PositionsCalculator
 from pycaps.transcriber import AudioTranscriber, BaseSegmentSplitter, WhisperAudioTranscriber
-from typing import Dict, Any, Optional
+from typing import Optional
 from pycaps.animation import Animation, ElementAnimator
-from pycaps.common import ElementType, EventType, VideoQuality
+from pycaps.common import ElementType, EventType, VideoQuality, CacheStrategy
 from pycaps.tag import TagCondition, SemanticTagger, StructureTagger
 from pycaps.effect import TextEffect, ClipEffect, SoundEffect, Effect
 from pycaps.logger import logger
@@ -62,6 +62,10 @@ class CapsPipelineBuilder:
     
     def with_custom_audio_transcriber(self, audio_transcriber: AudioTranscriber) -> "CapsPipelineBuilder":
         self._caps_pipeline._transcriber = audio_transcriber
+        return self
+    
+    def with_cache_strategy(self, cache_strategy: CacheStrategy) -> "CapsPipelineBuilder":
+        self._caps_pipeline._cache_strategy = cache_strategy
         return self
 
     def with_subtitle_data_path(self, subtitle_data_path: str) -> "CapsPipelineBuilder":

@@ -1,6 +1,6 @@
 from pycaps.layout import SubtitleLayoutOptions
 from pydantic import BaseModel, Field, ConfigDict, field_validator
-from pycaps.common import EventType, ElementType, VideoQuality
+from pycaps.common import EventType, ElementType, VideoQuality, CacheStrategy
 from pycaps.effect import EmojiAlign
 from typing import Literal, Annotated, Optional
 from pycaps.animation import Direction, OvershootConfig
@@ -178,3 +178,4 @@ class JsonSchema(BaseConfigModel):
     sound_effects: list[SoundEffectConfig] = []
     animations: list[AnimationConfig] = []
     tagger_rules: list[TaggerRule] = []
+    cache_strategy: Optional[CacheStrategy] = None

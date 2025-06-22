@@ -37,6 +37,8 @@ class JsonConfigLoader:
                 self._builder.with_output_video(self._config.output)
             if self._config.resources:
                 self._builder.with_resources(os.path.join(self._base_path, self._config.resources))
+            if self._config.cache_strategy:
+                self._builder.with_cache_strategy(self._config.cache_strategy)
 
             self._load_video_config()
             self._load_whisper_config()
