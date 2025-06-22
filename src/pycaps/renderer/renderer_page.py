@@ -17,12 +17,13 @@ class RendererPage:
             word_tags: list[list[Tag]] = [],
             word_states: list[ElementState] = []
         ) -> str:
+        base_tag = f'<base href="{base_url}">' if base_url else ""
         return f"""
         <!DOCTYPE html>
         <html>
         <head>
             <meta charset="UTF-8">
-            {f"<base href=\"{base_url}\">" if base_url else ""}
+            {base_tag}
             <style>
                 html, body {{
                     margin: 0;
