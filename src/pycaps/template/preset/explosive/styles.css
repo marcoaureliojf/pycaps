@@ -1,92 +1,39 @@
-/* Necesitarás una fuente específica en retro_future_80s_resources/
-   Ej: "TimeTraveler" o una imitación.
-   "TimeTraveler.ttf" es un nombre ficticio para el ejemplo.
-@font-face {
-    font-family: 'RetroFutureFont';
-    src: url('retro_future_80s_resources/TimeTraveler.ttf');
-}
-*/
-
-@font-face {
-    font-family: 'RetroFutureFont';
-    src: url('BTTF.ttf');
-}
-
-/* Aplicamos el gradiente al contenedor de la línea */
-.line {
-    font-family: 'Impact', sans-serif;
-    font-size: 30px; /* Parecerá 60px. Necesita ser grande y audaz. Ajusta según la fuente */
-    font-weight: bold; /* O el peso específico de la fuente si es variable */
-    font-style: italic; /* Si la fuente lo requiere y no es cursiva por defecto */
-    text-transform: uppercase; /* Podrías añadir esto si quieres que siempre sea mayúsculas */
-
-    /* EL GRADIENTE! */
-    background-image: linear-gradient(
-        180deg, /* De arriba hacia abajo */
-        #FFD700 0%,  /* Amarillo dorado más claro arriba */
-        #FFA500 30%, /* Naranja en el medio */
-        #FF8C00 60%, /* Naranja más oscuro */
-        #B7410E 100% /* Rojo/Marrón oscuro en la base como extrusión */
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-
-    /* Para el efecto de extrusión/borde, usaremos text-shadow en las palabras,
-       ya que el background-clip solo afecta al relleno del texto. */
-    
-    /* Asegurarse de que la línea tenga un padding si las palabras lo necesitan
-       para que el screenshot de la palabra incluya ese espacio.
-       O aplicar padding directamente a las palabras. */
-    /* padding: 2px 0; */ /* Pequeño padding vertical en la línea si es necesario */
-}
-
 .word {
-    /* El color del texto debe ser transparente para que se vea el gradiente del .line */
-    color: transparent;
-    padding: 3px 6px; /* Padding para cada palabra, si es necesario */
-
-    /* Efecto de borde/extrusión rojo oscuro y sombra negra */
-    /* Estos text-shadows se verán DETRÁS del texto con gradiente */
-    text-shadow:
-        /* Borde/Extrusión roja (similar al color base del gradiente) */
-        /* Ajustar los offsets según el tamaño de la fuente para que se vea como un borde grueso */
-        /* 1px 1px 0px #8B0000,
-        -1px 1px 0px #8B0000,
-        1px -1px 0px #8B0000,
-        -1px -1px 0px #8B0000,
-        2px 2px 0px #8B0000, 
-        -2px 2px 0px #8B0000,
-        2px -2px 0px #8B0000,
-        -2px -2px 0px #8B0000, */
-
-        /* Sombra negra más externa para dar profundidad y separar del fondo del video */
-        /* 3px 3px 3px rgba(0,0,0,0.6), */
-        /* -3px 3px 3px rgba(0,0,0,0.6); Sombra a ambos lados para mejor legibilidad */
-}
-
-/* Si los estados de narración necesitan cambiar la apariencia *además* del gradiente: */
-.word-being-narrated {
-    /* Opción 1: No hacer nada, dejar que la animación de MoviePy (escala) sea el indicador. */
-
-    /* Opción 2: Añadir un text-shadow de brillo adicional (se superpondrá a los otros) */
-    /* Esto puede ser complicado de ajustar para que se vea bien con el gradiente */
-    /* text-shadow:
-        1px 1px 0px #8B0000, -1px 1px 0px #8B0000, 1px -1px 0px #8B0000, -1px -1px 0px #8B0000,
-        2px 2px 0px #8B0000, -2px 2px 0px #8B0000, 2px -2px 0px #8B0000, -2px -2px 0px #8B0000,
-        3px 3px 3px rgba(0,0,0,0.6), -3px 3px 3px rgba(0,0,0,0.6),
-        0 0 10px #FFF, // Brillo blanco
-        0 0 20px #FFD700; // Brillo amarillo
-    */
+    font-family: 'Arial Black', sans-serif;
+    font-size: 26px;
+    color: #FFDD00;
+    font-weight: bold;
+    padding: 5px 8px;
+    text-shadow: 
+        0 0 3px #FF8800,
+        0 0 6px #FF8800,
+        0 0 9px #FF4400,
+        1px 1px 1px #000000;
 }
 
 .word-not-narrated-yet {
-    /* Podrías hacer que las palabras no narradas sean ligeramente menos opacas
-       Esto se haría en la capa de MoviePy al componer, o si se puede, con
-       una clase que aplique opacidad aquí y se capture en el screenshot.
-       Pero si la opacidad es dinámica, mejor en MoviePy. */
-    /* opacity: 0.7; */ /* Cuidado: si el span es opacity < 1, el screenshot lo capturará así */
+    color: #CCAA00;
+    text-shadow: 
+        0 0 2px #CC6600,
+        0 0 4px #CC3300,
+        1px 1px 1px #000000;
+}
+
+.word-being-narrated {
+    color: #FFFFFF;
+    text-shadow: 
+        0 0 4px #FFAA00,
+        0 0 8px #FF8800,
+        0 0 12px #FF0000,
+        0 0 20px #FF0000,
+        1px 1px 1px #000000;
 }
 
 .word-already-narrated {
-    /* Similar a not-narrated-yet o igual que el estado base */
+    color: #FFDD00;
+    text-shadow: 
+        0 0 3px #FF8800,
+        0 0 6px #FF8800,
+        0 0 9px #FF4400,
+        1px 1px 1px #000000;
 }

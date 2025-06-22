@@ -1,5 +1,5 @@
 {
-    "css": "old_styles.css",
+    "css": "styles.css",
     "resources": "resources",
     "layout": {
         "max_width_ratio": 0.8,

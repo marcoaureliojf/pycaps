@@ -9,7 +9,7 @@ from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
 from pycaps.effect import TextEffect, ClipEffect, SoundEffect
 from pycaps.common import Document, CacheStrategy
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Tuple
 from pathlib import Path
 from .subtitle_data_service import SubtitleDataService
 from pycaps.transcriber import TranscriptionEditor
@@ -54,8 +54,7 @@ class CapsPipeline:
         try:
             self._process_logger: ProcessLogger = ProcessLogger(6 if self._subtitle_data_path_for_loading else 10)
             self._process_logger.step(f"Starting caps pipeline execution: {self._input_video_path}")
-            video_extension = os.path.splitext(self._input_video_path)[1]
-            self._output_video_path = f"output_{time.strftime('%Y%m%d_%H%M%S')}{video_extension}" if self._output_video_path is None else self._output_video_path
+            self._output_video_path = self._ensure_mp4_output_path(self._output_video_path)
             if self._preview_time:
                 self._video_generator.set_fragment_time(self._preview_time)
             self._video_generator.start(self._input_video_path, self._output_video_path)
@@ -175,3 +174,10 @@ class CapsPipeline:
                 for word in line.words[:]:
                     if not is_in_preview_time(word):
                         line.words.remove(word)
+
+    def _ensure_mp4_output_path(self, output_path: Optional[str]) -> str:
+        if output_path is None:
+            return f"output_{time.strftime('%Y%m%d_%H%M%S')}.mp4"
+
+        base, _ = os.path.splitext(output_path)
+        return base + ".mp4"
