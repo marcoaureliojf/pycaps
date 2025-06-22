@@ -12,6 +12,7 @@ from .audio_element import AudioElement
 from pycaps.logger import logger
 from pycaps.common import VideoQuality
 from imageio_ffmpeg import get_ffmpeg_exe
+from tqdm import tqdm
 
 ffmpeg_exe = get_ffmpeg_exe()
 
@@ -114,19 +115,25 @@ class VideoComposer:
             stdin=subprocess.PIPE
         )
 
-        frame_idx = start_frame
-        while frame_idx < end_frame:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            for el in self._elements:
-                frame = el.render(frame, frame_idx / self._input_fps)
-            try:
-                process.stdin.write(frame.astype(np.uint8).tobytes())
-            except BrokenPipeError:
-                logger().error("FFmpeg process died early.")
-                break
-            frame_idx += 1
+        num_frames_to_render = end_frame - start_frame
+        with tqdm(total=num_frames_to_render, desc="Rendering video frames") as pbar:
+            frame_idx = start_frame
+            while frame_idx < end_frame:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+
+                for el in self._elements:
+                    frame = el.render(frame, frame_idx / self._input_fps)
+
+                try:
+                    process.stdin.write(frame.astype(np.uint8).tobytes())
+                except BrokenPipeError:
+                    logger().error("FFmpeg process died early.")
+                    break
+
+                frame_idx += 1
+                pbar.update(1)
 
         cap.release()
         process.stdin.close()

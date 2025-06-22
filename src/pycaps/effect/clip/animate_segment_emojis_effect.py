@@ -7,6 +7,7 @@ import requests
 import zipfile
 import io
 from pathlib import Path
+from tqdm import tqdm
 
 class AnimateSegmentEmojisEffect(ClipEffect):
 
@@ -27,7 +28,7 @@ class AnimateSegmentEmojisEffect(ClipEffect):
         if local_version == self.CURRENT_ASSETS_VERSION:
             return
         
-        logger().info(f"Pycaps: Updating animated emoji pack from v{local_version} to v{self.CURRENT_ASSETS_VERSION}...")
+        logger().info(f"Downloading animated emoji pack v{self.CURRENT_ASSETS_VERSION}...")
         self.CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
         if self.CACHE_DIR.exists():
@@ -39,15 +40,36 @@ class AnimateSegmentEmojisEffect(ClipEffect):
         try:
             response = requests.get(self.ASSETS_ZIP_URL, stream=True)
             response.raise_for_status()
-            
-            with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+
+            total_size_in_bytes = int(response.headers.get('content-length', 0))
+            block_size = 1024
+            progress_bar = tqdm(
+                total=total_size_in_bytes, 
+                unit='iB', 
+                unit_scale=True,
+                desc="Emojis"
+            )
+            file_buffer = io.BytesIO()
+            for data in response.iter_content(block_size):
+                progress_bar.update(len(data))
+                file_buffer.write(data)
+
+            progress_bar.close()
+
+            logger().info("Unzipping assets...")
+
+            file_buffer.seek(0)
+            with zipfile.ZipFile(file_buffer) as z:
                 z.extractall(self.CACHE_DIR)
 
             self.VERSION_FILE.write_text(self.CURRENT_ASSETS_VERSION)
-            
-            logger().info("Pycaps: Emoji pack downloaded successfully.")
+            logger().info("Emoji pack downloaded successfully.")
+
         except Exception as e:
-            logger().error(f"Pycaps: Failed to download emoji pack. Animated emojis will be disabled. Error: {e}")
+            if 'progress_bar' in locals() and not progress_bar.disable:
+                progress_bar.close()
+
+            logger().error(f"Failed to download emoji pack. Animated emojis will be disabled. Error: {e}")
             if self.CACHE_DIR.exists():
                 import shutil
                 shutil.rmtree(self.CACHE_DIR)

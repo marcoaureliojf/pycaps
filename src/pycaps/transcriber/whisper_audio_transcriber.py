@@ -23,7 +23,8 @@ class WhisperAudioTranscriber(AudioTranscriber):
         result = self._get_model().transcribe(
             audio_path,
             word_timestamps=True,
-            language=self._language
+            language=self._language,
+            verbose=False # TODO: we should pass our --verbose param here
         )
 
         if "segments" not in result or not result["segments"]:
