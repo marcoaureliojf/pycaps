@@ -1,85 +1,105 @@
-# PyCaps
+# pycaps
 
-`pycaps` is a Python library designed to automatically transcribe audio from videos, generate subtitles, and apply various visual effects.
+[![Status](https://img.shields.io/badge/status-alpha-orange.svg)](https://github.com/francozanardi/pycaps)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-It leverages powerful tools like OpenAI's Whisper for transcription, MoviePy for video manipulation, and Playwright for advanced CSS-based text rendering.
+**pycaps** is a Python tool for adding CSS styled subtitles to videos. It's designed as both a programmable library and a command-line interface (CLI), making it perfect for automating the creation of dynamic content for platforms like TikTok, YouTube Shorts, and Instagram Reels.
 
-## Prerequisites
+ <!-- Reemplaza esto con una URL a un GIF de demostración real -->
 
-Before installing `pycaps`, you need to ensure the following external dependencies are installed on your system:
+## Key Features
 
-1.  **Python:** Version 3.8 or higher. You can download it from [python.org](https://www.python.org/).
-2.  **FFmpeg:** Whisper requires FFmpeg for audio processing.
-    *   **Windows:** Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add the `bin` directory to your system's PATH.
-    *   **macOS (using Homebrew):** `brew install ffmpeg`
-    *   **Linux (using apt):** `sudo apt update && sudo apt install ffmpeg`
-3.  **Playwright Browsers:** The CSS rendering capabilities rely on Playwright, which needs browser binaries.
-    After installing `pycaps` (or just the `playwright` library), run the following command in your terminal to install the necessary browser (Chromium is often sufficient for rendering tasks):
-    ```bash
-    python -m playwright install chromium
-    ```
-    Or, to install all default browsers:
-    ```bash
-    python -m playwright install
-    ```
+*   **Template System**: Get started quickly with predefined templates. Create and share your own templates, packaging styles, animations, and configurations.
+*   **CSS Styling**: Style subtitles using standard CSS. Target specific states like `.word-being-narrated` for dynamic effects, cleanly separating style from logic.
+*   **Word Tagging**: Tag words or phrases using regular expressions, word lists, or AI. These tags act as powerful selectors for applying custom CSS, effects, or animations.
+*   **Advanced Animations & Effects**: Bring words to life with a library of built-in animations (fades, pops, slides) and effects (typewriting, emoji insertion, sound effects).
+*   **Whisper-based Transcription**: Automatically generate accurate, word-level timestamps for your videos using OpenAI's Whisper.
+*   **Dual Interface**: Use it as a simple CLI for quick renders or as a comprehensive Python library for programmatic video creation.
+*   **Offline-First**: The core transcription, styling, and rendering engine runs entirely on your local machine. An internet connection is only needed for optional AI-powered features that require contextual understanding of your script.
 
 ## Installation
 
-It's highly recommended to install `pycaps` within a Python virtual environment.
+pycaps is currently in a very alpha stage and is not yet available on PyPI. You can install it directly from the GitHub repository.
 
-1.  **Clone the repository (if you want to contribute or run examples directly):**
+1.  **Install the package using pip:**
     ```bash
-    git clone https://github.com/francozanardi/pycaps.git
-    cd pycaps
+    pip install git+https://github.com/francozanardi/pycaps.git
     ```
 
-2.  **Install `pycaps`:**
+2.  **Install browser dependencies for rendering:**
+    pycaps uses Playwright to render CSS styles. You need to install its browser dependency (one-time setup):
     ```bash
-    pip install -e .
+    playwright install chromium
     ```
 
-## Usage Example
+## Quick Start
 
-Here's a basic example of how to use `pycaps` to generate a video with karaoke subtitles. Ensure you have a video file (e.g., `input.mp4`) in your script's directory or provide the correct path.
+There are two primary ways to use pycaps: via the command line with a template or programmatically in a Python script.
 
-```python
-from pycaps import (
-    VideoSubtitleProcessor,
-    WhisperAudioTranscriber,
-    CssSubtitleRenderer,
-    KaraokeEffectGenerator,
-    KaraokeEffectOptions,
-)
+### 1. Using the Command-Line (CLI)
 
-video_file = "input.mp4"  # Replace with your video file
-output_file = "output_karaoke.mp4"
+The fastest way to get started is to use a built-in template.
 
-transcriber = WhisperAudioTranscriber(model_size="base", language="en") # Choose model and language
-renderer = CssSubtitleRenderer()
-
-inactive_word_css_rules = """
-    font-size: 42px; color: white; font-family: 'Arial Black';
-    text-shadow: 2px 2px 0px black, -2px 2px 0px black, 2px -2px 0px black, -2px -2px 0px black;
-"""
-active_word_css_rules = """
-    font-size: 42px; color: yellow; font-family: 'Arial Black';
-    text-shadow: 2px 2px 0px black, -2px 2px 0px black, 2px -2px 0px black, -2px -2px 0px black;
-"""
-
-subtitle_effect_options = KaraokeEffectOptions(active_word_css_rules, inactive_word_css_rules)
-effect_generator = KaraokeEffectGenerator(renderer, subtitle_effect_options)
-processor = VideoSubtitleProcessor(transcriber, renderer, effect_generator)
-
-print(f"Processing '{video_file}' to '{output_file}'...")
-processor.process_video(video_file, output_file)
+```bash
+pycaps render --input my_video.mp4 --template minimalist
 ```
 
-See the `examples/` directory for more detailed use cases.
+This command will:
+1.  Load the `minimalist` template.
+2.  Transcribe the audio from `my_video.mp4`.
+3.  Apply the template's styles and animations.
+4.  Save the result in a new file.
+
+### 2. Using the Python Library
+
+For full control, use the `CapsPipelineBuilder` in your Python code.
+
+```python
+from pycaps import CapsPipelineBuilder
+
+# The pipeline contains multiples stages to render the final video
+pipeline = (
+    CapsPipelineBuilder()
+    .with_input_video("input.mp4")
+    .add_css("css_file.css")
+    .build()
+)
+pipeline.run() # When this is executed, it starts to render the video
+```
+
+You can also preload the builder using a Template.
+```python
+from pycaps import *
+
+# Load a template and configure it
+builder = TemplateLoader("default").with_input_video("my_video.mp4").load(False)
+
+# Programmatically add an animation
+builder.add_animation(
+    animation=FadeIn(),
+    when=EventType.ON_NARRATION_STARTS,
+    what=ElementType.SEGMENT
+)
+
+# Build and run the pipeline
+pipeline = builder.build()
+pipeline.run()
+```
+
+## What's Next?
+
+*   🚀 **For Command-Line Users**: Check the **[CLI Usage Guide](./docs/CLI.md)** for a quick and easy start.
+*   🧠 **For Developers**: Understand the core concepts in the **[Structure Guide](./docs/CORE_STRUCTURE.md)**.
+*   🏷️ **Styling & Logic**: Learn about the powerful **[Tagging System](./docs/TAGS.md)**.
+*   🎨 **Reusable Styles**: See how **[Templates](./docs/TEMPLATES.md)** work and how to create your own.
+*   💡 **Inspiration**: Dive into **[Code & JSON Examples](./docs/EXAMPLES.md)**.
+*   🔧 **Advanced Config**: See all options in the **[JSON Configuration Reference](./docs/CONFIG_REFERENCE.md)**.
+*   🤖 **AI Features**: Learn about AI-powered features in the **[API Usage Guide](./docs/API_USAGE.md)**.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a pull request or open an issue.
+This project is in active development. Contributions, bug reports, and feature requests are welcome! Please open an issue or pull request on our [GitHub repository](https://github.com/francozanardi/pycaps).
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+pycaps is licensed under the [MIT License](https://opensource.org/licenses/MIT).

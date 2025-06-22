@@ -8,3 +8,7 @@ examples/*.json
 *.egg-info/
 tools
 examples
+dumper.py
+*.txt
+demo
+TODO.md
