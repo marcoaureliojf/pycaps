@@ -5,9 +5,9 @@
 
 **pycaps** is a Python tool for adding CSS styled subtitles to videos. It's designed as both a programmable library and a command-line interface (CLI), making it perfect for automating the creation of dynamic content for platforms like TikTok, YouTube Shorts, and Instagram Reels.
 
-![Demo hype](media/hype.gif)
-![Demo neo-minimal](media/neo-minimal.gif)
-![Demo line-focus](media/line-focus.gif)
+![demo-1](https://github.com/user-attachments/assets/fd2d3325-c986-4b6a-81ba-09c428577e61)
+![demo-2](https://github.com/user-attachments/assets/9a789244-0387-4ac8-ab51-b3601447953e)
+![demo-3](https://github.com/user-attachments/assets/617826e4-d9b2-4c58-9783-a1c8c09de7d8)
 
 <sub>See more examples on <a href="https://www.pycaps.com/">pycaps.com</a></sub>
 

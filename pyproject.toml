@@ -10,7 +10,7 @@ authors = [
 ]
 description = "A Python tool to edit videos and automatically add CSS-styled subtitles to videos."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.13"
 license = {text = "MIT License"}
 keywords = ["video", "subtitles", "video editing", "whisper", "captions"]
 classifiers = [
