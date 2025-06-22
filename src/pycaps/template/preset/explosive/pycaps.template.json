@@ -49,24 +49,17 @@
     "sound_effects": [
         {
             "type": "preset",
-            "name": "whoosh",
-            "when": "narration-ends",
-            "what": "segment",
-            "tag_condition": "not 'last-segment-in-document'"
-        },
-        {
-            "type": "preset",
             "name": "ding",
             "when": "narration-starts",
             "what": "word",
-            "volume": 0.25,
+            "volume": 0.2,
             "tag_condition": "highlighted"
         }
     ],
     "tagger_rules": [
         {
-            "type": "regex",
-            "regex": "ayuno intermitente",
+            "type": "ai",
+            "prompt": "the most important phrase or word in all the script",
             "tag": "highlighted"
         }
     ]

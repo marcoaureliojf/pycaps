@@ -112,8 +112,8 @@ class JsonConfigLoader:
                     self._builder.add_effect(
                         SoundEffect(
                             sound,
-                            effect.what,
                             effect.when,
+                            effect.what,
                             self._build_tag_condition(effect.tag_condition),
                             effect.offset,
                             effect.volume,
