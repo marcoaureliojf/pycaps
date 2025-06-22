@@ -5,7 +5,7 @@ from .api_key_service import ApiKeyService
 from time import sleep
 from pycaps.logger import logger
 
-_PYCAPS_API_URL = "http://localhost:3000/api/process"
+_PYCAPS_API_URL = "http://pycaps.com/api/process"
 _MAX_RETRIES = 5
 _SESSION_ID = str(uuid.uuid4())
 

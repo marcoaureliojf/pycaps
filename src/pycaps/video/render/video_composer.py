@@ -5,7 +5,6 @@ import subprocess
 import os
 import tempfile
 import math
-import time
 import shutil
 from typing import Tuple, List, Optional
 from .media_element import MediaElement
@@ -125,7 +124,7 @@ class VideoComposer:
             try:
                 process.stdin.write(frame.astype(np.uint8).tobytes())
             except BrokenPipeError:
-                print("FFmpeg process died early.")
+                logger().error("FFmpeg process died early.")
                 break
             frame_idx += 1
 
@@ -246,23 +245,15 @@ class VideoComposer:
                 p.start()
             for p in jobs:
                 p.join()
-            start = time.time()
             merged_parts = os.path.join(temp_dir, "merged_parts.mp4")
             self._merge_parts(part_paths, merged_parts)
-            print(f"self._merge_parts took {time.time()-start}")
             final = self._output
-            start = time.time()
             self._mux_audio(merged_parts, final)
-            print(f"self._mux_audio took {time.time()-start}")
         else:
             # Single-process
-            start = time.time()
             tmp = os.path.join(temp_dir, "partial.mp4")
             self._render_range(self._output_from_frame, self._output_to_frame, tmp, video_quality)
-            middle = time.time()
-            print(f"self._render_range took {middle-start}")
             self._mux_audio(tmp, self._output)
-            print(f"self._mux_audio took {time.time()-middle}")
         
         shutil.rmtree(temp_dir)
 
