@@ -18,9 +18,16 @@ class AnimateSegmentEmojisEffect(ClipEffect):
 
     CACHE_DIR = Path.home() / ".pycaps" / "assets" / "emojis"
     VERSION_FILE = CACHE_DIR / "version.txt"
-
-    def __init__(self):
+    
+    def run(self, document: Document) -> None:
         self._ensure_assets_are_downloaded()
+
+        tag_condition = TagConditionFactory.HAS(BuiltinTag.EMOJI_FOR_SEGMENT)
+        for word in document.get_words():
+            if not tag_condition.evaluate(list(word.semantic_tags)):
+                continue
+            for clip in word.clips:
+                self.__animate_emoji_if_possible(clip)
 
     def _ensure_assets_are_downloaded(self):
         local_version = self._get_local_version()
@@ -78,14 +85,6 @@ class AnimateSegmentEmojisEffect(ClipEffect):
         if not self.VERSION_FILE.exists():
             return "0.0.0"
         return self.VERSION_FILE.read_text().strip()
-    
-    def run(self, document: Document) -> None:
-        tag_condition = TagConditionFactory.HAS(BuiltinTag.EMOJI_FOR_SEGMENT)
-        for word in document.get_words():
-            if not tag_condition.evaluate(list(word.semantic_tags)):
-                continue
-            for clip in word.clips:
-                self.__animate_emoji_if_possible(clip)
 
     def __animate_emoji_if_possible(self, clip: WordClip) -> None:
         from pycaps.video.render import PngSequenceElement
