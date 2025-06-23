@@ -2,6 +2,7 @@
 
 [![Status](https://img.shields.io/badge/status-alpha-orange.svg)](https://github.com/francozanardi/pycaps)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
 
 **pycaps** is a Python tool for adding CSS styled subtitles to videos. It's designed as both a programmable library and a command-line interface (CLI), making it perfect for automating the creation of dynamic content for platforms like TikTok, YouTube Shorts, and Instagram Reels.
 
@@ -21,22 +22,33 @@
 *   **Dual Interface**: Use it as a simple CLI for quick renders or as a comprehensive Python library for programmatic video creation.
 *   **Offline-First**: The core transcription, styling, and rendering engine runs entirely on your local machine. An internet connection is only needed for optional AI-powered features that require contextual understanding of your script.
 
+## Prerequisites
+
+Before installing, please ensure your environment meets the following requirements:
+
+*   **Python Version**: `pycaps` was tested on **Python 3.10, 3.11, and 3.12**. Other versions may present issues.
+
+*   **FFmpeg**: You need to have FFmpeg installed on your system and accessible from your command line's `PATH`. This is essential for all audio and video processing tasks.
+    *   You can download it from [ffmpeg.org](https://ffmpeg.org/download.html) and follow a guide to add it to your system's `PATH`.
+
 ## Installation
 
 pycaps is currently in a very alpha stage and is not yet available on PyPI. You can install it directly from the GitHub repository.
 
-1.  **Install the package using pip:**
+1.  **Install FFmpeg**: Ensure you have completed the prerequisite step above.
+
+2.  **Install pycaps from GitHub:**
     ```bash
     pip install git+https://github.com/francozanardi/pycaps.git
     ```
 
-2.  **Install browser dependencies for rendering:**
-    pycaps uses Playwright to render CSS styles. You need to install its browser dependency (one-time setup):
+3.  **Install Browser Dependencies for Rendering:**
+    `pycaps` uses Playwright to render CSS styles. You need to install its browser dependency (this is a one-time setup):
     ```bash
     playwright install chromium
     ```
 
-> ⚠️ **Note**: The first time you use `pycaps`, it may download the Whisper model. This only happens once and is required for transcription.
+> ⚠️ **Note**: The first time you use `pycaps`, it will also download a Whisper AI model for transcription. This may take a few minutes and only happens once.
 
 ## Quick Start
 

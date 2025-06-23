@@ -4,9 +4,6 @@ import numpy as np
 import os
 import subprocess
 import re
-from imageio_ffmpeg import get_ffmpeg_exe
-
-ffmpeg_exe = get_ffmpeg_exe()
 
 class VideoElement(MediaElement):
 
@@ -25,7 +22,7 @@ class VideoElement(MediaElement):
         return self._frames[idx].copy()
 
     def _load_metadata(self, path: str) -> None:
-        cmd = [ffmpeg_exe, "-hide_banner", "-i", path]
+        cmd = ["ffmpeg", "-hide_banner", "-i", path]
         proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         stderr = proc.stderr
 

@@ -11,10 +11,7 @@ from .media_element import MediaElement
 from .audio_element import AudioElement
 from pycaps.logger import logger
 from pycaps.common import VideoQuality
-from imageio_ffmpeg import get_ffmpeg_exe
 from tqdm import tqdm
-
-ffmpeg_exe = get_ffmpeg_exe()
 
 # TODO: we need to create a new class VideoFile (or something like that)
 #  then, the composer should receive a VideoFile instance
@@ -80,7 +77,7 @@ class VideoComposer:
         duration = (end_frame - start_frame) / self._input_fps
 
         ffmpeg_cmd = [
-            ffmpeg_exe,
+            "ffmpeg",
             "-y",
             # Input video
             "-f", "rawvideo",
@@ -147,7 +144,7 @@ class VideoComposer:
                 f.write(f"file '{os.path.abspath(p)}'\n")
         # Merge using ffmpeg
         cmd = [
-            ffmpeg_exe, "-y",
+            "ffmpeg", "-y",
             "-f", "concat",
             "-safe", "0",
             "-i", list_path,
@@ -164,25 +161,18 @@ class VideoComposer:
         output_path: str,
         aac_bitrate: str = "192k"
     ) -> None:
+        if not self._audio_elements:
+            shutil.copyfile(video_path, output_path)
+            return
+
         from pydub import AudioSegment
         from pydub.effects import normalize
-        AudioSegment.converter = ffmpeg_exe
-        
+
         try:
             main_audio = AudioSegment.from_file(video_path)
         except Exception as e:
-            logger().error(f"unable to extract audio from video. Ignoring sound effects. Pydub error: {e}")
-
-        if not self._audio_elements:
-            ffmpeg_cmd = [
-                ffmpeg_exe, "-y",
-                "-i", video_path,
-                "-c", "copy",
-                output_path,
-                "-loglevel", "error",
-                "-hide_banner"
-            ]
-            subprocess.run(ffmpeg_cmd, check=True)
+            logger().error(f"Unable to extract audio from video. Ignoring sound effects. Pydub error: {e}")
+            self._copy_video(video_path, output_path)
             return
 
         final_mix = main_audio
@@ -209,7 +199,7 @@ class VideoComposer:
         try:
             normalized_mix.export(temp_audio_path, format="wav")
             ffmpeg_cmd = [
-                ffmpeg_exe, "-y",
+                "ffmpeg", "-y",
                 "-i", video_path,
                 "-i", temp_audio_path,
                 "-map", "0:v",
