@@ -41,7 +41,7 @@ class VideoElement(MediaElement):
     def _load_frames_with_ffmpeg(self, path: str):
         w, h = self._size
         cmd = [
-            ffmpeg_exe, "-i", path, "-f", "rawvideo", "-pix_fmt", "rgba",
+            "ffmpeg", "-i", path, "-f", "rawvideo", "-pix_fmt", "rgba",
             "-vf", f"scale={w}:{h}", "-hide_banner", "-loglevel", "error", "pipe:1"
         ]
         proc = subprocess.Popen(

@@ -1,6 +1,3 @@
-from . import bootstrap
-bootstrap.check_dependencies()
-
 from .pipeline import CapsPipeline, CapsPipelineBuilder, JsonConfigLoader
 from .renderer import CssSubtitleRenderer
 from .transcriber import WhisperAudioTranscriber, AudioTranscriber, LimitByWordsSplitter, LimitByCharsSplitter

@@ -15,6 +15,7 @@ from .subtitle_data_service import SubtitleDataService
 from pycaps.transcriber import TranscriptionEditor
 from pycaps.logger import logger, ProcessLogger
 from pycaps.utils import time_utils
+from pycaps.bootstrap import check_dependencies
 
 class CapsPipeline:
     def __init__(self):
@@ -50,6 +51,8 @@ class CapsPipeline:
         """
         Runs the pipeline to process a video.
         """
+        check_dependencies()
+
         start_time = time.time()
         try:
             self._process_logger: ProcessLogger = ProcessLogger(6 if self._subtitle_data_path_for_loading else 10)
