@@ -41,9 +41,6 @@ class CapsPipelineBuilder:
     
     def with_layout_options(self, layout_options: SubtitleLayoutOptions) -> "CapsPipelineBuilder":
         self._caps_pipeline._layout_options = layout_options
-        self._caps_pipeline._line_splitter = LineSplitter(layout_options)
-        self._caps_pipeline._layout_updater = LayoutUpdater(layout_options)
-        self._caps_pipeline._positions_calculator = PositionsCalculator(layout_options)
         return self
     
     def add_css(self, css_file_path: str) -> "CapsPipelineBuilder":

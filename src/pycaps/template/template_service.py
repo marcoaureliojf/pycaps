@@ -15,4 +15,7 @@ class TemplateService:
         return os.path.isdir(path) and os.path.isfile(os.path.join(path, CONFIG_FILE_NAME))
 
     def is_valid_builtin_template(self, name: str) -> bool:
-        return resources.files(BUILTIN_TEMPLATES_PACKAGE + "." + name).is_dir()
+        try:
+            return resources.files(BUILTIN_TEMPLATES_PACKAGE + "." + name).is_dir()
+        except:
+            return False

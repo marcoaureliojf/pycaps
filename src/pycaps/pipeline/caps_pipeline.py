@@ -19,13 +19,11 @@ from pycaps.bootstrap import check_dependencies
 
 class CapsPipeline:
     def __init__(self):
+        # Configuration attributes (set by builder)
         self._transcriber: AudioTranscriber = WhisperAudioTranscriber()
         self._renderer: SubtitleRenderer = CssSubtitleRenderer()
-        self._clips_generator: SubtitleClipsGenerator = SubtitleClipsGenerator(self._renderer)
-        self._word_width_calculator: WordWidthCalculator = WordWidthCalculator(self._renderer)
         self._semantic_tagger: SemanticTagger = SemanticTagger()
         self._structure_tagger: StructureTagger = StructureTagger()
-        self._video_generator: VideoGenerator = VideoGenerator()
         self._segment_splitters: list[BaseSegmentSplitter] = []
         self._animators: List[ElementAnimator] = []
         self._text_effects: List[TextEffect] = []
@@ -34,133 +32,211 @@ class CapsPipeline:
         self._should_save_subtitle_data: bool = True
         self._subtitle_data_path_for_loading: Optional[str] = None
         self._should_preview_transcription: bool = False
-
         self._layout_options = SubtitleLayoutOptions()
-        self._positions_calculator: PositionsCalculator = PositionsCalculator(self._layout_options)
-        self._line_splitter: LineSplitter = LineSplitter(self._layout_options)
-        self._layout_updater: LayoutUpdater = LayoutUpdater(self._layout_options)
-
         self._preview_time: Optional[Tuple[float, float]] = None
         self._input_video_path: Optional[str] = None
         self._output_video_path: Optional[str] = None
         self._resources_dir: Optional[str] = None
         self._cache_strategy: CacheStrategy = CacheStrategy.CSS_CLASSES_AWARE
-        self._process_logger: ProcessLogger
 
-    def run(self) -> None:
-        """
-        Runs the pipeline to process a video.
-        """
+        # Internal state attributes
+        self._video_generator: VideoGenerator = VideoGenerator()
+        self._clips_generator: Optional[SubtitleClipsGenerator] = None
+        self._word_width_calculator: Optional[WordWidthCalculator] = None
+        self._positions_calculator: Optional[PositionsCalculator] = None
+        self._line_splitter: Optional[LineSplitter] = None
+        self._layout_updater: Optional[LayoutUpdater] = None
+        self._video_width: Optional[int] = None
+        self._video_height: Optional[int] = None
+        self._is_prepared: bool = False
+
         check_dependencies()
 
-        start_time = time.time()
-        try:
-            self._process_logger: ProcessLogger = ProcessLogger(6 if self._subtitle_data_path_for_loading else 10)
-            self._process_logger.step(f"Starting caps pipeline execution: {self._input_video_path}")
-            self._output_video_path = self._ensure_mp4_output_path(self._output_video_path)
-            if self._preview_time:
-                self._video_generator.set_fragment_time(self._preview_time)
-            self._video_generator.start(self._input_video_path, self._output_video_path)
-            video_width, video_height = self._video_generator.get_video_size()
-            document = self._generate_subtitle_data(video_width, video_height)
-            
-            if self._should_preview_transcription:
-                document = TranscriptionEditor().run(document)
+    def prepare(self) -> None:
+        """
+        Initializes the pipeline environment. This method must be called first.
+        It sets up video and audio processing, calculates video dimensions,
+        and prepares the renderer.
+        """
+        if self._is_prepared:
+            logger().warning("Pipeline is already prepared. Skipping.")
+            return
 
-                # the transcription editor could have changed the structure, so we need to clear and add these tags again.
-                self._structure_tagger.clear(document)
-                self._structure_tagger.tag(document)
+        logger().info(f"Preparing pipeline for: {self._input_video_path}")
+        self._output_video_path = self._ensure_mp4_output_path(self._output_video_path)
 
-            if self._should_save_subtitle_data:
-                logger().debug("Saving subtitle data...")
-                subtitle_data_path = self._output_video_path.replace(os.path.splitext(self._input_video_path)[1], ".json")
-                subtitle_data_service = SubtitleDataService(subtitle_data_path)
-                subtitle_data_service.save(document)
-
-            self._process_logger.step("Generating subtitle clips...")
-            self._clips_generator.generate(document)
-
-            logger().debug("Updating elements max sizes...")
-            self._layout_updater.update_max_sizes(document)
-
-            logger().debug("Calculating words positions...")
-            self._positions_calculator.calculate(document, video_width, video_height)
-
-            logger().debug("Updating elements max positions...")
-            self._layout_updater.update_max_positions(document)
-
-            self._process_logger.step("Applying clip effects...")
-            for effect in self._clip_effects:
-                effect.set_renderer(self._renderer)
-                effect.run(document)
-
-            self._process_logger.step("Applying sound effects...")
-            for effect in self._sound_effects:
-                effect.run(document)
-
-            self._process_logger.step("Running animations...")
-            for animator in self._animators:
-                animator.run(document)
-
-            self._process_logger.step("Generating final video...")
-            self._video_generator.generate(document)
-
-            logger().info("The video has been rendered successfully!")
-        except Exception as e:
-            logger().error(f"An error occurred during caps pipeline execution: {e}")
-            raise e
-        finally:
-            logger().debug("Cleaning up resources...")
-            self._video_generator.close()
-            self._renderer.close()
-            logger().debug("Cleanup finished.")
-            logger().debug(f"Total time: {time.time() - start_time} seconds")
-
-    def _generate_subtitle_data(self, video_width: int, video_height: int) -> Document:
-        if self._subtitle_data_path_for_loading:
-            logger().debug("Loading subtitle data...")
-            subtitle_data_service = SubtitleDataService(self._subtitle_data_path_for_loading)
-            document = subtitle_data_service.load()
-            
-            logger().debug(f"Opening renderer for video dimensions: {video_width}x{video_height}")
-            resources_dir = Path(self._resources_dir) if self._resources_dir else None
-            self._renderer.open(video_width, video_height, resources_dir, self._cache_strategy)
-
-            self._cut_document_for_preview_time(document)
-            return document
+        if self._preview_time:
+            self._video_generator.set_fragment_time(self._preview_time)
         
-        self._process_logger.step("Transcribing audio...")
+        self._video_generator.start(self._input_video_path, self._output_video_path)
+        self._video_width, self._video_height = self._video_generator.get_video_size()
+
+        resources_dir = Path(self._resources_dir) if self._resources_dir else None
+        self._renderer.open(self._video_width, self._video_height, resources_dir, self._cache_strategy)
+        
+        # Initialize components that depend on the renderer and layout options
+        self._clips_generator = SubtitleClipsGenerator(self._renderer)
+        self._word_width_calculator = WordWidthCalculator(self._renderer)
+        self._positions_calculator = PositionsCalculator(self._layout_options)
+        self._line_splitter = LineSplitter(self._layout_options)
+        self._layout_updater = LayoutUpdater(self._layout_options)
+        
+        self._is_prepared = True
+        logger().info("Pipeline prepared successfully.")
+
+    def transcribe(self) -> Document:
+        """
+        Transcribes the video's audio track.
+        
+        This method should be called after `prepare()`. It runs the configured
+        audio transcriber and returns the initial Document object containing
+        word-level timestamps.
+
+        Returns:
+            Document: The transcribed document object.
+        """
+        if not self._is_prepared:
+            raise RuntimeError("Pipeline not prepared. Call prepare() before transcribe().")
+
+        logger().info("Transcribing audio...")
         document = self._transcriber.transcribe(self._video_generator.get_audio_path())
-        if len(document.segments) == 0:
-            raise RuntimeError("Transcription returned no segments. Subtitles will not be added.")
+        if not document.segments:
+            raise RuntimeError("Transcription returned no segments.")
         
-        logger().debug("Running segments splitters...")
+        return document
+
+    def process_document(self, document: Document) -> Document:
+        """
+        Applies all processing steps to a transcribed document.
+
+        This includes splitting segments, calculating layout, applying tags,
+        and running text effects. This is the stage where the subtitle
+        structure and content are finalized before rendering.
+
+        Args:
+            document (Document): The document object to process, typically from `transcribe()`.
+
+        Returns:
+            Document: The fully processed document, ready for rendering.
+        """
+        if not self._is_prepared:
+            raise RuntimeError("Pipeline not prepared. Call prepare() before process_document().")
+
+        logger().info("Processing document...")
+        
+        logger().debug("Running segment splitters...")
         for splitter in self._segment_splitters:
             splitter.split(document)
 
-        logger().debug(f"Opening renderer for video dimensions: {video_width}x{video_height}")
-        resources_dir = Path(self._resources_dir) if self._resources_dir else None
-        self._renderer.open(video_width, video_height, resources_dir, self._cache_strategy)
-
-        self._process_logger.step("Calculating layout...")
-        logger().debug("Calculating words widths...")
-        # Keep in mind this is an approximation, since the words/lines do not have the tags yet
-        # We use this to split into lines, but after adding the tags the words witdhs can change,
-        # and therefore the max_width per line could be exceeded.
+        logger().debug("Calculating initial word widths for layout...")
         self._word_width_calculator.calculate(document)
 
         logger().debug("Splitting segments into lines...")
-        self._line_splitter.split_into_lines(document, video_width)
+        self._line_splitter.split_into_lines(document, self._video_width)
 
-        self._process_logger.step("Running taggers...")
+        logger().debug("Applying structure and semantic tags...")
         self._structure_tagger.tag(document)
         self._semantic_tagger.tag(document)
 
-        self._process_logger.step("Applying text effects...")
+        logger().debug("Applying text effects...")
         for effect in self._text_effects:
             effect.run(document)
 
+        if self._should_preview_transcription:
+            logger().info("Launching transcription editor...")
+            document = TranscriptionEditor().run(document)
+            # After editing, structural tags need to be reapplied
+            self._structure_tagger.clear(document)
+            self._structure_tagger.tag(document)
+
+        if self._should_save_subtitle_data:
+            subtitle_data_path = self._output_video_path.replace(".mp4", ".json")
+            logger().debug(f"Saving subtitle data to {subtitle_data_path}")
+            SubtitleDataService(subtitle_data_path).save(document)
+
         return document
+
+    def render(self, document: Document) -> None:
+        """
+        Renders the final video using a fully processed document.
+
+        This method generates the visual clips for subtitles, applies animations
+        and effects, and composites everything into the final video file.
+
+        Args:
+            document (Document): The processed document from `process_document()`.
+        """
+        if not self._is_prepared:
+            raise RuntimeError("Pipeline not prepared. Call prepare() before render().")
+
+        logger().info("Starting final video render...")
+        
+        try:
+            logger().info("Generating subtitle clips...")
+            self._clips_generator.generate(document)
+
+            logger().debug("Updating layout sizes and positions...")
+            self._layout_updater.update_max_sizes(document)
+            self._positions_calculator.calculate(document, self._video_width, self._video_height)
+            self._layout_updater.update_max_positions(document)
+
+            logger().info("Applying clip and sound effects...")
+            for effect in self._clip_effects:
+                effect.set_renderer(self._renderer)
+                effect.run(document)
+            for effect in self._sound_effects:
+                effect.run(document)
+
+            logger().info("Applying animations...")
+            for animator in self._animators:
+                animator.run(document)
+
+            logger().info("Generating final video file...")
+            self._video_generator.generate(document)
+
+            logger().info(f"Video rendered successfully to {self._output_video_path}!")
+
+        except Exception as e:
+            logger().error(f"An error occurred during rendering: {e}")
+            raise e
+        finally:
+            self.close()
+            logger().debug(f"Render and cleanup finished.")
+
+    def close(self) -> None:
+        """
+        Cleans up all resources used by the pipeline, such as temporary files
+        and renderer instances. Should be called after processing is complete.
+        """
+        logger().debug("Cleaning up pipeline resources...")
+        self._video_generator.close()
+        self._renderer.close()
+        self._is_prepared = False
+
+    def run(self) -> None:
+        """
+        Runs the entire pipeline from start to finish.
+        
+        This is a convenience method that calls `prepare`, `transcribe`,
+        `process_document`, and `render` in sequence.
+        """
+        start_time = time.time()
+        try:
+            self.prepare()
+            
+            # If a subtitle data file is provided, load it and skip transcription/processing.
+            if self._subtitle_data_path_for_loading:
+                logger().info(f"Loading subtitle data from: {self._subtitle_data_path_for_loading}")
+                document = SubtitleDataService(self._subtitle_data_path_for_loading).load()
+                self._cut_document_for_preview_time(document)
+            else:
+                initial_document = self.transcribe()
+                document = self.process_document(initial_document)
+            
+            self.render(document)
+        
+        finally:
+            logger().info(f"Total pipeline execution time: {time.time() - start_time:.2f} seconds")
 
     def _cut_document_for_preview_time(self, document: Document):
         if not self._preview_time:
@@ -181,6 +257,5 @@ class CapsPipeline:
     def _ensure_mp4_output_path(self, output_path: Optional[str]) -> str:
         if output_path is None:
             return f"output_{time.strftime('%Y%m%d_%H%M%S')}.mp4"
-
         base, _ = os.path.splitext(output_path)
         return base + ".mp4"
