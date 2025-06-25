@@ -1,5 +1,5 @@
 from .base_transcriber import AudioTranscriber
-from typing import Optional
+from typing import Optional, Any
 from pycaps.common import Document, Segment, Line, Word, TimeFragment
 from pycaps.logger import logger
 
