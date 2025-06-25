@@ -7,6 +7,7 @@ from .rendered_image_cache import RenderedImageCache
 from .playwright_screenshot_capturer import PlaywrightScreenshotCapturer
 from .renderer_page import RendererPage
 from .letter_size_cache import LetterSizeCache
+from .subtitle_renderer import SubtitleRenderer
 
 if TYPE_CHECKING:
     from playwright.sync_api import Page, Browser, Playwright
@@ -18,15 +19,18 @@ class CssSubtitleRenderer:
     DEFAULT_VIEWPORT_HEIGHT_RATIO: float = 0.25
     DEFAULT_MIN_VIEWPORT_HEIGHT: int = 150
 
-    def __init__(self):
+    def __init__(self, browser: Optional[Browser] = None):
         """
         Renders subtitles using HTML and CSS via Playwright.
+
+        Args:
+            browser: (Optional) A pre-launched Playwright browser instance.
         """
 
-        self.playwright_context: Optional[Playwright] = None
-        self.browser: Optional[Browser] = None
-        self.page: Optional[Page] = None
-        self.tempdir: Optional[tempfile.TemporaryDirectory] = None
+        self._playwright_context: Optional[Playwright] = None
+        self._browser: Optional[Browser] = browser
+        self._page: Optional[Page] = None
+        self._tempdir: Optional[tempfile.TemporaryDirectory] = None
         self._custom_css: str = ""
         self._cache_strategy = CacheStrategy.CSS_CLASSES_AWARE
         self._image_cache: RenderedImageCache = None
@@ -42,7 +46,7 @@ class CssSubtitleRenderer:
         """Initializes Playwright and loads the base HTML page."""
         from playwright.sync_api import sync_playwright
 
-        if self.page:
+        if self._page:
             raise RuntimeError("Renderer is already open. Call close() first.")
 
         calculated_vp_height = max(self.DEFAULT_MIN_VIEWPORT_HEIGHT, int(video_height * self.DEFAULT_VIEWPORT_HEIGHT_RATIO))
@@ -50,34 +54,35 @@ class CssSubtitleRenderer:
         self._cache_strategy = cache_strategy
         self._image_cache = RenderedImageCache(self._custom_css, self._cache_strategy)
         self._letter_size_cache = LetterSizeCache(self._custom_css)
-        self.tempdir = tempfile.TemporaryDirectory()
-        self.playwright_context = sync_playwright().start()
-        try:
-            self.browser = self.playwright_context.chromium.launch()
-        except Exception as e:
-            raise RuntimeError(
-                "Playwright Chromium browser is not installed or failed to launch.\n"
-                "You can install it by running:\n\n"
-                "    playwright install chromium\n\n"
-                f"Full error:\n{str(e)}"
-            ) from e
-        context = self.browser.new_context(device_scale_factor=self.DEFAULT_DEVICE_SCALE_FACTOR, viewport={"width": video_width, "height": calculated_vp_height})
-        self.page = context.new_page()
+        self._tempdir = tempfile.TemporaryDirectory()
+        if not self._browser:
+            self._playwright_context = sync_playwright().start()
+            try:
+                self._browser = self._playwright_context.chromium.launch()
+            except Exception as e:
+                raise RuntimeError(
+                    "Playwright Chromium browser is not installed or failed to launch.\n"
+                    "You can install it by running:\n\n"
+                    "    playwright install chromium\n\n"
+                    f"Full error:\n{str(e)}"
+                ) from e
+        context = self._browser.new_context(device_scale_factor=self.DEFAULT_DEVICE_SCALE_FACTOR, viewport={"width": video_width, "height": calculated_vp_height})
+        self._page = context.new_page()
         self._copy_resources_to_tempdir(resources_dir)
         path = self._create_html_page()
-        self.page.goto(path.as_uri())
+        self._page.goto(path.as_uri())
 
     def _create_html_page(self) -> Path:
-        if not self.tempdir:
+        if not self._tempdir:
             raise RuntimeError("self.tempdir is not defined. Do you call open() first?")
         
         html_template = self._renderer_page.get_html(custom_css=self._custom_css)
-        html_path = Path(self.tempdir.name) / "renderer_base.html"
+        html_path = Path(self._tempdir.name) / "renderer_base.html"
         html_path.write_text(html_template, encoding="utf-8")
         return html_path
 
     def _copy_resources_to_tempdir(self, resources_dir: Optional[Path] = None) -> None:
-        if not self.tempdir:
+        if not self._tempdir:
             raise RuntimeError("Temp directory must be initialized before copying resources.")
         if not resources_dir:
             return
@@ -86,11 +91,11 @@ class CssSubtitleRenderer:
         if not resources_dir.is_dir():
             raise RuntimeError(f"Resources path is not a directory: {resources_dir}")
 
-        destination = Path(self.tempdir.name)
+        destination = Path(self._tempdir.name)
         shutil.copytree(resources_dir, destination, dirs_exist_ok=True)
 
     def open_line(self, line: Line, line_state: ElementState):
-        if not self.page:
+        if not self._page:
             raise RuntimeError("Renderer is not open. Call open() first.")
         if self._current_line:
             raise RuntimeError("A line is already open. Call close_line() first.")
@@ -115,10 +120,10 @@ class CssSubtitleRenderer:
         """
         line_css_classes = self._renderer_page.get_line_css_classes(line.get_segment().get_tags(), line.get_tags(), line_state)
         words_css_classes = [self._renderer_page.get_word_css_classes(word.get_tags(), index) for index, word in enumerate(line.words)]
-        self.page.evaluate(script, [line.get_text(), line_css_classes, words_css_classes])
+        self._page.evaluate(script, [line.get_text(), line_css_classes, words_css_classes])
    
     def render_word(self, index: int, word: Word, state: ElementState, first_n_letters: Optional[int] = None) -> Optional['Image']:
-        if not self.page:
+        if not self._page:
             raise RuntimeError("Renderer is not open. Call open() first.")
         if not self._current_line:
             raise RuntimeError("No line is open. Call open_line() first.")
@@ -164,20 +169,20 @@ class CssSubtitleRenderer:
             return word.getBoundingClientRect();
         }}
         """
-        word_bounding_box = self.page.evaluate(script, [index, state.value, word.text, first_n_letters if first_n_letters else len(word.text)])
+        word_bounding_box = self._page.evaluate(script, [index, state.value, word.text, first_n_letters if first_n_letters else len(word.text)])
         try:
             if word_bounding_box["width"] <= 0 or word_bounding_box["height"] <= 0:
                 # HTML element is not visible (probably hidden by CSS).
                 self._image_cache.set(index, word.text, all_css_classes, first_n_letters, None)
                 return None
 
-            image = PlaywrightScreenshotCapturer.capture(self.page, word_bounding_box)
+            image = PlaywrightScreenshotCapturer.capture(self._page, word_bounding_box)
             self._image_cache.set(index, word.text, all_css_classes, first_n_letters, image)
             return image
         except Exception as e:
             raise RuntimeError(f"Error rendering word '{word.text}': {e}")
         finally:
-            self.page.evaluate(f"""
+            self._page.evaluate(f"""
             ([index, state]) => {{
                 const word = document.querySelector(`.word-${{index}}-in-line`);
                 word.classList.remove(state);
@@ -185,7 +190,7 @@ class CssSubtitleRenderer:
             """, [index, state.value])
     
     def close_line(self):
-        if not self.page:
+        if not self._page:
             raise RuntimeError("Renderer is not open. Call open() first.")
         if not self._current_line:
             raise RuntimeError("No line is open. Call open_line() first.")
@@ -194,7 +199,7 @@ class CssSubtitleRenderer:
         self._current_line_state = None
         
     def get_word_size(self, word: Word, line_state: ElementState, word_state: ElementState) -> Tuple[int, int]:
-        if not self.page:
+        if not self._page:
             raise RuntimeError("Renderer is not open. Call open() first.")
         if self._current_line:
             raise RuntimeError("A line process is in progress. Call close_line() first.")
@@ -241,7 +246,7 @@ class CssSubtitleRenderer:
             return letters_size;
         }}
         """
-        new_letters_size: Dict = self.page.evaluate(script, [not_cached_letters_size, line_css_classes, word_css_classes])
+        new_letters_size: Dict = self._page.evaluate(script, [not_cached_letters_size, line_css_classes, word_css_classes])
         for letter, size in new_letters_size.items():
             new_letters_size[letter] = Size(size['width'], size['height'])
 
@@ -254,16 +259,16 @@ class CssSubtitleRenderer:
 
     def close(self):
         """Closes Playwright and cleans up resources."""
-        if self.browser:
-            self.browser.close()
-            self.browser = None
-        if self.playwright_context:
-            self.playwright_context.stop()
-            self.playwright_context = None
-        if self.tempdir:
-            self.tempdir.cleanup()
-            self.tempdir = None
-        self.page = None
+        if self._playwright_context:
+            if self._browser:
+                self._browser.close()
+                self._browser = None
+            self._playwright_context.stop()
+            self._playwright_context = None
+        if self._tempdir:
+            self._tempdir.cleanup()
+            self._tempdir = None
+        self._page = None
 
     def __enter__(self):
         # Video dimensions are expected to be provided via an explicit call to open().

@@ -8,6 +8,7 @@ from pycaps.common import ElementType, EventType, VideoQuality, CacheStrategy
 from pycaps.tag import TagCondition, SemanticTagger, StructureTagger
 from pycaps.effect import TextEffect, ClipEffect, SoundEffect, Effect
 from pycaps.logger import logger
+from pycaps.renderer import SubtitleRenderer
 
 class CapsPipelineBuilder:
 
@@ -54,6 +55,10 @@ class CapsPipelineBuilder:
     
     def add_css_content(self, css_content: str) -> "CapsPipelineBuilder":
         self._caps_pipeline._renderer.append_css(css_content)
+        return self
+
+    def with_custom_subtitle_renderer(self, subtitle_renderer: SubtitleRenderer) -> "CapsPipelineBuilder":
+        self._caps_pipeline._renderer = subtitle_renderer
         return self
     
     def with_whisper_config(self, language: Optional[str] = None, model_size: str = "base") -> "CapsPipelineBuilder":

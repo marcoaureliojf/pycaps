@@ -1,7 +1,7 @@
 import time
 import os
 from pycaps.transcriber import AudioTranscriber, WhisperAudioTranscriber, BaseSegmentSplitter
-from pycaps.renderer import CssSubtitleRenderer
+from pycaps.renderer import SubtitleRenderer, CssSubtitleRenderer
 from pycaps.video import SubtitleClipsGenerator, VideoGenerator
 from pycaps.layout import WordWidthCalculator, PositionsCalculator, LineSplitter, LayoutUpdater
 from pycaps.tag import SemanticTagger, StructureTagger
@@ -20,7 +20,7 @@ from pycaps.bootstrap import check_dependencies
 class CapsPipeline:
     def __init__(self):
         self._transcriber: AudioTranscriber = WhisperAudioTranscriber()
-        self._renderer: CssSubtitleRenderer = CssSubtitleRenderer()
+        self._renderer: SubtitleRenderer = CssSubtitleRenderer()
         self._clips_generator: SubtitleClipsGenerator = SubtitleClipsGenerator(self._renderer)
         self._word_width_calculator: WordWidthCalculator = WordWidthCalculator(self._renderer)
         self._semantic_tagger: SemanticTagger = SemanticTagger()
