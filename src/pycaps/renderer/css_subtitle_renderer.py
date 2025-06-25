@@ -19,7 +19,7 @@ class CssSubtitleRenderer:
     DEFAULT_VIEWPORT_HEIGHT_RATIO: float = 0.25
     DEFAULT_MIN_VIEWPORT_HEIGHT: int = 150
 
-    def __init__(self, browser: Optional[Browser] = None):
+    def __init__(self, browser: Optional['Browser'] = None):
         """
         Renders subtitles using HTML and CSS via Playwright.
 
@@ -28,7 +28,7 @@ class CssSubtitleRenderer:
         """
 
         self._playwright_context: Optional[Playwright] = None
-        self._browser: Optional[Browser] = browser
+        self._browser: Optional['Browser'] = browser
         self._page: Optional[Page] = None
         self._tempdir: Optional[tempfile.TemporaryDirectory] = None
         self._custom_css: str = ""
