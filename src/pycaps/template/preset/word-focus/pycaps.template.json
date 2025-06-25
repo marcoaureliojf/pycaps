@@ -1,5 +1,6 @@
 {
     "css": "styles.css",
+    "resources": "resources",
     "layout": {
         "max_width_ratio": 0.75,
         "max_number_of_lines": 2,

@@ -25,3 +25,4 @@ class AiTagger:
             return ExternalLlmTagger().process(text, rules)
         else:
             logger().warning("Neither Pycaps API nor external LLM API key are set. Ignoring AI tagging rules.")
+            return text

@@ -1,5 +1,6 @@
 {
     "css": "styles.css",
+    "resources": "resources",
     "animations": [
         {
             "type": "fade_in",

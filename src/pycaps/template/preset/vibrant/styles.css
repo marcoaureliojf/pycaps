@@ -1,5 +1,10 @@
+@font-face {
+    font-family: 'CustomFont';
+    src: url('black.ttf') format('truetype');
+}
+
 .word {
-    font-family: 'Arial Black', 'Impact', sans-serif;
+    font-family: CustomFont, 'Impact', sans-serif;
     font-size: 26px;
     color: white;
     font-weight: 900;
