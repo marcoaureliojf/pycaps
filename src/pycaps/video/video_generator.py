@@ -21,6 +21,11 @@ class VideoGenerator:
     def set_fragment_time(self, fragment_time: tuple[float, float]):
         self._fragment_time = fragment_time
 
+    def get_sanitized_fragment_time(self) -> Optional[tuple[float, float]]:
+        if not self._has_video_generation_started:
+            raise RuntimeError("Video generation has not started. Call start() first.")
+        return self._fragment_time
+
     def start(self, input_video_path: str, output_video_path: str):
         from .render.video_composer import VideoComposer
 
@@ -30,13 +35,20 @@ class VideoGenerator:
         self._input_video_path = input_video_path
         self._output_video_path = output_video_path
         self._video_composer = VideoComposer(self._input_video_path, self._output_video_path)
+        self._sanitize_fragment_time()
         if self._fragment_time:
-            start = min(max(self._fragment_time[0], 0), self._video_composer.get_input_duration() - 2)
-            end = min(max(self._fragment_time[1], 0), self._video_composer.get_input_duration())
-            self._video_composer.cut_input(start, end)
+            self._video_composer.cut_input(self._fragment_time[0], self._fragment_time[1])
 
         self._audio_path = self._get_audio_path_to_transcribe()
         self._has_video_generation_started = True
+    
+    def _sanitize_fragment_time(self):
+        if not self._fragment_time:
+            return
+        
+        start = min(max(self._fragment_time[0], 0), self._video_composer.get_input_duration() - 2)
+        end = min(max(self._fragment_time[1], 0), self._video_composer.get_input_duration())
+        self._fragment_time = (start, end)
 
     def _get_audio_path_to_transcribe(self) -> str:
         from .render.audio_utils import extract_audio_for_whisper
