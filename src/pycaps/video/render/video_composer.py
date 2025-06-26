@@ -57,7 +57,7 @@ class VideoComposer:
         return self._input_total_frames * self._input_fps
     
     def cut_input(self, start: float, end: float) -> None:
-        if start >= end:
+        if start >= end or start < 0:
             raise ValueError(f"Invalid (start, end) for cutting video: {start, end}")
         self._output_from_frame = int(start * self._input_fps)
         self._output_to_frame = int(end * self._input_fps)
