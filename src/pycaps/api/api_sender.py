@@ -6,10 +6,18 @@ from time import sleep
 from pycaps.logger import logger
 
 _PYCAPS_API_URL = "http://pycaps.com/api/process"
-_MAX_RETRIES = 5
-_SESSION_ID = str(uuid.uuid4())
+_MAX_RETRIES = 3
+_SESSION_ID = None
+
+def start() -> None:
+    global _SESSION_ID
+
+    _SESSION_ID = str(uuid.uuid4())
 
 def send(feature_id: str, payload: dict) -> dict:
+    if not _SESSION_ID:
+        raise RuntimeError("Session id not set, start() should be called first.")
+    
     body = {
         "api_key": ApiKeyService.get(),
         "rendering_id": _SESSION_ID,
@@ -38,3 +46,8 @@ def send(feature_id: str, payload: dict) -> dict:
         
         logger().debug(f"Pycaps API error... trying again request again (response code: {response.status_code} | response text: {response.text})")
         sleep(2)
+
+def close() -> None:
+    global _SESSION_ID
+
+    _SESSION_ID = None

@@ -11,10 +11,14 @@ class PycapsTaggerApi:
         payload = {}
         payload["text"] = text
         payload["rules"] = [{"tag": tag.name, "prompt": prompt} for tag, prompt in rules.items()]
-        response = send(self._FEATURE_NAME, payload)
-        if (not response or not response.get("success", False) or not response.get("result", None)):
-            logger().error(f"Llm tagger API error: {response.get('error_message', '')}")
-            logger().error("Using text without tags instead")
+        try:
+            response = send(self._FEATURE_NAME, payload)
+            if (not response.get("success", False) or not response.get("result", None)):
+                logger().error(f"Llm tagger API error: {response.get('error_message', '')}")
+                logger().error("Using text without tags instead")
+                return text
+            else:
+                return response["result"]
+        except Exception as e:
+            logger().error(f"Unexpected error from API, ignoring AI tags feature. Error: {e}")
             return text
-        else:
-            return response["result"]

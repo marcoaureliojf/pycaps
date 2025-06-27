@@ -16,12 +16,17 @@ class EmojiInSegmentsApi:
         for segment in document.segments:
             segment_texts.append(segment.get_text())
         payload["segments"] = segment_texts
-        response = send(self._FEATURE_NAME, payload)
-        if not response or type(response) != list:
-            logger().error(f"Invalid response received by emoji in segments API: {response}")
+        try:
+            response = send(self._FEATURE_NAME, payload)
+            if not response or type(response) != list:
+                logger().error(f"Invalid response received API, ignoring emojies feature. Response: {response}")
+                self._cached_response = []
+            else:
+                self._cached_response = response
+        except Exception as e:
+            logger().error(f"Unexpected error from API, ignoring emojies feature. Error: {e}")
             self._cached_response = []
-        else:
-            self._cached_response = response
+        
 
     def get_emoji(self, segment: Segment) -> Optional[str]:
         if self._cached_response is None:

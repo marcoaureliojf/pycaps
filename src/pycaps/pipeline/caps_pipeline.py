@@ -16,6 +16,7 @@ from pycaps.transcriber import TranscriptionEditor
 from pycaps.logger import logger, ProcessLogger
 from pycaps.utils import time_utils
 from pycaps.bootstrap import check_dependencies
+import pycaps.api.api_sender as ApiSender
 
 class CapsPipeline:
     def __init__(self):
@@ -73,6 +74,8 @@ class CapsPipeline:
 
         resources_dir = Path(self._resources_dir) if self._resources_dir else None
         self._renderer.open(self._video_width, self._video_height, resources_dir, self._cache_strategy)
+
+        ApiSender.start()
         
         # Initialize components that depend on the renderer and layout options
         self._clips_generator = SubtitleClipsGenerator(self._renderer)
@@ -211,6 +214,7 @@ class CapsPipeline:
         logger().debug("Cleaning up pipeline resources...")
         self._video_generator.close()
         self._renderer.close()
+        ApiSender.close()
         self._is_prepared = False
 
     def run(self) -> None:
