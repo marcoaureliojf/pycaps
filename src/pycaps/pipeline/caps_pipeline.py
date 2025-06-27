@@ -70,6 +70,7 @@ class CapsPipeline:
             self._video_generator.set_fragment_time(self._preview_time)
         
         self._video_generator.start(self._input_video_path, self._output_video_path)
+        self._preview_time = self._video_generator.get_sanitized_fragment_time()
         self._video_width, self._video_height = self._video_generator.get_video_size()
 
         resources_dir = Path(self._resources_dir) if self._resources_dir else None
@@ -126,6 +127,9 @@ class CapsPipeline:
             raise RuntimeError("Pipeline not prepared. Call prepare() before process_document().")
 
         logger().info("Processing document...")
+
+        # TODO: we should create a document copy to avoid modify received document
+        self._cut_document_for_preview_time(document)
         
         logger().debug("Running segment splitters...")
         for splitter in self._segment_splitters:
@@ -175,6 +179,9 @@ class CapsPipeline:
         logger().info("Starting final video render...")
         
         try:
+            # TODO: we should create a document copy to avoid modify received document
+            self._cut_document_for_preview_time(document)
+
             logger().info("Generating subtitle clips...")
             self._clips_generator.generate(document)
 
