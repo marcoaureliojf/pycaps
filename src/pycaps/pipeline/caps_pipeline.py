@@ -3,7 +3,7 @@ import os
 from pycaps.transcriber import AudioTranscriber, WhisperAudioTranscriber, BaseSegmentSplitter
 from pycaps.renderer import SubtitleRenderer, CssSubtitleRenderer
 from pycaps.video import SubtitleClipsGenerator, VideoGenerator
-from pycaps.layout import WordWidthCalculator, PositionsCalculator, LineSplitter, LayoutUpdater
+from pycaps.layout import WordSizeCalculator, PositionsCalculator, LineSplitter, LayoutUpdater
 from pycaps.tag import SemanticTagger, StructureTagger
 from pycaps.animation import ElementAnimator
 from pycaps.layout import SubtitleLayoutOptions
@@ -43,7 +43,7 @@ class CapsPipeline:
         # Internal state attributes
         self._video_generator: VideoGenerator = VideoGenerator()
         self._clips_generator: Optional[SubtitleClipsGenerator] = None
-        self._word_width_calculator: Optional[WordWidthCalculator] = None
+        self._word_size_calculator: Optional[WordSizeCalculator] = None
         self._positions_calculator: Optional[PositionsCalculator] = None
         self._line_splitter: Optional[LineSplitter] = None
         self._layout_updater: Optional[LayoutUpdater] = None
@@ -80,7 +80,7 @@ class CapsPipeline:
         
         # Initialize components that depend on the renderer and layout options
         self._clips_generator = SubtitleClipsGenerator(self._renderer)
-        self._word_width_calculator = WordWidthCalculator(self._renderer)
+        self._word_size_calculator = WordSizeCalculator(self._renderer)
         self._positions_calculator = PositionsCalculator(self._layout_options)
         self._line_splitter = LineSplitter(self._layout_options)
         self._layout_updater = LayoutUpdater(self._layout_options)
@@ -136,7 +136,7 @@ class CapsPipeline:
             splitter.split(document)
 
         logger().debug("Calculating initial word widths for layout...")
-        self._word_width_calculator.calculate(document)
+        self._word_size_calculator.calculate(document)
 
         logger().debug("Splitting segments into lines...")
         self._line_splitter.split_into_lines(document, self._video_width)

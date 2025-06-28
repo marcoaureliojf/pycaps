@@ -71,6 +71,7 @@ class CssSubtitleRenderer:
         self._copy_resources_to_tempdir(resources_dir)
         path = self._create_html_page()
         self._page.goto(path.as_uri())
+        self._page.wait_for_load_state('networkidle')
 
     def _create_html_page(self) -> Path:
         if not self._tempdir:
