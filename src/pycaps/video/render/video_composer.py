@@ -12,6 +12,7 @@ from .audio_element import AudioElement
 from pycaps.logger import logger
 from pycaps.common import VideoQuality
 from tqdm import tqdm
+from .video_utils import get_rotation
 
 # TODO: we need to create a new class VideoFile (or something like that)
 #  then, the composer should receive a VideoFile instance
@@ -31,17 +32,33 @@ class VideoComposer:
     
     def _load_input_properties(self) -> None:
         cap = cv2.VideoCapture(self._input)
-        self._input_fps = cap.get(cv2.CAP_PROP_FPS)
-        if self._input_fps <= 0:
-            raise RuntimeError(f"Unable to get FPS from video {self._input}")
+        if not cap.isOpened():
+            raise RuntimeError(f"Unable to open video file: {self._input}")
+
         w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        if w <= 0 or h <= 0:
-            raise RuntimeError(f"Unable to get size from video {self._input}")
-        self._input_size: Tuple[int, int] = (w, h)
+        self._input_fps = cap.get(cv2.CAP_PROP_FPS)
         self._input_total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        if self._input_total_frames <= 0:
-            raise RuntimeError(f"Unable to get frame count for video {self._input}")
+        
+        if self._input_fps <= 0 or w <= 0 or h <= 0 or self._input_total_frames <= 0:
+            cap.release()
+            raise RuntimeError(f"Could not read valid properties from video: {self._input}")
+
+        rotation = get_rotation(self._input)
+        if rotation == 90:
+            self._rotation_flag = cv2.ROTATE_90_COUNTERCLOCKWISE
+            self._input_size = (h, w)
+        elif rotation == 180:
+            self._rotation_flag = cv2.ROTATE_180
+            self._input_size = (w, h)
+        elif rotation == 270:
+            self._rotation_flag = cv2.ROTATE_90_CLOCKWISE
+            self._input_size = (h, w)
+        else:
+            self._rotation_flag = None
+            self._input_size = (w, h)
+
+        logger().debug(f"Video dimensions: {self._input_size}")
         cap.release()
 
         self._output_from_frame = 0
@@ -119,6 +136,9 @@ class VideoComposer:
                 ret, frame = cap.read()
                 if not ret:
                     break
+
+                if self._rotation_flag is not None:
+                    frame = cv2.rotate(frame, self._rotation_flag)
 
                 for el in self._elements:
                     frame = el.render(frame, frame_idx / self._input_fps)
