@@ -1,6 +1,6 @@
 from .pipeline import CapsPipeline, CapsPipelineBuilder, JsonConfigLoader
 from .renderer import CssSubtitleRenderer
-from .transcriber import WhisperAudioTranscriber, AudioTranscriber, LimitByWordsSplitter, LimitByCharsSplitter
+from .transcriber import WhisperAudioTranscriber, GoogleAudioTranscriber, AudioTranscriber, LimitByWordsSplitter, LimitByCharsSplitter, SplitIntoSentencesSplitter
 from .effect import *
 from .animation import *
 from .selector import WordClipSelector

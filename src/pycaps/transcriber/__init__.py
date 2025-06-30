@@ -4,6 +4,7 @@ from .whisper_audio_transcriber import WhisperAudioTranscriber
 from .splitter import LimitByWordsSplitter, LimitByCharsSplitter, BaseSegmentSplitter, SplitIntoSentencesSplitter
 from .editor import TranscriptionEditor
 from .preview_transcriber import PreviewTranscriber
+from .google_audio_transcriber import GoogleAudioTranscriber
 
 __all__ = [
     "AudioTranscriber",
@@ -13,5 +14,6 @@ __all__ = [
     "BaseSegmentSplitter",
     "SplitIntoSentencesSplitter",
     "TranscriptionEditor",
-    "PreviewTranscriber"
+    "PreviewTranscriber",
+    "GoogleAudioTranscriber"
 ]

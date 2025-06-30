@@ -15,10 +15,21 @@ class Gpt(Llm):
         return os.getenv(self.OPENAI_API_KEY_NAME) is not None
 
     def _get_client(self):
-        from openai import OpenAI
+        try:
+            from openai import OpenAI
 
-        if self._client:
+            if self._client:
+                return self._client
+
+            self._client = OpenAI(api_key=os.getenv(self.OPENAI_API_KEY_NAME))
             return self._client
-
-        self._client = OpenAI(api_key=os.getenv(self.OPENAI_API_KEY_NAME))
-        return self._client
+        except ImportError:
+            raise ImportError(
+                "OpenAI API not found. "
+                "Please install it with: pip install openai"
+            )
+        except Exception as e:
+            raise RuntimeError(
+                f"Error initializing OpenAI client: {e}\n\n"
+                "Please ensure you have authenticated correctly via PYCAPS_OPENAI_API_KEY."
+            )
