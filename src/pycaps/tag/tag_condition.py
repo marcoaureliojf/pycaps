@@ -45,7 +45,7 @@ class TagConditionFactory:
     @staticmethod
     def NOT(condition: 'TagCondition|Tag') -> TagCondition:
         if isinstance(condition, Tag):
-            return TagHasCondition(condition)
+            condition = TagHasCondition(condition)
         return TagNotCondition(condition)
 
     @staticmethod
