@@ -4,13 +4,13 @@ from .base_transcriber import AudioTranscriber
 from .splitter import SplitIntoSentencesSplitter
 
 class GoogleAudioTranscriber(AudioTranscriber):
-    def __init__(self, language: str, model_id: str = 'video'):
+    def __init__(self, language: str, model_id: str = 'default'):
         """
         Transcribes audio using Google Cloud Speech-to-Text API.
         
         Args:
             language: Language code for the audio (e.g., "en-US", "es-ES").
-            model_id: The recognition model to use. 'video' is optimized for video audio.
+            model_id: The recognition model to use.
         """
         self._language = language
         self._model_id = model_id
