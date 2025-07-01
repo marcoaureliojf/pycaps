@@ -10,19 +10,32 @@
 
 ![demo-1](https://github.com/user-attachments/assets/fd2d3325-c986-4b6a-81ba-09c428577e61)
 ![demo-2](https://github.com/user-attachments/assets/9a789244-0387-4ac8-ab51-b3601447953e)
-![demo-3](https://github.com/user-attachments/assets/617826e4-d9b2-4c58-9783-a1c8c09de7d8)
 
 <sub>See more examples on <a href="https://www.pycaps.com/">pycaps.com</a></sub>
 
-## Try It Online
+## Try It Online (no installation needed!)
 
-You can try a simple demo of `pycaps` directly in your browser via [Hugging Face Spaces](https://huggingface.co/spaces/francozanardi/pycaps).
+You have two options to test `pycaps` directly in your browser. Choose the one that best fits your needs.
 
-> ⚠️ **Note**: This is a simplified demo version.
->
-> - It only showcases built-in templates and does not reflect the full customization capabilities of `pycaps` (e.g., custom CSS, animations, or tagging logic).
-> - Since Hugging Face Spaces are shared environments, **performance may be affected** if multiple users are running the demo simultaneously.
-> - For a smoother experience, we recommend **[duplicating the Space](https://huggingface.co/spaces/francozanardi/pycaps?duplicate=true)** to your own account and using it privately.
+### 1. Interactive Web Demo (on Hugging Face)
+
+Ideal for a **quick preview**, testing built-in templates, and **editing captions** with a user-friendly interface.
+
+[![Hugging Face Spaces](https://img.shields.io/badge/Launch%20Web%20Demo-Hugging%20Face-blue?logo=huggingface)](https://huggingface.co/spaces/francozanardi/pycaps)
+
+> **Keep in mind:**
+> *   This demo runs on a shared, CPU-only environment, so it's best for **short videos (< 60 seconds)**.
+> *   For a private, faster experience, you can **[duplicate the Space](https://huggingface.co/spaces/francozanardi/pycaps?duplicate=true)** for free.
+
+### 2. Full-Power Notebook (on Google Colab)
+
+The best choice for **processing longer videos** with **maximum transcription quality**, using a free GPU provided by Google.
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/18rNuiIwc2oHj6Mv--lSe-542qFirY5cg?usp=sharing)
+
+> **Keep in mind:**
+> *   The interface is a step-by-step code notebook, not a graphical UI.
+> *   You will be guided to enable the GPU for the best performance.
 
 ## Key Features
 
