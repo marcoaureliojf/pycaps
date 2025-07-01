@@ -35,7 +35,11 @@ class WhisperAudioTranscriber(AudioTranscriber):
         logger().debug(f"Whisper result: {result}")
         document = Document()
         for segment_info in result["segments"]:
-            segment_time = TimeFragment(start=float(segment_info["start"]), end=float(segment_info["end"]))
+            segment_start = float(segment_info["start"])
+            segment_end = float(segment_info["end"])
+            if segment_start == segment_end:
+                segment_end = segment_start + 0.01
+            segment_time = TimeFragment(start=segment_start, end=segment_end)
             segment = Segment(time=segment_time)
             line = Line(time=segment_time)
             segment.lines.add(line)
@@ -50,7 +54,11 @@ class WhisperAudioTranscriber(AudioTranscriber):
                 if not word_text:
                     continue
 
-                word_time = TimeFragment(start=float(word_entry["start"]), end=float(word_entry["end"]))
+                word_start = float(word_entry["start"])
+                word_end = float(word_entry["end"])
+                if word_start == word_end:
+                    word_end = word_start + 0.01
+                word_time = TimeFragment(start=word_start, end=word_end)
                 word = Word(text=word_text, time=word_time)
                 line.words.add(word) # so far is everything in one single line (we split it in next steps of the pipeline)
 

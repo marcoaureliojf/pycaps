@@ -59,6 +59,8 @@ class GoogleAudioTranscriber(AudioTranscriber):
         # Create one single Segment and Line to contain all words.
         start_time = all_words[0].start_time.total_seconds()
         end_time = all_words[-1].end_time.total_seconds()
+        if start_time == end_time:
+            end_time = start_time + 0.01
         
         segment_time = TimeFragment(start=start_time, end=end_time)
         segment = Segment(time=segment_time)
@@ -72,6 +74,8 @@ class GoogleAudioTranscriber(AudioTranscriber):
 
             word_start = word_info.start_time.total_seconds()
             word_end = word_info.end_time.total_seconds()
+            if word_start == word_end:
+                word_end = word_start + 0.01
             word_time = TimeFragment(start=word_start, end=word_end)
             word = Word(text=word_text, time=word_time)
             line.words.add(word)
