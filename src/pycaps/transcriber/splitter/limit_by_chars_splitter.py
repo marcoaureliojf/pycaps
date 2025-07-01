@@ -84,4 +84,4 @@ class LimitByCharsSplitter(BaseSegmentSplitter):
         if remaning_chars_count < self._min_limit:
             return len(words)
 
-        return current_index
+        return current_index if current_index > start_index else start_index + 1
