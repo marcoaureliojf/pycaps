@@ -31,7 +31,7 @@ Ideal for a **quick preview**, testing built-in templates, and **editing caption
 
 The best choice for **processing longer videos** with **maximum transcription quality**, using a free GPU provided by Google.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/18rNuiIwc2oHj6Mv--lSe-542qFirY5cg?usp=sharing)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/117g6xujecjLyXHBwhwyzx0innCMLh_nj?usp=sharing)
 
 > **Keep in mind:**
 > *   The interface is a step-by-step code notebook, not a graphical UI.
