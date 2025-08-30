@@ -2,7 +2,7 @@
 
 Some of pycaps' most powerful features, such as the AI-driven semantic tagger (`ai` tagger rule) and the automatic emoji effect (`emoji_in_segment`), rely on a Large Language Model (LLM) to understand the context of your script.
 
-To use these features, you need to provide an API key. You have two options.
+To use these features, you need to provide an API key. You have three options.
 
 ## Option 1: Use the Pycaps API (Recommended)
 
@@ -46,6 +46,20 @@ You can add this line to your shell profile (e.g., `~/.zshrc`, `~/.bash_profile`
 setx PYCAPS_OPENAI_API_KEY "sk-YourOpenAIKeyHere"
 ```
 You may need to restart your terminal for the change to take effect.
+
+## Option 3: Use Together API Key
+
+To use Together as your LLM provider, set the API key:
+
+```bash
+export TOGETHER_API_KEY="your-together-api-key"
+```
+
+Then configure pycaps:
+
+```bash
+pycaps config --set-api-key together $TOGETHER_API_KEY
+```
 
 ## How Pycaps Prioritizes Keys
 

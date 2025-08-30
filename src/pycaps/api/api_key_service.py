@@ -1,6 +1,24 @@
 from pycaps.common import ConfigService
+from typing import Optional
 
 class ApiKeyService:
+    _keys = {
+        "pycaps": None,
+        "openai": None,
+        "together": None,
+        "groq": None,
+        "openrouter": None,
+    }
+
+    @staticmethod
+    def set_key(provider: str, key: str):
+        if provider not in ApiKeyService._keys:
+            raise ValueError(f"Unknown provider: {provider}")
+        ApiKeyService._keys[provider] = key
+
+    @staticmethod
+    def get_key(provider: str) -> Optional[str]:
+        return ApiKeyService._keys.get(provider)
 
     API_KEY_CONFIG_KEY = "api_key"
 
