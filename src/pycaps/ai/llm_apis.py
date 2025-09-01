@@ -6,7 +6,7 @@ class TogetherLlm(Llm):
         self.api_key = api_key
 
     def send_message(self, message: str, model: str = "together-default") -> str:
-        url = "https://api.together.ai/v1/completions"
+        url = "https://api.together.xyz/v1"
         headers = {"Authorization": f"Bearer {self.api_key}"}
         payload = {"model": model, "prompt": message}
         response = requests.post(url, json=payload, headers=headers)
@@ -21,7 +21,7 @@ class GroqLlm(Llm):
         self.api_key = api_key
 
     def send_message(self, message: str, model: str = "groq-default") -> str:
-        url = "https://api.groq.com/v1/completions"
+        url = "https://api.groq.com/openai/v1/chat/completions"
         headers = {"Authorization": f"Bearer {self.api_key}"}
         payload = {"model": model, "prompt": message}
         response = requests.post(url, json=payload, headers=headers)
@@ -36,7 +36,7 @@ class OpenRouterLlm(Llm):
         self.api_key = api_key
 
     def send_message(self, message: str, model: str = "openrouter-default") -> str:
-        url = "https://api.openrouter.ai/v1/completions"
+        url = "https://openrouter.ai/api/v1"
         headers = {"Authorization": f"Bearer {self.api_key}"}
         payload = {"model": model, "prompt": message}
         response = requests.post(url, json=payload, headers=headers)

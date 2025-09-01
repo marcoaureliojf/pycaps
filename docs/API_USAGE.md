@@ -52,13 +52,17 @@ You may need to restart your terminal for the change to take effect.
 To use Together as your LLM provider, set the API key:
 
 ```bash
-export TOGETHER_API_KEY="your-together-api-key"
+export TOGETHER_API_KEY="your-together-api-key" 
+export GROQ_API_KEY="your-GROQ-api-key"
+export OPENROUTER_API_KEY="your-OPENROUTER-api-key"
 ```
 
 Then configure pycaps:
 
 ```bash
 pycaps config --set-api-key together $TOGETHER_API_KEY
+pycaps config --set-api-key groq $GROQ_API_KEY
+pycaps config --set-api-key openrouter $OPENROUTER_API_KEY
 ```
 
 ## How Pycaps Prioritizes Keys
